@@ -15,11 +15,11 @@ const FaceRecognition = {
     detectBase64: (file: File) => {
         const formData = new FormData();
         formData.append("file", file); // Поле називається "file", як у вашому контролері
-
-        return requests.post("/FaceRecognition/detect-base64", formData, {
+        //detect-base64
+        return requests.post("/FaceRecognition/detect-base64-with-names", formData, {
             headers: { "Content-Type": "multipart/form-data" }, // Налаштування для передачі файлів
         });
-    },
+    }, 
 
     detectBase64Video: (file: File) => {
         const formData = new FormData();

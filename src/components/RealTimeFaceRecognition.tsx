@@ -1,94 +1,137 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { detectBase64Video } from "../services/face-recognition-service";
 
+// Тип, щоб було зручно з TypeScript
+interface IFace {
+  name: string;
+  faceImageBase64: string;
+}
+
 const RealTimeFaceRecognition: React.FC = () => {
-    const videoRef = useRef<HTMLVideoElement | null>(null);
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-    const startVideo = () => {
-        if (navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices
-                .getUserMedia({ video: true })
-                .then((stream) => {
-                    if (videoRef.current) {
-                        videoRef.current.srcObject = stream;
-                    }
-                })
-                .catch((err) => console.error("Error accessing webcam: ", err));
+  // Тут зберігаємо масив облич, які повернув бекенд
+  const [recognizedFaces, setRecognizedFaces] = useState<IFace[]>([]);
+
+  // Функція для запуску відео з вебкамери
+  const startVideo = () => {
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((stream) => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
         }
-    };
+      })
+      .catch((err) => console.error("Error accessing webcam:", err));
+  };
 
-    const processFrame = async () => {
-        if (videoRef.current && canvasRef.current) {
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext("2d");
-            if (!ctx) return;
+  // Функція, яка знімає кадр і надсилає його на бекенд
+  const processFrame = async () => {
+    if (!videoRef.current || !canvasRef.current) return;
 
-            canvas.width = videoRef.current.videoWidth;
-            canvas.height = videoRef.current.videoHeight;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-            // Малюємо кадр з відео на canvas
-            ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    // Робимо canvas такого ж розміру, як і відео
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
 
-            // Отримуємо зображення з canvas у форматі base64
-            const base64Image = canvas.toDataURL("image/png");
-            const file = await fetch(base64Image)
-                .then((res) => res.blob())
-                .then(
-                    (blob) =>
-                        new File([blob], "frame.png", {
-                            type: "image/png",
-                        })
-                );
+    // Малюємо кадр з <video> у canvas (тимчасово)
+    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
-            try {
-                // Запит до бекенду
-                const response = await detectBase64Video(file);
-                const { faces } = response as any;
+    // Отримуємо DataURL (base64 зображення)
+    const base64Image = canvas.toDataURL("image/png");
 
-                // Малюємо прямокутники навколо облич
-                faces.forEach((face: any) => {
-                    ctx.strokeStyle = "red";
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(face.x, face.y, face.width, face.height);
-                });
-            } catch (error) {
-                console.error("Error processing frame:", error);
-            }
-        }
-    };
+    // Робимо з нього File, щоб відправити як FormData
+    const file = await fetch(base64Image)
+      .then((res) => res.blob())
+      .then(
+        (blob) =>
+          new File([blob], "frame.png", {
+            type: "image/png",
+          })
+      );
 
-    useEffect(() => {
-        startVideo();
-        const interval = setInterval(() => {
-            processFrame();
-        }, 100); // Обробка кадрів кожні 500 мс
-        return () => clearInterval(interval);
-    }, []);
+    try {
+      // Викликаємо ваш сервіс (axios) для звернення до бекенду
+      const response = await detectBase64Video(file);
 
-    return (
-        <div className="container mt-4">
-            <h2>Real-Time Face Recognition</h2>
-            <div style={{ position: "relative", display: "inline-block" }}>
-                <video
-                    ref={videoRef}
-                    autoPlay
-                    muted
-                    style={{ width: "640px", height: "480px", border: "1px solid black" }}
-                ></video>
-                <canvas
-                    ref={canvasRef}
-                    style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: "640px",
-                        height: "480px",
-                    }}
-                ></canvas>
-            </div>
-        </div>
-    );
+      // Бекенд має структуру: { message: string, faces: IFace[] }
+      const { faces } = response as any; // Перевірте регістр: у вас "faces" чи "Faces"?
+
+      // Перевіряємо, чи об’єкт faces існує і є масивом
+      if (Array.isArray(faces)) {
+        // Оновлюємо стан recognizedFaces
+        setRecognizedFaces(faces);
+      }
+    } catch (error) {
+      console.error("Error processing frame:", error);
+    }
+  };
+
+  // Викликаємо startVideo() один раз, коли компонент монтується
+  // І ставимо інтервал, наприклад, 1 раз на 5 секунд
+  useEffect(() => {
+    startVideo();
+    const interval = setInterval(() => {
+      processFrame();
+    }, 5000);
+
+    // При демонтуванні компонента інтервал очищається
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div style={{ display: "flex", gap: "20px" }}>
+      {/* Блок з відео + прихований canvas */}
+      <div style={{ position: "relative" }}>
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          style={{
+            width: "640px",
+            height: "480px",
+            border: "1px solid black",
+          }}
+        />
+        <canvas
+          ref={canvasRef}
+          style={{
+            display: "none", // не показуємо canvas
+          }}
+        />
+      </div>
+
+      {/* Блок, де показуємо список розпізнаних облич (name + mini-photo) */}
+      <div>
+        <h3>Recognized Faces</h3>
+        {recognizedFaces.map((face, i) => (
+          <div
+            key={i}
+            style={{
+              border: "1px solid #ccc",
+              padding: "10px",
+              marginBottom: "10px",
+            }}
+          >
+            <p>Name: {face.name}</p>
+
+            {/* Якщо faceImageBase64 не порожнє, відображаємо <img> */}
+            {face.faceImageBase64 && face.faceImageBase64.length > 0 && (
+              <img
+                src={`data:image/jpeg;base64,${face.faceImageBase64}`}
+                alt={face.name}
+                style={{ width: "100px", height: "auto" }}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 export default RealTimeFaceRecognition;
