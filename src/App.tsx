@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Route, Routes, NavLink } from "react-router-dom";
 import FaceUpload from "./components/FaceUpload";
 import RealTimeFaceRecognition from "./components/RealTimeFaceRecognition";
+import Login from "./components/LoginPage";
 
 const App: React.FC = () => {
     return (
@@ -12,7 +13,12 @@ const App: React.FC = () => {
                 <nav>
                     <ul style={{ listStyle: "none", display: "flex", gap: "15px" }}>
                         <li>
-                            <NavLink to="/" style={({ isActive }) => ({ color: isActive ? "blue" : "black" })}>
+                            <NavLink to="/"  className={({ isActive }) =>  `text-lg ${isActive ? "text-purple-500" : "text-gray-300"} hover:text-purple-300`}>
+                                Login
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/FaceUpload" style={({ isActive }) => ({ color: isActive ? "blue" : "black" })}>
                                 Face Upload
                             </NavLink>
                         </li>
@@ -26,7 +32,8 @@ const App: React.FC = () => {
 
                 {/* Маршрути */}
                 <Routes>
-                    <Route path="/" element={<FaceUpload />} />
+                    <Route path="/" element={<Login />} />
+                    <Route path="/FaceUpload" element={<FaceUpload />} />
                     <Route path="/real-time" element={<RealTimeFaceRecognition />} />
                 </Routes>
             </div>

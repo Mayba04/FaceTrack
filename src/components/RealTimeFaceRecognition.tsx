@@ -58,8 +58,7 @@ const RealTimeFaceRecognition: React.FC = () => {
       // Викликаємо ваш сервіс (axios) для звернення до бекенду
       const response = await detectBase64Video(file);
 
-      // Бекенд має структуру: { message: string, faces: IFace[] }
-      const { faces } = response as any; // Перевірте регістр: у вас "faces" чи "Faces"?
+      const { faces } = response as any; 
 
       // Перевіряємо, чи об’єкт faces існує і є масивом
       if (Array.isArray(faces)) {
