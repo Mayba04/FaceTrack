@@ -1,16 +1,8 @@
 import React, { useState } from "react";
-import { Form, Button, Upload } from 'antd';
-import { UploadOutlined, CloseCircleOutlined } from '@ant-design/icons';
-
-// Імпорт функції detectBase64 з сервісу
+import { Button, Card, Upload, Spin } from "antd";
+import { UploadOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import { detectBase64 } from "../services/face-recognition-service";
-
-const normFile = (e: any) => {
-  if (Array.isArray(e)) {
-    return e;
-  }
-  return e?.fileList;
-};
+import "./FaceUpload.css"; // Додано кастомні стилі
 
 const FaceUpload: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -47,7 +39,6 @@ const FaceUpload: React.FC = () => {
 
     setLoading(true);
     try {
-      // Використовуємо сервіс detectBase64
       const response = await detectBase64(file);
       const { imageBase64 } = response as any;
       if (imageBase64) {
@@ -63,78 +54,53 @@ const FaceUpload: React.FC = () => {
   };
 
   return (
-    <div className="container mt-4">
-      <h2 className="mb-4">Face Recognition App</h2>
-
-      <Form layout="vertical" onFinish={handleSubmit}>
-        <Form.Item
-          name="MainImageFile"
-          label="Головне зображення"
-          valuePropName="fileList"
-          getValueFromEvent={normFile}
-          rules={[
-            { required: true, message: 'Будь ласка, завантажте головне зображення!' },
-            {
-              validator: (_, fileList) => {
-                if (!fileList || fileList.length === 0) {
-                  return Promise.reject('Будь ласка, завантажте файл!');
-                }
-                const fileToCheck = fileList[0].originFileObj || fileList[0];
-                if (!/\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(fileToCheck.name)) {
-                  return Promise.reject('Невірний формат файлу!');
-                }
-                return Promise.resolve();
-              },
-            },
-          ]}
+    <div className="upload-container">
+      <Card className="upload-card">
+        <h2 className="upload-title">Face Recognition</h2>
+        <Upload
+          maxCount={1}
+          beforeUpload={() => false}
+          showUploadList={false}
+          onChange={handleFileChange}
         >
-          <Upload
-            maxCount={1}
-            beforeUpload={() => false}
-            showUploadList={false}
-            onChange={handleFileChange}
-          >
-            <Button icon={<UploadOutlined />}>Завантажити головне зображення</Button>
-          </Upload>
-        </Form.Item>
+          <Button type="primary" size="large" className="upload-button">
+            <UploadOutlined /> Upload Image
+          </Button>
+        </Upload>
 
-        {/* Прев'ю та кнопка видалення поза Form.Item */}
         {mainImagePreview && (
-          <div style={{ position: 'relative', display: 'inline-block', marginTop: '10px' }}>
+          <div className="image-preview-container">
             <img
               src={mainImagePreview}
               alt="Main Preview"
-              style={{
-                width: '100px',
-                height: '100px',
-                objectFit: 'cover'
-              }}
+              className="image-preview"
             />
             <Button
               onClick={handleMainImageRemove}
               type="text"
-              icon={<CloseCircleOutlined />}
-              style={{
-                position: 'absolute',
-                top: '-10px',
-                right: '-10px',
-                color: 'red',
-                fontSize: '20px',
-                background: 'transparent',
-              }}
+              icon={<CloseCircleOutlined style={{ color: "red", fontSize: "24px" }} />}
+              className="remove-image-button"
             />
           </div>
         )}
 
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading}>Надіслати</Button>
-        </Form.Item>
-      </Form>
+        <Button
+          onClick={handleSubmit}
+          disabled={loading || !file}
+          className="submit-button"
+          type="primary"
+          size="large"
+        >
+          {loading ? <Spin /> : "Submit"}
+        </Button>
+      </Card>
 
       {base64Image && (
-        <div className="mt-4">
-          <h3>Оброблене зображення:</h3>
-          <img src={base64Image} alt="Processed face" className="img-fluid" />
+        <div className="processed-image-container">
+          <Card className="processed-card">
+            <h3 className="processed-title">Processed Image:</h3>
+            <img src={base64Image} alt="Processed" className="processed-image" />
+          </Card>
         </div>
       )}
     </div>
