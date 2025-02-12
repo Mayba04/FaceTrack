@@ -1,43 +1,34 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes, NavLink } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "./store/reducers";
 import FaceUpload from "./components/FaceUpload";
 import RealTimeFaceRecognition from "./components/RealTimeFaceRecognition";
 import Login from "./components/LoginPage";
+import NotFound from "./components/NotFound";
+import HomePage from "./components/HomePage";
+import PrivateRoute from "./components/PrivateRoute";
+import Navbar from "./components/Navbar";
 
 const App: React.FC = () => {
-    return (
-        <Router>
-            <div>
-                <h1>Face Recognition App</h1>
-                {/* Навігація */}
-                <nav>
-                    <ul style={{ listStyle: "none", display: "flex", gap: "15px" }}>
-                        <li>
-                            <NavLink to="/"  className={({ isActive }) =>  `text-lg ${isActive ? "text-purple-500" : "text-gray-300"} hover:text-purple-300`}>
-                                Login
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/FaceUpload" style={({ isActive }) => ({ color: isActive ? "blue" : "black" })}>
-                                Face Upload
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/real-time" style={({ isActive }) => ({ color: isActive ? "blue" : "black" })}>
-                                Real-Time Recognition
-                            </NavLink>
-                        </li>
-                    </ul>
-                </nav>
+    const token = useSelector((state: RootState) => state.UserReducer.token);
 
-                {/* Маршрути */}
-                <Routes>
-                    <Route path="/" element={<Login />} />
+    return (
+        <div>
+            {token && <Navbar />} {/* Показуємо Navbar тільки якщо є токен */}
+
+            <Routes>
+                <Route path="/" element={token ? <HomePage /> : <Login />} />
+                <Route path="/login" element={<Login />} /> {/* 🔹 Додаємо окремий шлях для логіну */}
+
+                <Route element={<PrivateRoute />}>
                     <Route path="/FaceUpload" element={<FaceUpload />} />
                     <Route path="/real-time" element={<RealTimeFaceRecognition />} />
-                </Routes>
-            </div>
-        </Router>
+                </Route>
+
+                <Route path="*" element={<NotFound />} />
+            </Routes>
+        </div>
     );
 };
 

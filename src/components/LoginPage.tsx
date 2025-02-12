@@ -1,16 +1,26 @@
 import React from 'react';
-import { Form, Input, Button, Typography } from 'antd';
+import { Form, Input, Button, Typography, message } from 'antd';
 import { LockOutlined, UserOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { useDispatch, useSelector } from 'react-redux';
+import { loginUserAction } from '../store/action-creators/userActions';
+import { RootState } from '../store/reducers';
+import { useNavigate } from 'react-router-dom'; // ✅ Додаємо useNavigate
 
 const { Title, Text } = Typography;
 
 const Login: React.FC = () => {
-  const onFinish = (values: any) => {
-    console.log('Success:', values);
-  };
+  const dispatch = useDispatch();
+  const loading = useSelector((state: RootState) => state.UserReducer.loading);
+  const navigate = useNavigate(); // ✅ Використовуємо хук ТУТ
 
-  const onFinishFailed = (errorInfo: any) => {
-    console.log('Failed:', errorInfo);
+  const onFinish = async (values: any) => {
+    console.log('Logging in with:', values);
+
+    try {
+      await dispatch<any>(loginUserAction(values, navigate)); // ✅ Передаємо navigate у екшен
+    } catch (error) {
+      message.error('Login failed. Please check your credentials.' + error);
+    }
   };
 
   return (
@@ -53,7 +63,6 @@ const Login: React.FC = () => {
           name="login"
           initialValues={{ remember: true }}
           onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
           layout="vertical"
         >
           <Form.Item
@@ -84,9 +93,10 @@ const Login: React.FC = () => {
               htmlType="submit"
               size="large"
               block
+              loading={loading}
               style={{ background: '#1890ff', borderColor: '#1890ff' }}
             >
-              Sign In
+              {loading ? 'Signing In...' : 'Sign In'}
             </Button>
           </Form.Item>
         </Form>
@@ -94,7 +104,7 @@ const Login: React.FC = () => {
         <div style={{ textAlign: 'center' }}>
           <Text type="secondary">
             Don’t have an account?{' '}
-            <a href="#" style={{ color: '#1890ff' }}>
+            <a href="/InDevelopment" style={{ color: '#1890ff' }}>
               Sign Up
             </a>
           </Text>
