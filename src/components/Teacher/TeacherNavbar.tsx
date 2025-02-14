@@ -1,5 +1,5 @@
 import { Menu } from "antd";
-import { BookOutlined, LogoutOutlined } from "@ant-design/icons";
+import { BookOutlined, LogoutOutlined, TeamOutlined } from "@ant-design/icons";
 import { NavLink } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../store/action-creators/userActions";
@@ -15,6 +15,11 @@ const TeacherNavbar: React.FC = () => {
         },
         {
             key: "2",
+            icon: <TeamOutlined style={{ fontSize: "18px" }} />,
+            label: <NavLink to="/teacher/groups" style={{ fontSize: "18px" }}>My Groups</NavLink>,
+        },
+        {
+            key: "3",
             icon: <LogoutOutlined style={{ fontSize: "18px" }} />,
             label: <span style={{ fontSize: "18px", cursor: "pointer" }} onClick={() => dispatch(logout() as any)}>Logout</span>,
             style: { marginLeft: "auto" },

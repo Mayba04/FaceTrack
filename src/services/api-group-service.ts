@@ -1,0 +1,58 @@
+import instance from "./api-instance";
+
+const responseBody: any = (response: any) => response.data;
+
+const requests = {
+    get: (url: string, params?: any) => instance.get(url, { params }).then(responseBody),
+    post: (url: string, body?: any) => instance.post(url, body).then(responseBody),
+    put: (url: string, body?: any) => instance.put(url, body).then(responseBody),
+    delete: (url: string) => instance.delete(url).then(responseBody),
+};
+
+const Group = {
+    getTeacherGroups: (teacherId: string) => requests.get(`/group/teacher/${teacherId}`),
+    getAllGroups: () => requests.get("/group/getall"),
+    createGroup: (name: string, teacherId: string) => requests.post("/group/create", { name, teacherId }),
+    deleteGroup: (groupId: number) => requests.delete(`/group/delete/${groupId}`),
+};
+
+export async function fetchTeacherGroups(teacherId: string) {
+    try {
+        return await Group.getTeacherGroups(teacherId);
+    } catch (error) {
+        console.error("Error fetching groups:", error);
+        return { success: false, message: "Failed to fetch groups", error };
+    }
+}
+
+export async function fetchGroups() {
+    try {
+        const response = await Group.getAllGroups();
+        return response;
+    } catch (error) {
+        console.error("Error fetching groups:", error);
+        return { success: false, message: "Failed to fetch groups", error };
+    }
+}
+
+export async function createGroup(name: string, teacherId: string) {
+    try {
+        const response = await Group.createGroup(name,teacherId );
+        return response;
+    } catch (error) {
+        console.error("Error creating group:", error);
+        return { success: false, message: "Failed to create group", error };
+    }
+}
+
+export async function deleteGroup(groupId: number) {
+    try {
+        const response = await Group.deleteGroup(groupId);
+        return response;
+    } catch (error) {
+        console.error("Error deleting group:", error);
+        return { success: false, message: "Failed to delete group", error };
+    }
+}
+
+export default Group;
