@@ -21,6 +21,8 @@ export interface Group {
     CREATE_GROUP_ERROR = "CREATE_GROUP_ERROR",
     DELETE_GROUP_SUCCESS = "DELETE_GROUP_SUCCESS",
     DELETE_GROUP_ERROR = "DELETE_GROUP_ERROR",
+    UPDATE_GROUP_SUCCESS = "UPDATE_GROUP_SUCCESS",  
+    UPDATE_GROUP_ERROR = "UPDATE_GROUP_ERROR" 
   }
   
   interface StartRequestAction {
@@ -62,6 +64,17 @@ export interface Group {
     type: GroupActionTypes.DELETE_GROUP_ERROR;
     payload: string;
   }
+
+  interface UpdateGroupSuccessAction {
+    type: GroupActionTypes.UPDATE_GROUP_SUCCESS;
+    payload: { groupId: number; name: string };
+}
+
+interface UpdateGroupErrorAction {
+    type: GroupActionTypes.UPDATE_GROUP_ERROR;
+    payload: string;
+}
+
   
   export type GroupActions =
     | StartRequestAction
@@ -70,5 +83,7 @@ export interface Group {
     | CreateGroupSuccessAction
     | CreateGroupErrorAction
     | DeleteGroupSuccessAction
-    | DeleteGroupErrorAction;
+    | DeleteGroupErrorAction
+    | UpdateGroupSuccessAction  
+    | UpdateGroupErrorAction;   
   

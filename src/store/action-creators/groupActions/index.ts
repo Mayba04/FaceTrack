@@ -1,6 +1,5 @@
 import { Dispatch } from "redux";
-import { createGroup, fetchTeacherGroups } from "../../../services/api-group-service";
-// import { fetchGroups, createGroup, deleteGroup } from "../../../services/api-group-service";
+import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup } from "../../../services/api-group-service";
 import { GroupActionTypes, GroupActions } from "../../reducers/GroupReducer/types";
 import { message } from "antd";
 
@@ -102,24 +101,48 @@ export const createGroupAction = (name: string, teacherId: string) => {
     };
 };
 
+export const deleteGroupAction = (groupId: number) => {
+    return async (dispatch: Dispatch<GroupActions>) => {
+        dispatch({ type: GroupActionTypes.START_REQUEST });
 
-// export const deleteGroupAction = (groupId: number) => {
-//     return async (dispatch: Dispatch<GroupActions>) => {
-//         dispatch({ type: GroupActionTypes.START_REQUEST });
+        try {
+            const response = await deleteGroup(groupId);
+            const {  success, message } = response as any; 
+            if (success) {
+                dispatch({ type: GroupActionTypes.DELETE_GROUP_SUCCESS, payload: groupId });
+                message.success("Group deleted successfully!");
+            } else {
+                throw new Error(message);
+            }
+        } catch (error) {
+            console.error("Failed to delete group: ", error);
+            dispatch({ type: GroupActionTypes.DELETE_GROUP_ERROR, payload: "Error deleting group" });
+            message.error("Failed to delete group");
+        }
+    };
+};
 
-//         try {
-//             const response = await deleteGroup(groupId);
-//             const {  success, message } = response as any; 
-//             if (success) {
-//                 dispatch({ type: GroupActionTypes.DELETE_GROUP_SUCCESS, payload: groupId });
-//                 message.success("Group deleted successfully!");
-//             } else {
-//                 throw new Error(message);
-//             }
-//         } catch (error) {
-//             console.error("Failed to delete group: ", error);
-//             dispatch({ type: GroupActionTypes.DELETE_GROUP_ERROR, payload: "Error deleting group" });
-//             message.error("Failed to delete group");
-//         }
-//     };
-// };
+
+export const updateGroupAction = (groupId: number, name: string, teacherId: string) => {
+    return async (dispatch: Dispatch<GroupActions>) => {
+        dispatch({ type: GroupActionTypes.START_REQUEST });
+
+        try {
+            const response = await updateGroup(groupId, name, teacherId);
+            const { success, message } = response as any; 
+            if (success) {
+                dispatch({
+                    type: GroupActionTypes.UPDATE_GROUP_SUCCESS,
+                    payload: { groupId, name }
+                });
+            } else {
+                console.error("Error fetching groups:", message);
+                throw new Error(message);
+            }
+        } catch (error) {
+            console.error("Error fetching groups: ", error);
+            dispatch({ type: GroupActionTypes.UPDATE_GROUP_ERROR, payload: "Failed to update group" });
+            message.error("Failed to load groups");
+        }
+    };
+};

@@ -14,6 +14,7 @@ const Group = {
     getAllGroups: () => requests.get("/group/getall"),
     createGroup: (name: string, teacherId: string) => requests.post("/group/create", { name, teacherId }),
     deleteGroup: (groupId: number) => requests.delete(`/group/delete/${groupId}`),
+    updateGroup: (id: number, name: string, teacherId: string ) => requests.put(`/Group/update`, { name, id, teacherId}),
 };
 
 export async function fetchTeacherGroups(teacherId: string) {
@@ -54,5 +55,16 @@ export async function deleteGroup(groupId: number) {
         return { success: false, message: "Failed to delete group", error };
     }
 }
+
+export async function updateGroup(groupId: number, name: string, teacherId: string) {
+    try {
+        const response =await Group.updateGroup(groupId, name, teacherId);
+        return response;
+    } catch (error) {
+        console.error("Error deleting group:", error);
+        return { success: false, message: "Failed to delete group", error };
+    }
+}
+
 
 export default Group;

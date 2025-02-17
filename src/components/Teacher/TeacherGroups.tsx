@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Input, message, Spin, Card, Typography } from "antd";
+import { Table, Button, Modal, Input, message, Spin, Card, Typography, Space, Popconfirm } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
-import { createGroupAction, fetchGroupsAction } from "../../store/action-creators/groupActions";
-import { PlusOutlined } from "@ant-design/icons";
+import { createGroupAction, fetchGroupsAction, deleteGroupAction, updateGroupAction } from "../../store/action-creators/groupActions";
+import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -15,6 +15,7 @@ const TeacherGroups: React.FC = () => {
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [newGroupName, setNewGroupName] = useState<string>("");
+    const [editingGroup, setEditingGroup] = useState<{ id: number; name: string } | null>(null);
 
     useEffect(() => {
         if (teacherId) {
@@ -22,6 +23,7 @@ const TeacherGroups: React.FC = () => {
         }
     }, [teacherId, dispatch]);
 
+    // Створення групи
     const handleCreateGroup = async () => {
         if (!newGroupName.trim()) {
             message.warning("Please enter a group name.");
@@ -39,11 +41,69 @@ const TeacherGroups: React.FC = () => {
         }
     };
 
+    // Видалення групи
+    const handleDeleteGroup = async (groupId: number) => {
+        try {
+            await dispatch(deleteGroupAction(groupId));
+            message.success("Group deleted successfully!");
+        } catch (error) {
+            console.error("Failed to delete group: ", error);
+            message.error("Failed to delete group.");
+        }
+    };
+
+    // Відкриття модального вікна для редагування
+    const handleEditGroup = (group: { id: number; name: string }) => {
+        setEditingGroup(group);
+        setNewGroupName(group.name);
+        setIsModalOpen(true);
+    };
+
+    // Оновлення групи
+    const handleUpdateGroup = async () => {
+        if (!newGroupName.trim() || !editingGroup) {
+            message.warning("Please enter a valid group name.");
+            return;
+        }
+
+        try {
+            await dispatch(updateGroupAction(editingGroup.id, newGroupName, teacherId!));
+            setIsModalOpen(false);
+            setNewGroupName("");
+            setEditingGroup(null);
+            message.success("Group updated successfully!");
+        } catch (error) {
+            console.error("Failed to update group: ", error);
+            message.error("Failed to update group.");
+        }
+    };
+
     const columns = [
         {
             title: "Group Name",
             dataIndex: "name",
             key: "name",
+        },
+        {
+            title: "Actions",
+            key: "actions",
+            render: (_: any, record: { id: number; name: string }) => (
+                <Space>
+                    <Button icon={<EditOutlined />} onClick={() => handleEditGroup(record)}>
+                        Edit
+                    </Button>
+                    <Popconfirm
+                        title="Are you sure to delete this group?"
+                        onConfirm={() => handleDeleteGroup(record.id)}
+                        okText="Yes"
+                        cancelText="No"
+                    >
+                        <Button icon={<DeleteOutlined />} danger>
+                            Delete
+                        </Button>
+                    </Popconfirm>
+                </Space>
+            ),
         },
     ];
 
@@ -54,7 +114,10 @@ const TeacherGroups: React.FC = () => {
                 <Button 
                     type="primary" 
                     icon={<PlusOutlined />} 
-                    onClick={() => setIsModalOpen(true)} 
+                    onClick={() => {
+                        setEditingGroup(null);
+                        setIsModalOpen(true);
+                    }} 
                     style={{ width: "100%", marginBottom: "20px", height: "40px", fontSize: "16px" }}
                 >
                     Create New Group
@@ -72,13 +135,16 @@ const TeacherGroups: React.FC = () => {
                     />
                 )}
 
-                {/* Modal for creating a group */}
+                {/* Modal for creating/editing a group */}
                 <Modal
-                    title="Create a Group"
+                    title={editingGroup ? "Edit Group" : "Create a Group"}
                     open={isModalOpen}
-                    onCancel={() => setIsModalOpen(false)}
-                    onOk={handleCreateGroup}
-                    okText="Create"
+                    onCancel={() => {
+                        setIsModalOpen(false);
+                        setEditingGroup(null);
+                    }}
+                    onOk={editingGroup ? handleUpdateGroup : handleCreateGroup}
+                    okText={editingGroup ? "Update" : "Create"}
                     cancelText="Cancel"
                     centered
                 >

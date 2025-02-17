@@ -29,6 +29,7 @@ const GroupReducer = (state = initialState, action: GroupActions): GroupState =>
     case GroupActionTypes.FETCH_GROUPS_ERROR:
     case GroupActionTypes.CREATE_GROUP_ERROR:
     case GroupActionTypes.DELETE_GROUP_ERROR:
+    case GroupActionTypes.UPDATE_GROUP_ERROR: 
       return { ...state, loading: false, error: action.payload };
 
     case GroupActionTypes.CREATE_GROUP_SUCCESS: {
@@ -51,6 +52,15 @@ const GroupReducer = (state = initialState, action: GroupActions): GroupState =>
       return {
         ...state,
         groups: state.groups.filter((group) => group.id !== action.payload),
+        loading: false,
+      };
+    
+    case GroupActionTypes.UPDATE_GROUP_SUCCESS: 
+      return {
+        ...state,
+        groups: state.groups.map((group) =>
+          group.id === action.payload.groupId ? { ...group, name: action.payload.name } : group
+        ),
         loading: false,
       };
 
