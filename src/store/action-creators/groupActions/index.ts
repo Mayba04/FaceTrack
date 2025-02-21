@@ -1,36 +1,34 @@
 import { Dispatch } from "redux";
-import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup } from "../../../services/api-group-service";
+import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup, fetchGroupDetails } from "../../../services/api-group-service";
 import { GroupActionTypes, GroupActions } from "../../reducers/GroupReducer/types";
 import { message } from "antd";
 
-// export const fetchGroupsAction = () => {
-//     return async (dispatch: Dispatch<GroupActions>) => {
-//         dispatch({ type: GroupActionTypes.START_REQUEST });
+export const fetchGroupByIdAction = (groupId: number) => {
+    return async (dispatch: Dispatch<GroupActions>) => {
+        dispatch({ type: GroupActionTypes.START_REQUEST });
 
-//         try {
-//             const response = await fetchGroups();
-//             const { payload, success, message } = response as any; 
-//             if (success) {
-//                 dispatch({
-//                     type: GroupActionTypes.FETCH_GROUPS_SUCCESS,
-//                     payload: {
-//                         groups: payload,
-//                         currentPage: 1, 
-//                         totalPages: 1,
-//                         pageSize: payload.length,
-//                         totalCount: payload.length,
-//                     },
-//                 });
-//             } else {
-//                 throw new Error(message);
-//             }
-//         } catch (error) {
-//             console.error("Failed to load groups: ", error);
-//             dispatch({ type: GroupActionTypes.FETCH_GROUPS_ERROR, payload: "Error fetching groups" });
-//             message.error("Failed to load groups" + error );
-//         }
-//     };
-// };
+        try {
+            const response = await fetchGroupDetails(groupId);
+            console.log("✅ Group Details Response:", response);
+            const { payload, success, message } = response as any; 
+            if (success) {
+                dispatch({
+                    type: GroupActionTypes.FETCH_GROUP_BY_ID_SUCCESS,
+                    payload: payload,
+                });
+            } else {
+                throw new Error(message);
+            }
+        } catch (error: any) {
+            console.error("❌ Failed to fetch group details:", error?.message || error);
+            dispatch({
+                type: GroupActionTypes.FETCH_GROUP_BY_ID_ERROR,
+                payload: "Error fetching group details",
+            });
+            message.error(error?.message || "Failed to fetch group details.");
+        }
+    };
+};
 
 export const fetchGroupsAction = (teacherId: string) => {
     return async (dispatch: Dispatch<GroupActions>) => {

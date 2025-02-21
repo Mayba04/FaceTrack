@@ -4,6 +4,7 @@ export interface Group {
   }
   
   export interface GroupState {
+    group: Group | null;
     groups: Group[];
     loading: boolean;
     error: string | null;
@@ -22,7 +23,9 @@ export interface Group {
     DELETE_GROUP_SUCCESS = "DELETE_GROUP_SUCCESS",
     DELETE_GROUP_ERROR = "DELETE_GROUP_ERROR",
     UPDATE_GROUP_SUCCESS = "UPDATE_GROUP_SUCCESS",  
-    UPDATE_GROUP_ERROR = "UPDATE_GROUP_ERROR" 
+    UPDATE_GROUP_ERROR = "UPDATE_GROUP_ERROR",
+    FETCH_GROUP_BY_ID_SUCCESS = "FETCH_GROUP_BY_ID_SUCCESS",
+    FETCH_GROUP_BY_ID_ERROR = "FETCH_GROUP_BY_ID_ERROR",
   }
   
   interface StartRequestAction {
@@ -75,6 +78,15 @@ interface UpdateGroupErrorAction {
     payload: string;
 }
 
+interface FetchGroupByIdSuccessAction {
+  type: GroupActionTypes.FETCH_GROUP_BY_ID_SUCCESS;
+  payload: Group;
+}
+
+interface FetchGroupByIdErrorAction {
+  type: GroupActionTypes.FETCH_GROUP_BY_ID_ERROR;
+  payload: string;
+}
   
   export type GroupActions =
     | StartRequestAction
@@ -85,5 +97,7 @@ interface UpdateGroupErrorAction {
     | DeleteGroupSuccessAction
     | DeleteGroupErrorAction
     | UpdateGroupSuccessAction  
-    | UpdateGroupErrorAction;   
+    | UpdateGroupErrorAction
+    | FetchGroupByIdSuccessAction
+    | FetchGroupByIdErrorAction;   
   

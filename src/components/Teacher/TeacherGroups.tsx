@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { createGroupAction, fetchGroupsAction, deleteGroupAction, updateGroupAction } from "../../store/action-creators/groupActions";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 
@@ -12,6 +13,7 @@ const TeacherGroups: React.FC = () => {
     const groups = useSelector((state: RootState) => state.GroupReducer.groups);
     const loading = useSelector((state: RootState) => state.GroupReducer.loading);
     const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
 
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [newGroupName, setNewGroupName] = useState<string>("");
@@ -23,7 +25,6 @@ const TeacherGroups: React.FC = () => {
         }
     }, [teacherId, dispatch]);
 
-    // Створення групи
     const handleCreateGroup = async () => {
         if (!newGroupName.trim()) {
             message.warning("Please enter a group name.");
@@ -41,7 +42,6 @@ const TeacherGroups: React.FC = () => {
         }
     };
 
-    // Видалення групи
     const handleDeleteGroup = async (groupId: number) => {
         try {
             await dispatch(deleteGroupAction(groupId));
@@ -52,14 +52,12 @@ const TeacherGroups: React.FC = () => {
         }
     };
 
-    // Відкриття модального вікна для редагування
     const handleEditGroup = (group: { id: number; name: string }) => {
         setEditingGroup(group);
         setNewGroupName(group.name);
         setIsModalOpen(true);
     };
 
-    // Оновлення групи
     const handleUpdateGroup = async () => {
         if (!newGroupName.trim() || !editingGroup) {
             message.warning("Please enter a valid group name.");
@@ -78,11 +76,20 @@ const TeacherGroups: React.FC = () => {
         }
     };
 
+    const handleGroupClick = (groupId: number) => {
+        navigate(`/group/${groupId}`);
+    };
+
     const columns = [
         {
             title: "Group Name",
             dataIndex: "name",
             key: "name",
+            render: (text: string, record: { id: number }) => (
+                <a onClick={() => handleGroupClick(record.id)} style={{ cursor: "pointer" }}>
+                    {text}
+                </a>
+            ),
         },
         {
             title: "Actions",
@@ -135,7 +142,6 @@ const TeacherGroups: React.FC = () => {
                     />
                 )}
 
-                {/* Modal for creating/editing a group */}
                 <Modal
                     title={editingGroup ? "Edit Group" : "Create a Group"}
                     open={isModalOpen}

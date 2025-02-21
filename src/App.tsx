@@ -15,6 +15,7 @@ import AdminNavbar from "./components/AdminNavbar";
 import TeacherNavbar from "./components/Teacher/TeacherNavbar";
 import StudentNavbar from "./components/Student/StudentNavbar";
 import TeacherGroups from "./components/Teacher/TeacherGroups";
+import GroupDetails from "./components/Group/GroupDetails";
 
 const App: React.FC = () => {
     const token = useSelector((state: RootState) => state.UserReducer.token);
@@ -44,6 +45,7 @@ const App: React.FC = () => {
                 <Route element={<PrivateRoute allowedRoles={["Lecturer"]} />}>
                     <Route path="/teacher" element={<TeacherDashboard />} />
                     <Route path="/teacher/groups" element={<TeacherGroups />} />
+                    <Route path="/group/:groupId" element={<GroupDetails />} />
                 </Route>
 
                 <Route element={<PrivateRoute allowedRoles={["Student"]} />}>

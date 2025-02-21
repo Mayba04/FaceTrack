@@ -11,11 +11,21 @@ const requests = {
 
 const Group = {
     getTeacherGroups: (teacherId: string) => requests.get(`/group/teacher/${teacherId}`),
-    getAllGroups: () => requests.get("/group/getall"),
+    //getAllGroups: () => requests.get("/group/getall"),
     createGroup: (name: string, teacherId: string) => requests.post("/group/create", { name, teacherId }),
     deleteGroup: (groupId: number) => requests.delete(`/group/delete/${groupId}`),
+    getGroupDetails: (Id: number) => requests.get(`/Group/${Id}`),
     updateGroup: (id: number, name: string, teacherId: string ) => requests.put(`/Group/update`, { name, id, teacherId}),
 };
+
+export async function fetchGroupDetails(groupId: number) {
+    try {
+        return await Group.getGroupDetails(groupId);
+    } catch (error) {
+        console.error("Error fetching group details:", error);
+        return { success: false, message: "Failed to fetch group details", error };
+    }
+}
 
 export async function fetchTeacherGroups(teacherId: string) {
     try {
@@ -26,15 +36,15 @@ export async function fetchTeacherGroups(teacherId: string) {
     }
 }
 
-export async function fetchGroups() {
-    try {
-        const response = await Group.getAllGroups();
-        return response;
-    } catch (error) {
-        console.error("Error fetching groups:", error);
-        return { success: false, message: "Failed to fetch groups", error };
-    }
-}
+// export async function fetchGroups() {
+//     try {
+//         const response = await Group.getAllGroups();
+//         return response;
+//     } catch (error) {
+//         console.error("Error fetching groups:", error);
+//         return { success: false, message: "Failed to fetch groups", error };
+//     }
+// }
 
 export async function createGroup(name: string, teacherId: string) {
     try {

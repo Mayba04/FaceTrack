@@ -1,6 +1,7 @@
 import { GroupState, GroupActions, GroupActionTypes } from "./types";
 
 const initialState: GroupState = {
+  group: null,
   groups: [],
   loading: false,
   error: null,
@@ -26,6 +27,14 @@ const GroupReducer = (state = initialState, action: GroupActions): GroupState =>
         loading: false,
       };
 
+    case GroupActionTypes.FETCH_GROUP_BY_ID_SUCCESS:
+      return {
+        ...state,
+        group: action.payload, 
+        loading: false,
+      };
+    
+    case GroupActionTypes.FETCH_GROUP_BY_ID_ERROR:
     case GroupActionTypes.FETCH_GROUPS_ERROR:
     case GroupActionTypes.CREATE_GROUP_ERROR:
     case GroupActionTypes.DELETE_GROUP_ERROR:
