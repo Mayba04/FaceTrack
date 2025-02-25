@@ -13,8 +13,8 @@ const Session = {
     getGroupSessions: (groupId: string) => requests.get(`/session/group/${groupId}`),
     createSession: (sessionData: { groupId: number; startTime: string; endTime: string; createdBy: string; userId: string }) =>
         requests.post("/session/create", sessionData),
-    updateSession: (sessionId: string, startTime?: Date | null, endTime?: Date | null) =>
-        requests.put(`/session/update/${sessionId}`, { startTime, endTime }),
+    updateSession: (sessionData: { id: string,  groupId: number; startTime: string; endTime: string; createdBy: string; userId: string }) =>
+        requests.put(`/session/update`, sessionData),
     deleteSession: (sessionId: string) => requests.delete(`/session/delete/${sessionId}`),
 };
 
@@ -31,15 +31,15 @@ export async function createSession(sessionData: { groupId: number; startTime: s
     try {
         return await Session.createSession(sessionData);
     } catch (error) {
-        console.error("❌ Error creating session:", error);
+        console.error("Error creating session:", error);
         return { success: false, message: "Failed to create session", error };
     }
 }
 
 
-export async function updateSession(sessionId: string, startTime?: Date | null, endTime?: Date | null) {
+export async function updateSession(sessionData: { id: string,  groupId: number; startTime: string; endTime: string; createdBy: string; userId: string }) {
     try {
-        return await Session.updateSession(sessionId, startTime, endTime);
+        return await Session.updateSession(sessionData);
     } catch (error) {
         console.error("Error updating session:", error);
         return { success: false, message: "Failed to update session", error };

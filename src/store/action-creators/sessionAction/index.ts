@@ -33,14 +33,14 @@ export const fetchSessionsAction = (groupId: string) => {
 
 export const createSessionAction = (sessionData: { groupId: number; startTime: string; endTime: string; createdBy: string, userId: string } ) => {
     return async (dispatch: Dispatch<SessionActions>) => {
-        dispatch({ type: SessionActionTypes.START_REQUEST });
+        await dispatch({ type: SessionActionTypes.START_REQUEST });
 
         try {
             const response = await createSession(sessionData);
             const { success, payload, message } = response as any;
 
             if (success) {
-                dispatch({
+                await dispatch({
                     type: SessionActionTypes.CREATE_SESSION_SUCCESS,
                     payload: payload,
                 });
@@ -54,15 +54,15 @@ export const createSessionAction = (sessionData: { groupId: number; startTime: s
     };
 };
 
-export const updateSessionAction = (sessionId: string, startTime?: Date | null, endTime?: Date | null) => {
+export const updateSessionAction = (sessionData: { id: string, groupId: number; startTime: string; endTime: string; createdBy: string, userId: string }) => {
     return async (dispatch: Dispatch<SessionActions>) => {
         dispatch({ type: SessionActionTypes.START_REQUEST });
-
         try {
-            const response = await updateSession(sessionId, startTime, endTime);
+            const response = await updateSession(sessionData);
             const { success, message, payload } = response as any;
-
+            console.log("response ", response)
             if (success) {
+                console.log("Dispatching UPDATE_SESSION_SUCCESS");
                 dispatch({
                     type: SessionActionTypes.UPDATE_SESSION_SUCCESS,
                     payload: payload,
@@ -74,6 +74,7 @@ export const updateSessionAction = (sessionId: string, startTime?: Date | null, 
             console.error("Error updating session: ", error);
             dispatch({ type: SessionActionTypes.UPDATE_SESSION_ERROR, payload: "Error updating session" });
         }
+      
     };
 };
 

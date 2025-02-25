@@ -9,7 +9,6 @@ export const fetchGroupByIdAction = (groupId: number) => {
 
         try {
             const response = await fetchGroupDetails(groupId);
-            console.log("✅ Group Details Response:", response);
             const { payload, success, message } = response as any; 
             if (success) {
                 dispatch({
@@ -20,7 +19,7 @@ export const fetchGroupByIdAction = (groupId: number) => {
                 throw new Error(message);
             }
         } catch (error: any) {
-            console.error("❌ Failed to fetch group details:", error?.message || error);
+            console.error("Failed to fetch group details:", error?.message || error);
             dispatch({
                 type: GroupActionTypes.FETCH_GROUP_BY_ID_ERROR,
                 payload: "Error fetching group details",
@@ -36,7 +35,7 @@ export const fetchGroupsAction = (teacherId: string) => {
 
         try {
             const response = await fetchTeacherGroups(teacherId);
-            console.log("Response object:", response); // Дебаг
+            console.log("Response object:", response); 
             const { payload, success, message } = response as any; 
             if (success) {
                 dispatch({
@@ -68,7 +67,7 @@ export const createGroupAction = (name: string, teacherId: string) => {
 
         try {
             const response = await createGroup(name, teacherId);
-            console.log("✅ response create:", response);
+            console.log("response create:", response);
 
             const { payload, success, message } = response as any; 
 

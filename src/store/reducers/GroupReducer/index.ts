@@ -42,12 +42,12 @@ const GroupReducer = (state = initialState, action: GroupActions): GroupState =>
       return { ...state, loading: false, error: action.payload };
 
     case GroupActionTypes.CREATE_GROUP_SUCCESS: {
-      console.log("✅ Before adding new group:", state.groups);
-      console.log("✅ New group:", action.payload);
+      console.log("Before adding new group:", state.groups);
+      console.log("New group:", action.payload);
 
       const updatedGroups = [...state.groups, action.payload];
 
-      console.log("✅ Updated groups:", updatedGroups);
+      console.log("Updated groups:", updatedGroups);
 
       return {
           ...state,

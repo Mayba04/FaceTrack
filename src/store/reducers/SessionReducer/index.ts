@@ -14,6 +14,7 @@ const initialState: SessionState = {
 const SessionReducer = (state = initialState, action: SessionActions): SessionState => {
     switch (action.type) {
         case SessionActionTypes.START_REQUEST:
+            console.log("SessionActionTypes.START_REQUEST")
             return { ...state, loading: true, error: null };
 
         case SessionActionTypes.FETCH_SESSIONS_SUCCESS:
@@ -45,20 +46,21 @@ const SessionReducer = (state = initialState, action: SessionActions): SessionSt
                 loading: false,
             };
 
-        case SessionActionTypes.UPDATE_SESSION_SUCCESS:
-            return {
-                ...state,
-                sessions: state.sessions.map((session) =>
-                    session.id === String(action.payload.sessionId)
-                        ? { 
-                            ...session, 
-                            startTime: action.payload.startTime ? new Date(action.payload.startTime) : null, 
-                            endTime: action.payload.endTime ? new Date(action.payload.endTime) : null
-                        }
-                        : session
-                ),
-                loading: false,
-            };
+            case SessionActionTypes.UPDATE_SESSION_SUCCESS:
+                console.log("UPDATE_SESSION_SUCCESS action triggered", action.payload);
+                return {
+                    ...state,
+                    sessions: state.sessions.map((session) =>
+                        session.id === action.payload.id
+                            ? { 
+                                ...session, 
+                                startTime: action.payload.startTime ? new Date(action.payload.startTime) : null,
+                                endTime: action.payload.endTime ? new Date(action.payload.endTime) : null
+                              }
+                            : session
+                    ),
+                    loading: false,  
+                };
 
         case SessionActionTypes.DELETE_SESSION_SUCCESS:
             return {

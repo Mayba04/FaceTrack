@@ -73,7 +73,7 @@ interface CreateSessionErrorAction {
 
 interface UpdateSessionSuccessAction {
     type: SessionActionTypes.UPDATE_SESSION_SUCCESS;
-    payload: { sessionId: number; startTime?: string | null; endTime?: string | null };
+    payload: { id: string; startTime?: string | null; endTime?: string | null };
 }
 
 interface UpdateSessionErrorAction {
