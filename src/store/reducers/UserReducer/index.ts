@@ -19,7 +19,6 @@ const UserReducer = (state = initialState, action: UserActions): UserState => {
         case UserActionTypes.START_REQUEST:
             return { ...state, loading: true, error: null };
         case UserActionTypes.LOGIN_USER_SUCCESS:
-            console.log("Reducer: LOGIN_USER_SUCCESS received", action.payload);
             return {
                 ...state,
                 user: action.payload.user || null,
@@ -28,8 +27,18 @@ const UserReducer = (state = initialState, action: UserActions): UserState => {
                 role: action.payload.user?.role || null,
                 loading: false,
             };
-
+        case UserActionTypes.FETCH_STUDENTS_SUCCESS:
+            return {
+                ...state,
+                users: action.payload.users,
+                currentPage: action.payload.currentPage,
+                totalPages: action.payload.totalPages,
+                pageSize: action.payload.pageSize,
+                totalCount: action.payload.totalCount,
+                loading: false,
+            };
         case UserActionTypes.LOGIN_USER_ERROR:
+        case UserActionTypes.FETCH_STUDENTS_ERROR:
         case UserActionTypes.SERVER_ERROR:
             return { ...state, loading: false, error: action.payload };
 

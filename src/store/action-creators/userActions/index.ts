@@ -1,9 +1,44 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
+
+
+
+
+export const fetchStudentByGroupIdAction = (groupId: number) => {
+    return async (dispatch: Dispatch<any>) => {
+        dispatch({ type: UserActionTypes.START_REQUEST });
+
+       try {
+                   const response = await fetchStudentByGroupId(groupId);
+                   const { payload, success, message } = response as any; 
+                   if (success) {
+                       dispatch({
+                           type: UserActionTypes.FETCH_STUDENTS_SUCCESS,
+                           payload: {
+                               users: payload, 
+                               currentPage: 1,
+                               totalPages: 1,
+                               pageSize: payload.length,
+                               totalCount: payload.length,
+                           },
+                       });
+                   } else {
+                       console.error("Error fetching students:", message);
+                       throw new Error(message);
+                   }
+               } catch (error) {
+                   console.error("Error fetching students: ", error);
+                   dispatch({ type: UserActionTypes.FETCH_STUDENTS_ERROR, payload: "Error fetching students" });
+                   message.error("Failed to load students");
+               }
+    };
+};
+
+
 export const loginUserAction = (userData: any, navigate: (path: string) => void) => {
     return async (dispatch: Dispatch<any>): Promise<void> => {
         try {

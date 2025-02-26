@@ -30,7 +30,26 @@ export enum UserActionTypes {
   REFRESH_TOKEN_SUCCESS = "REFRESH_TOKEN_SUCCESS",
   REFRESH_TOKEN_ERROR = "REFRESH_TOKEN_ERROR",
   SERVER_ERROR = "SERVER_ERROR",
+  FETCH_STUDENTS_SUCCESS = "FETCH_STUDENTS_SUCCESS",
+  FETCH_STUDENTS_ERROR = "FETCH_STUDENTS_ERROR",
 }
+
+interface FetchStudentsSuccessAction {
+  type: UserActionTypes.FETCH_STUDENTS_SUCCESS;
+  payload: {
+  users: User[];
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  totalCount: number;
+  };
+}
+  
+  interface FetchStudentsErrorAction {
+    type: UserActionTypes.FETCH_STUDENTS_ERROR;
+    payload: string;
+  }
+
 
 interface StartRequestAction {
   type: UserActionTypes.START_REQUEST;
@@ -69,4 +88,6 @@ export type UserActions =
   | LoginUserErrorAction
   | RefreshTokenSuccessAction
   | LogoutUserAction
+  | FetchStudentsErrorAction
+  | FetchStudentsSuccessAction
   | ServerErrorAction;

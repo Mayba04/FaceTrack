@@ -12,7 +12,17 @@ const requests = {
 const User = {
     login: (userData: any) => requests.post("/auth/login", userData),
     refreshToken: (refreshToken: string) => requests.post("/RefreshToken", { refreshToken }),
+    getStudentByGroupId: (groupId: number) => requests.get(`user/group/${groupId}`),
 };
+
+export async function fetchStudentByGroupId(groupId: number) {
+    try {
+        return await User.getStudentByGroupId(groupId);
+    } catch (error) {
+        console.error("Error fetching group details:", error);
+        return { success: false, message: "Failed to fetch group details", error };
+    }
+}
 
 export async function loginUser(userData: any) {
     try {
