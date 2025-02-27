@@ -16,6 +16,7 @@ import TeacherNavbar from "./components/Teacher/TeacherNavbar";
 import StudentNavbar from "./components/Student/StudentNavbar";
 import TeacherGroups from "./components/Teacher/TeacherGroups";
 import GroupDetails from "./components/Group/GroupDetails";
+import RegisterPage from "./components/Auth/RegisterPage";
 
 const App: React.FC = () => {
     const token = useSelector((state: RootState) => state.UserReducer.token);
@@ -32,6 +33,7 @@ const App: React.FC = () => {
             <Routes>
                 <Route path="/" element={token ? <HomePage /> : <Login />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<RegisterPage />} />
 
                 <Route element={<PrivateRoute />}>
                     <Route path="/FaceUpload" element={<FaceUpload />} />

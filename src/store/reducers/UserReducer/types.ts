@@ -32,6 +32,19 @@ export enum UserActionTypes {
   SERVER_ERROR = "SERVER_ERROR",
   FETCH_STUDENTS_SUCCESS = "FETCH_STUDENTS_SUCCESS",
   FETCH_STUDENTS_ERROR = "FETCH_STUDENTS_ERROR",
+  ADD_STUDENTGROUP_SUCCESS = "ADD_STUDENTGROUP_SUCCESS",
+  ADD_STUDENTGROUP_ERROR = "ADD_STUDENTGROUP_ERROR"
+}
+
+interface AddStudentGroupSuccessAction {
+  type: UserActionTypes.ADD_STUDENTGROUP_ERROR;
+  payload: string;
+}
+
+
+interface AddStudentGroupErrorAction {
+  type: UserActionTypes.ADD_STUDENTGROUP_ERROR;
+  payload: string;
 }
 
 interface FetchStudentsSuccessAction {
@@ -90,4 +103,6 @@ export type UserActions =
   | LogoutUserAction
   | FetchStudentsErrorAction
   | FetchStudentsSuccessAction
-  | ServerErrorAction;
+  | ServerErrorAction
+  | AddStudentGroupSuccessAction
+  | AddStudentGroupErrorAction;

@@ -1,10 +1,39 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken, fetchStudentByGroupId } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
 
+export const addStudentToGroupAction = (email: string, groupId: number) => {
+    return async (dispatch: Dispatch<any>) => {
+        dispatch({ type: UserActionTypes.START_REQUEST });
+
+        try {
+            const response = await addStudentToGroup(email, groupId);
+            console.log("response create:", response);
+
+            const { success, message } = response as any; 
+
+            if (success) {
+                dispatch({
+                    type: UserActionTypes.ADD_STUDENTGROUP_SUCCESS,
+                    message: message,
+                });
+            
+            } else {
+                console.error(" Unexpected response format:", response);
+                throw new Error(message || "Unknown error");
+            }
+        } catch (error: any) {
+            console.error(" Failed to create StudentToGroup: ", error?.message || error);
+
+            dispatch({ type: UserActionTypes.ADD_STUDENTGROUP_ERROR, payload: "Error creating StudentToGroup" });
+
+            message.error(error?.message || "Failed to create StudentToGroup");
+        }
+    };
+};
 
 
 

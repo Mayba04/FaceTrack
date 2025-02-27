@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Card, Button, Typography, Spin, List, Modal, DatePicker, message } from "antd";
+import { Card, Button, Typography, Spin, List, Modal, DatePicker, message, Input } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { fetchGroupByIdAction } from "../../store/action-creators/groupActions";
-import { fetchStudentByGroupIdAction } from "../../store/action-creators/userActions";
+import { fetchStudentByGroupIdAction, addStudentToGroupAction } from "../../store/action-creators/userActions";
 import { fetchSessionsAction, createSessionAction, updateSessionAction, deleteSessionAction } from "../../store/action-creators/sessionAction";
 import dayjs from "dayjs";
 
@@ -21,7 +21,8 @@ const GroupDetails: React.FC = () => {
     const sessionsLoading = useSelector((state: RootState) => state.SessionReducer.loading);
     const user = useSelector((state: RootState) => state.UserReducer.user);
     const students = useSelector((state: RootState) => state.UserReducer.users || []);
-
+    const [isEmailModalOpen, setIsEmailModalOpen] = useState(false); 
+    const [email, setEmail] = useState(""); 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
     const [endTime, setEndTime] = useState<dayjs.Dayjs | null>(null);
@@ -39,6 +40,28 @@ const GroupDetails: React.FC = () => {
     useEffect(() => {
         console.log('Loading state changed:', loading); 
     }, [loading]);
+
+    const showEmailModal = () => {
+        setIsEmailModalOpen(true);
+    };
+
+    const handleEmailCancel = () => {
+        setIsEmailModalOpen(false);
+        setEmail(""); 
+    };
+
+    const handleAddStudent = async () => {
+        if (!email) {
+            message.warning("Please enter a valid email.");
+            return;
+        }
+
+        await dispatch(addStudentToGroupAction(email, Number(groupId)));
+        await dispatch(fetchStudentByGroupIdAction(Number(groupId)));
+        message.success(`Student with email ${email} added successfully!`);
+        setIsEmailModalOpen(false);
+        setEmail(""); 
+    };
 
     const showModal = (session?: any) => {
         setIsModalOpen(true);
@@ -105,7 +128,7 @@ const GroupDetails: React.FC = () => {
                 </Title>
 
                 <Card title="Students" style={{ marginBottom: "20px" }}>
-                    <Button type="primary" icon={<PlusOutlined />} style={{ marginBottom: "10px" }}>
+                    <Button type="primary" icon={<PlusOutlined />} onClick={showEmailModal} style={{ marginBottom: "10px" }}>
                         Add Student
                     </Button>
                     {students.length > 0 ? (
@@ -149,6 +172,23 @@ const GroupDetails: React.FC = () => {
                     )}
                 </Card>
             </Card>
+
+            <Modal
+                title="Add Student"
+                open={isEmailModalOpen}
+                onCancel={handleEmailCancel}
+                onOk={handleAddStudent}
+                okText="Add"
+                cancelText="Cancel"
+                centered
+            >
+                <Input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter student email"
+                    style={{ width: "100%", marginBottom: "10px" }}
+                />
+            </Modal>
 
             <Modal
                 title={currentSession ? "Edit Session" : "Create Session"}

@@ -13,14 +13,26 @@ const User = {
     login: (userData: any) => requests.post("/auth/login", userData),
     refreshToken: (refreshToken: string) => requests.post("/RefreshToken", { refreshToken }),
     getStudentByGroupId: (groupId: number) => requests.get(`user/group/${groupId}`),
+    addStudentToGroup: (email: string, groupId: number) => requests.post("/user/addStudent", { email,groupId }),
 };
+
+export async function addStudentToGroup(email: string, groupId: number) {
+    try {
+        const response = await User.addStudentToGroup(email,groupId );
+        return response;
+    } catch (error) {
+        console.error("Error addStudentToGroup:", error);
+        return { success: false, message: "Failed to addStudentToGroup", error };
+    }
+}
+
 
 export async function fetchStudentByGroupId(groupId: number) {
     try {
         return await User.getStudentByGroupId(groupId);
     } catch (error) {
-        console.error("Error fetching group details:", error);
-        return { success: false, message: "Failed to fetch group details", error };
+        console.error("Error fetchStudentByGroupId:", error);
+        return { success: false, message: "Failed fetchStudentByGroupId", error };
     }
 }
 
