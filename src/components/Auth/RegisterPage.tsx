@@ -3,23 +3,23 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { Input, Button, message, Form, Card, Typography, Spin } from "antd";
 import { jwtDecode } from "jwt-decode";
-//import { useDispatch } from "react-redux";
-//import { registerUserAction } from "../../store/action-creators/userActions";
+import { auditStudentAction, logout, registerUserAction } from "../../store/action-creators/userActions";
+import { useDispatch } from "react-redux";
 
 const { Title } = Typography;
 
 const RegisterPage: React.FC = () => {
+    const dispatch = useDispatch();
     const location = useLocation();
     const navigate = useNavigate();
-    //const dispatch = useDispatch();
-    
+    const [confirmPassword, setConfirmPassword] = useState<string>("");
     const [email, setEmail] = useState<string | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [password, setPassword] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
-
+    const [groupId, setGroupId] = useState<number>(0);
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const emailFromUrl = params.get("email");
@@ -35,17 +35,29 @@ const RegisterPage: React.FC = () => {
         }
     }, [location]);
 
-    const checkTokenValidity = (token: string) => {
+    const checkTokenValidity = async (token: string) => {
         try {
             const decodedToken: any = jwtDecode(token); 
+            console.log(decodedToken);
             const currentTime = Math.floor(Date.now() / 1000); 
-    
+            
+            const result = await auditStudentAction(decodedToken.email);
+            console.log(result)
+            const { success } = result as any; 
+            console.log(success)
+            if (success) {
+                setIsTokenValid(false);
+                return;
+            }
+
             if (decodedToken.exp < currentTime) {
                 setError("This link has either expired or has already been used.");
                 setIsTokenValid(false);
             } else {
                 setIsTokenValid(true);
             }
+
+            setGroupId(decodedToken.groupId)
         } catch {
             setError("Invalid token format.");
             setIsTokenValid(false);
@@ -59,16 +71,22 @@ const RegisterPage: React.FC = () => {
             setError("Invalid or expired token.");
             return;
         }
-        
-        if (!password) {
-            setError("Please enter a password.");
+    
+        if (!password || !confirmPassword) {
+            setError("Please enter both password fields.");
+            return;
+        }
+    
+        if (password !== confirmPassword) {
+            setError("Passwords do not match.");
             return;
         }
     
         setLoading(true);
         try {
-            //await dispatch(registerUserAction({ email, token, password }));
+            await registerUserAction(email, password, confirmPassword, groupId);
             message.success("Registration successful");
+            await dispatch(logout() as any)
             navigate("/login");
         } catch (error: unknown) {
             if (error instanceof Error) {
@@ -81,7 +99,6 @@ const RegisterPage: React.FC = () => {
         }
     };
     
-    // Перенаправлення, якщо токен недійсний
     if (isTokenValid === false) {
         navigate("/invalidlink");
     }
@@ -102,6 +119,13 @@ const RegisterPage: React.FC = () => {
                             placeholder="Enter password"
                         />
                     </Form.Item>
+                    <Form.Item label="Confirm Password" required>
+                        <Input.Password
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Confirm password"
+                        />
+                    </Form.Item>
                     <Form.Item>
                         <Button
                             type="primary"
@@ -120,3 +144,4 @@ const RegisterPage: React.FC = () => {
 };
 
 export default RegisterPage;
+

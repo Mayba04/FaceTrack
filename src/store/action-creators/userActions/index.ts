@@ -1,9 +1,30 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
+
+
+
+export const registerUserAction = async (email: string, password: string, confirmPassword: string, groupId: number) => {
+    try {
+        const data = { email, password, confirmPassword, groupId}
+        const response = await registerUser(data);
+        return response;
+    } catch {
+        return null;
+    }
+};
+
+export const auditStudentAction = async (email: string) => {
+    try {
+        const response = await auditStudent(email);
+        return response;
+    } catch {
+        return null;
+    }
+};
 
 export const addStudentToGroupAction = (email: string, groupId: number) => {
     return async (dispatch: Dispatch<any>) => {

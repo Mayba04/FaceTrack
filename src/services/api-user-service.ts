@@ -14,7 +14,31 @@ const User = {
     refreshToken: (refreshToken: string) => requests.post("/RefreshToken", { refreshToken }),
     getStudentByGroupId: (groupId: number) => requests.get(`user/group/${groupId}`),
     addStudentToGroup: (email: string, groupId: number) => requests.post("/user/addStudent", { email,groupId }),
+    auditStudent: (email: string) => requests.get("/user/auditStudent", { email }),
+    registerUser: (data: { email: string; password: string; confirmPassword: string, groupId: number }) => requests.post("/user/registerStudent", data),
+    
 };
+
+export async function registerUser (data: { email: string; password: string; confirmPassword: string, groupId: number}) {
+    try {
+        const response = await User.registerUser(data);
+        return response;
+    } catch (error) {
+        console.error("Error registerUser:", error);
+        return { success: false, message: "Failed to registerUser", error };
+    }
+}
+
+export async function auditStudent(email: string) {
+    try {
+        const response = await User.auditStudent(email);
+        console.log(response)
+        return response;
+    } catch (error) {
+        console.error("Error auditStudent:", error);
+        return { success: false, message: "Failed to auditStudent", error };
+    }
+}
 
 export async function addStudentToGroup(email: string, groupId: number) {
     try {
