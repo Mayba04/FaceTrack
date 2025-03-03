@@ -127,6 +127,10 @@ const GroupDetails: React.FC = () => {
                     {groupDetails.name} - Details
                 </Title>
 
+                <Button type="primary" icon={<PlusOutlined />} style={{ marginBottom: "10px" }}>
+                    Start session
+                </Button>
+
                 <Card title="Students" style={{ marginBottom: "20px" }}>
                     <Button type="primary" icon={<PlusOutlined />} onClick={showEmailModal} style={{ marginBottom: "10px" }}>
                         Add Student
