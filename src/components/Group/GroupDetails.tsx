@@ -7,14 +7,15 @@ import { RootState, AppDispatch } from "../../store";
 import { fetchGroupByIdAction } from "../../store/action-creators/groupActions";
 import { fetchStudentByGroupIdAction, addStudentToGroupAction } from "../../store/action-creators/userActions";
 import { fetchSessionsAction, createSessionAction, updateSessionAction, deleteSessionAction } from "../../store/action-creators/sessionAction";
-import dayjs from "dayjs";
+import dayjs from "dayjs";    
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 
 const GroupDetails: React.FC = () => {
     const { groupId } = useParams<{ groupId: string | undefined }>();
     const dispatch = useDispatch<AppDispatch>();
-
+    const navigate = useNavigate();
     const groupDetails = useSelector((state: RootState) => state.GroupReducer.group);
     const loading = useSelector((state: RootState) => state.GroupReducer.loading);
     const sessions = useSelector((state: RootState) => state.SessionReducer.sessions);
@@ -117,6 +118,11 @@ const GroupDetails: React.FC = () => {
         });
     };
 
+
+    const handleStartSession = (sessionId: number) => {
+        navigate(`/session/${sessionId}`);
+    };
+
     if (!groupDetails) return <Title level={3} style={{ textAlign: "center", marginTop: "20px" }}>Group not found</Title>;
 
     return (
@@ -126,10 +132,6 @@ const GroupDetails: React.FC = () => {
                 <Title level={2} style={{ textAlign: "center" }}>
                     {groupDetails.name} - Details
                 </Title>
-
-                <Button type="primary" icon={<PlusOutlined />} style={{ marginBottom: "10px" }}>
-                    Start session
-                </Button>
 
                 <Card title="Students" style={{ marginBottom: "20px" }}>
                     <Button type="primary" icon={<PlusOutlined />} onClick={showEmailModal} style={{ marginBottom: "10px" }}>
@@ -161,16 +163,26 @@ const GroupDetails: React.FC = () => {
                             bordered
                             dataSource={sessions}
                             renderItem={(session) => (
+                               
                                 <List.Item
-                                    actions={[
-                                        <Button icon={<EditOutlined />} onClick={() => showModal(session)} />,
-                                        <Button icon={<DeleteOutlined />} danger onClick={() => handleDeleteSession(session.id as any)} />
-                                    ]}
-                                >
+                                style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                }}
+                            >
+                                <span>
                                     <b>ID:</b> {session.id} | <b>Created By:</b> {session.createdBy} |
                                     <b> Start:</b> {dayjs(session.startTime).format("YYYY-MM-DD HH:mm")} |
                                     <b> End:</b> {dayjs(session.endTime).format("YYYY-MM-DD HH:mm")}
-                                </List.Item>
+                                </span>
+                            
+                                <div style={{ display: "flex", gap: "8px" }}>
+                                    <Button type="primary" onClick={() => handleStartSession(Number(session.id))}>Start Session</Button>
+                                    <Button icon={<EditOutlined />} onClick={() => showModal(session)} />
+                                    <Button icon={<DeleteOutlined />} danger onClick={() => handleDeleteSession(Number(session.id))} />
+                                </div>
+                            </List.Item>
                             )}
                         />
                     )}

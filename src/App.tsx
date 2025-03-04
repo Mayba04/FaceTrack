@@ -17,6 +17,7 @@ import StudentNavbar from "./components/Student/StudentNavbar";
 import TeacherGroups from "./components/Teacher/TeacherGroups";
 import GroupDetails from "./components/Group/GroupDetails";
 import RegisterPage from "./components/Auth/RegisterPage";
+import SessionPage from "./components/Session/SessionPage";
 
 const App: React.FC = () => {
     const token = useSelector((state: RootState) => state.UserReducer.token);
@@ -48,6 +49,7 @@ const App: React.FC = () => {
                     <Route path="/teacher" element={<TeacherDashboard />} />
                     <Route path="/teacher/groups" element={<TeacherGroups />} />
                     <Route path="/group/:groupId" element={<GroupDetails />} />
+                    <Route path="/session/:sessionId" element={<SessionPage />} />
                 </Route>
 
                 <Route element={<PrivateRoute allowedRoles={["Student"]} />}>
