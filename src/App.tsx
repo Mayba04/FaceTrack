@@ -18,7 +18,7 @@ import TeacherGroups from "./components/Teacher/TeacherGroups";
 import GroupDetails from "./components/Group/GroupDetails";
 import RegisterPage from "./components/Auth/RegisterPage";
 import SessionPage from "./components/Session/SessionPage";
-
+import 'bootstrap/dist/css/bootstrap.min.css';
 const App: React.FC = () => {
     const token = useSelector((state: RootState) => state.UserReducer.token);
     const role = useSelector((state: RootState) => state.UserReducer.role);
