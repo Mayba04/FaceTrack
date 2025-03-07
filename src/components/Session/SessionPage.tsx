@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { detectBase64Video } from "../../services/api-facetrack-service";
-import { Container, Row, Col, Card, Spinner, ListGroup, Image } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 
 interface IFace {
   name: string;
@@ -13,7 +13,8 @@ const SessionPage: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [recognizedFaces, setRecognizedFaces] = useState<IFace[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const isFetchingRef = useRef<boolean>(false);
+  const [isCapturing, setIsCapturing] = useState<boolean>(true);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const startVideo = () => {
     navigator.mediaDevices
@@ -44,11 +45,7 @@ const SessionPage: React.FC = () => {
   };
 
   const processFrame = async () => {
-    if (isFetchingRef.current) return;
-
-    isFetchingRef.current = true;
     setLoading(true);
-
     try {
       const file = await captureFrame();
       if (!file) return;
@@ -58,73 +55,79 @@ const SessionPage: React.FC = () => {
 
       if (Array.isArray(faces)) {
         setRecognizedFaces((prevFaces) => {
-            const newFaces = faces.filter(
-              (newFace) => !prevFaces.some((prevFace) => prevFace.faceImageBase64 === newFace.faceImageBase64)
-            );
-            return newFaces.length > 0 ? [...prevFaces, ...newFaces] : prevFaces;
-          });          
+          const newFaces = faces.filter(
+            (newFace) => !prevFaces.some((prevFace) => prevFace.faceImageBase64 === newFace.faceImageBase64)
+          );
+          return newFaces.length > 0 ? [...prevFaces, ...newFaces] : prevFaces;
+        });
       }
     } catch (error) {
       console.error("Error processing frame:", error);
     } finally {
-      isFetchingRef.current = false;
       setLoading(false);
     }
   };
 
   useEffect(() => {
     startVideo();
-    const interval = setInterval(() => {
-      processFrame();
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [sessionId]);
+
+    if (isCapturing) {
+      intervalRef.current = setInterval(processFrame, 5000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [sessionId, isCapturing]);
+
+  const toggleCapture = () => setIsCapturing((prev) => !prev);
 
   return (
-    <Container fluid className="vh-100 py-3 overflow-auto">
-      <Row className="justify-content-center">
-        <Col lg={8}>
-          <Card className="shadow-lg p-4">
-            <Card.Title className="text-center mb-3">Session {sessionId} - Face Recognition</Card.Title>
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              className="w-100 rounded mb-3"
-              style={{ maxHeight: "400px", objectFit: "cover" }}
-            />
+    <div className="container-fluid vh-100 d-flex flex-column">
+      <div className="row flex-grow-1">
+        <div className="col-lg-8 mx-auto mt-3">
+          <div className="card shadow-lg p-4">
+            <h2 className="text-center">Session {sessionId} - Face Recognition</h2>
 
-            <Card className="mt-3">
-              <Card.Header className="text-center">Recognized Faces</Card.Header>
-              <Card.Body style={{ maxHeight: "300px", overflowY: "auto" }}>
+            <video ref={videoRef} autoPlay muted className="w-100 rounded mb-3" style={{ maxHeight: "400px", objectFit: "cover" }} />
+
+            <Button variant={isCapturing ? "danger" : "success"} onClick={toggleCapture}>
+              {isCapturing ? "Stop Capturing" : "Start Capturing"}
+            </Button>
+
+            <div className="card mt-3 faces-card" style={{ maxHeight: "300px", overflowY: "auto" }}>
+              <h4 className="card-header text-center">Recognized Faces</h4>
+              <div className="card-body">
                 {loading && recognizedFaces.length === 0 ? (
                   <div className="text-center">
-                    <Spinner animation="border" variant="primary" />
+                    <div className="spinner-border text-primary" role="status" />
                   </div>
                 ) : recognizedFaces.length > 0 ? (
-                  <ListGroup>
+                  <ul className="list-group">
                     {recognizedFaces.map((face, index) => (
-                      <ListGroup.Item key={index} className="d-flex align-items-center">
-                        <Image
+                      <li key={index} className="list-group-item d-flex align-items-center">
+                        <img
                           src={`data:image/jpeg;base64,${face.faceImageBase64}`}
-                          roundedCircle
+                          alt={face.name}
+                          className="rounded-circle me-3"
                           width={50}
                           height={50}
-                          className="me-3"
                         />
                         <span>{face.name}</span>
-                      </ListGroup.Item>
+                      </li>
                     ))}
-                  </ListGroup>
+                  </ul>
                 ) : (
                   <p className="text-center text-muted">No faces recognized yet.</p>
                 )}
-              </Card.Body>
-            </Card>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
