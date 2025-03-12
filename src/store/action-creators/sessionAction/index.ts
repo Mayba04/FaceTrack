@@ -1,6 +1,7 @@
 import { Dispatch } from "redux";
 import { SessionActions, SessionActionTypes } from "../../reducers/SessionReducer/type";
-import { fetchGroupSessions, createSession, updateSession, deleteSession } from "../../../services/api-session-service";
+import { fetchGroupSessions, createSession, updateSession, deleteSession, fetchSessionById} from "../../../services/api-session-service";
+import { message } from "antd";
 
 export const fetchSessionsAction = (groupId: string) => {
     return async (dispatch: Dispatch<SessionActions>) => {
@@ -27,6 +28,32 @@ export const fetchSessionsAction = (groupId: string) => {
         } catch (error) {
             console.error("Error fetching sessions: ", error);
             dispatch({ type: SessionActionTypes.FETCH_SESSIONS_ERROR, payload: "Error fetching sessions" });
+        }
+    };
+};
+
+export const fetchSessionByIdAction = (Id: number) => {
+    return async (dispatch: Dispatch<SessionActions>) => {
+        dispatch({ type: SessionActionTypes.START_REQUEST });
+
+        try {
+            const response = await fetchSessionById(Id);
+            const { payload, success, message } = response as any; 
+            if (success) {
+                dispatch({
+                    type: SessionActionTypes.FETCH_SESSION_SUCCESS,
+                    payload: payload,
+                });
+            } else {
+                throw new Error(message);
+            }
+        } catch (error: any) {
+            console.error("Failed to fetching session:", error?.message || error);
+            dispatch({
+                type: SessionActionTypes.FETCH_SESSION_ERROR,
+                payload: "Error fetching session",
+            });
+            message.error(error?.message || "Failed fetching sessions");
         }
     };
 };
@@ -100,3 +127,5 @@ export const deleteSessionAction = (sessionId: string) => {
         }
     };
 };
+
+

@@ -1,50 +1,79 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { detectBase64Video } from "../../services/api-facetrack-service";
 import { Button } from "react-bootstrap";
+import { detectBase64Video } from "../../services/api-facetrack-service";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../store";
+import { fetchSessionByIdAction } from "../../store/action-creators/sessionAction";
+import { fetchStudentByGroupIdAction } from "../../store/action-creators/userActions";
+import type { AppDispatch } from "../../store";
+import { addedVectorsToStudents } from "../../services/api-faceVectors-service";
 
-// Інтерфейс, що відображає структуру об'єкта, який повертає бекенд у полі "faces"
 interface IFace {
   name: string;
   faceImageBase64: string;
-  vectorId: number; // або string, якщо бекенд повертає рядок
+  vectorId: number;
+  assignedStudentId?: string;
 }
 
 const SessionPage: React.FC = () => {
-  // Забираємо sessionId з URL (React Router)
   const { sessionId } = useParams<{ sessionId: string }>();
-
-  // Реф на відео-елемент (щоб отримувати "прямий ефір" з камери)
+  const dispatch = useDispatch<AppDispatch>();
+  const studentsFromStore = useSelector((state: RootState) => state.UserReducer.users);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-
-  // Стан з розпізнаними обличчями
+  const sessionData = useSelector((state: RootState) => state.SessionReducer.session);
   const [recognizedFaces, setRecognizedFaces] = useState<IFace[]>([]);
-
-  // Стан, що вказує на "завантаження" (у процесі обробки кадру)
-  const [loading, setLoading] = useState<boolean>(false);
-
-  // Чи зараз відбувається знімання (капчеринг) кадрів
   const [isCapturing, setIsCapturing] = useState<boolean>(true);
-
-  // Реф для збереження інтервалу (щоб можна було зупинити)
+  const [loading, setLoading] = useState<boolean>(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Функція запуску відео з вебкамери
+  useEffect(() => {
+    if (!sessionId) return;
+
+    // Запускаємо відео
+    startVideo();
+
+    // Завантажуємо поточну сесію
+    dispatch(fetchSessionByIdAction(Number(sessionId)))
+      .catch((err) => {
+        console.error("Error fetching session:", err);
+      });
+      
+  }, [sessionId, dispatch]);
+
+  useEffect(() => {
+    if (sessionData?.groupId) {
+      dispatch(fetchStudentByGroupIdAction(Number(sessionData.groupId)));
+    }
+  }, [sessionData, dispatch]);
+
+  useEffect(() => {
+    // Якщо isCapturing = true, кожні 5с викликаємо processFrame
+    if (isCapturing) {
+      intervalRef.current = setInterval(processFrame, 5000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    // При демонтажі зупиняємо
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCapturing]);
+
   const startVideo = () => {
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((stream) => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      })
-      .catch((err) => console.error("Error accessing webcam:", err));
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    }).catch((err) => console.error("Error accessing webcam:", err));
   };
 
-  // Функція знімання поточного кадру з <video>
   const captureFrame = async (): Promise<File | null> => {
     if (!videoRef.current) return null;
-
     const video = videoRef.current;
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -54,66 +83,98 @@ const SessionPage: React.FC = () => {
     canvas.height = video.videoHeight;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Перетворюємо зображення з canvas у base64
     const base64Image = canvas.toDataURL("image/png");
-    // Робимо з цієї base64 Blob
     const blob = await fetch(base64Image).then((res) => res.blob());
-    // Із Blob формуємо файл
+
     return new File([blob], "frame.png", { type: "image/png" });
   };
 
-  // Викликається кожні N секунд (згідно з setInterval), щоб відіслати поточний кадр на бекенд
   const processFrame = async () => {
     setLoading(true);
     try {
       const file = await captureFrame();
       if (!file) return;
-
-      // Запит до бекенду: надсилаємо файл і sessionId
+  
       const response = await detectBase64Video(file, Number(sessionId));
-      const { faces } = response as any; // Типізацію можна дописати суворіше
-
-      // Якщо повертається масив faces
+      const { faces } = response as any;
+  
       if (Array.isArray(faces)) {
-        // Оновлюємо recognizedFaces, уникаючи дублювання за vectorId
         setRecognizedFaces((prevFaces) => {
-          // Відкидаємо обличчя, vectorId яких уже є в prevFaces
+          const existingVectorIds = new Set(prevFaces.map((face) => face.vectorId));
+          const existingUserNames = new Set(prevFaces.map((face) => face.name));
+  
           const newFaces = faces.filter((newFace: IFace) => {
-            return !prevFaces.some((prevFace) => prevFace.vectorId === newFace.vectorId);
+           
+            if (existingVectorIds.has(newFace.vectorId)) return false;
+  
+            if (newFace.name !== "Unknown" && existingUserNames.has(newFace.name)) {
+              return false;
+            }
+  
+            return true;
           });
-
-          // Якщо newFaces порожнє — просто повертаємо старий масив
-          // Інакше — об'єднуємо старий + нові
+  
           return newFaces.length > 0 ? [...prevFaces, ...newFaces] : prevFaces;
         });
       }
-    } catch (error) {
-      console.error("Error processing frame:", error);
+    } catch (err) {
+      console.error("Error processing frame:", err);
     } finally {
       setLoading(false);
     }
   };
+  
 
-  // useEffect, що спрацьовує при монтуванні/зміні isCapturing
-  useEffect(() => {
-    startVideo();
+  const toggleCapture = () => {
+    setIsCapturing((prev) => !prev);
+  };
 
-    // Якщо isCapturing == true, ставимо setInterval
-    if (isCapturing) {
-      intervalRef.current = setInterval(processFrame, 5000); // кожні 5 секунд
-    } else if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+  const handleAssignStudent = (vectorId: number, studentId: string) => {
+    setRecognizedFaces((prev) =>
+      prev.map((face) =>
+        face.vectorId === vectorId ? { ...face, assignedStudentId: studentId } : face
+      )
+    );
+  };
+
+  const handleRemoveFace = (vectorId: number) => {
+    setRecognizedFaces((prev) => prev.filter((face) => face.vectorId !== vectorId));
+  };
+
+  const saveVectors = async () => {
+    try {
+      const assignmentData = recognizedFaces
+        .filter((face) => face.name === "Unknown" && face.assignedStudentId)
+        .map((face) => ({
+          vectorId: face.vectorId,
+          studentId: face.assignedStudentId
+        }));
+
+      if (assignmentData.length === 0) {
+        alert("Немає вибраних невідомих облич для збереження.");
+        return;
+      }
+
+      await addedVectorsToStudents(assignmentData);
+
+      setRecognizedFaces((prev) =>
+        prev.map((face) => {
+          if (face.name === "Unknown" && face.assignedStudentId) {
+            const st = studentsFromStore.find((s) => s.id === face.assignedStudentId);
+            if (st) {
+              return { ...face, name: st.fullName };
+            }
+          }
+          return face;
+        })
+      );
+
+      alert("Vectors saved successfully!");
+    } catch (error) {
+      console.error("Error saving vectors:", error);
+      alert("Error saving vectors!");
     }
-
-    // При розмонтуванні компонента очищуємо інтервал
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, isCapturing]);
-
-  // Кнопка "Start/Stop Capturing"
-  const toggleCapture = () => setIsCapturing((prev) => !prev);
+  };
 
   return (
     <div className="container-fluid vh-100 d-flex flex-column">
@@ -124,7 +185,6 @@ const SessionPage: React.FC = () => {
               Session {sessionId} - Face Recognition
             </h2>
 
-            {/* Відео-потік із вебкамери */}
             <video
               ref={videoRef}
               autoPlay
@@ -133,31 +193,35 @@ const SessionPage: React.FC = () => {
               style={{ maxHeight: "400px", objectFit: "cover" }}
             />
 
-            {/* Кнопка старт/стоп */}
-            <Button
-              variant={isCapturing ? "danger" : "success"}
-              onClick={toggleCapture}
-            >
+            <Button variant={isCapturing ? "danger" : "success"} onClick={toggleCapture}>
               {isCapturing ? "Stop Capturing" : "Start Capturing"}
             </Button>
 
-            {/* Список розпізнаних облич */}
-            <div
-              className="card mt-3 faces-card"
-              style={{ maxHeight: "300px", overflowY: "auto" }}
-            >
-              <h4 className="card-header text-center">Recognized Faces</h4>
-              <div className="card-body">
-                {/* Якщо триває завантаження і ще немає жодного розпізнаного обличчя */}
-                {loading && recognizedFaces.length === 0 ? (
-                  <div className="text-center">
-                    <div className="spinner-border text-primary" role="status" />
-                  </div>
-                ) : recognizedFaces.length > 0 ? (
-                  <ul className="list-group">
-                    {recognizedFaces.map((face) => (
+            <div className="mt-3">
+              <h4>Recognized Faces</h4>
+
+              {!isCapturing && (
+                <div className="mb-2">
+                  <Button onClick={saveVectors} variant="primary">
+                    Save Vectors
+                  </Button>
+                </div>
+              )}
+
+              {loading && recognizedFaces.length === 0 ? (
+                <div className="text-center">
+                  <div className="spinner-border text-primary" role="status" />
+                </div>
+              ) : recognizedFaces.length > 0 ? (
+                <ul
+                  className="list-group"
+                  style={{ maxHeight: "300px", overflowY: "auto" }}
+                >
+                  {recognizedFaces.map((face) => {
+                    const isUnknown = face.name === "Unknown";
+                    return (
                       <li
-                        key={face.vectorId} // краще використовувати унікальний key — vectorId
+                        key={face.vectorId}
                         className="list-group-item d-flex align-items-center"
                       >
                         <img
@@ -167,16 +231,40 @@ const SessionPage: React.FC = () => {
                           width={50}
                           height={50}
                         />
-                        <span>{face.name}</span>
+                        <span className="me-3">{face.name}</span>
+
+                        {isUnknown && !isCapturing && (
+                          <select
+                            className="form-select me-2"
+                            style={{ maxWidth: "200px" }}
+                            value={face.assignedStudentId || ""}
+                            onChange={(e) =>
+                              handleAssignStudent(face.vectorId, e.target.value)
+                            }
+                          >
+                            <option value="">Select student...</option>
+                            {studentsFromStore.map((st) => (
+                              <option key={st.id} value={st.id}>
+                                {st.fullName}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          onClick={() => handleRemoveFace(face.vectorId)}
+                        >
+                          Remove
+                        </Button>
                       </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-center text-muted">
-                    No faces recognized yet.
-                  </p>
-                )}
-              </div>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="text-center text-muted">No faces recognized yet.</p>
+              )}
             </div>
           </div>
         </div>

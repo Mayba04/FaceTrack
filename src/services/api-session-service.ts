@@ -16,7 +16,17 @@ const Session = {
     updateSession: (sessionData: { id: string,  groupId: number; startTime: string; endTime: string; createdBy: string; userId: string }) =>
         requests.put(`/session/update`, sessionData),
     deleteSession: (sessionId: string) => requests.delete(`/session/delete/${sessionId}`),
+    getSessionsById: (Id: number) => requests.get(`/session/group/${Id}`),
 };
+
+export async function fetchSessionById(Id: number) {
+    try {
+        return await Session.getSessionsById(Id);
+    } catch (error) {
+        console.error("Error fetching session:", error);
+        return { success: false, message: "Failed to fetch session", error };
+    }
+}
 
 export async function fetchGroupSessions(groupId: string) {
     try {
