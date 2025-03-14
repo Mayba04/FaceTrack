@@ -7,7 +7,7 @@ import type { RootState } from "../../store";
 import { fetchSessionByIdAction } from "../../store/action-creators/sessionAction";
 import { fetchStudentByGroupIdAction } from "../../store/action-creators/userActions";
 import type { AppDispatch } from "../../store";
-import { addedVectorsToStudents } from "../../services/api-faceVectors-service";
+import { addedVectorsToStudents, deleteVector } from "../../services/api-faceVectors-service";
 
 interface IFace {
   name: string;
@@ -137,9 +137,24 @@ const SessionPage: React.FC = () => {
     );
   };
 
-  const handleRemoveFace = (vectorId: number) => {
-    setRecognizedFaces((prev) => prev.filter((face) => face.vectorId !== vectorId));
-  };
+  const handleRemoveFace = async (vectorId: number) => {
+    if (!vectorId) return;
+
+    try {
+        const response = await deleteVector(vectorId);
+        const { success, message } = response as any; 
+        if (success) {
+            setRecognizedFaces((prev) => prev.filter((face) => face.vectorId !== vectorId));
+        } else {
+            console.error("Server error while deleting vector:", message);
+            alert("Failed to delete vector. Try again.");
+        }
+    } catch (error) {
+        console.error("Unexpected error deleting vector:", error);
+        alert("Unexpected error occurred. Try again.");
+    }
+};
+
 
   const saveVectors = async () => {
     try {

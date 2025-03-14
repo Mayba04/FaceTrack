@@ -11,6 +11,7 @@ const requests = {
 
 const FaceVector = {
     addedVectorsToStudents: (vectorUserData: any) => requests.post("/sessionFaceVector/vectorUserAdded", vectorUserData),
+    deleteSesionVector: (Id: number) => requests.delete(`/sessionFaceVector/delete/${Id}`),
 };
 
 export async function addedVectorsToStudents(vectorUserData: any) {
@@ -18,7 +19,18 @@ export async function addedVectorsToStudents(vectorUserData: any) {
         const response = await FaceVector.addedVectorsToStudents(vectorUserData);
         return response;
     } catch (error) {
-        console.error("Error addStudentToGroup:", error);
-        return { success: false, message: "Failed to addStudentToGroup", error };
+        console.error("Error addedVectorsToStudents:", error);
+        return { success: false, message: "Failed to addedVectorsToStudents", error };
+    }
+}
+
+export async function deleteVector(vectorId: number) {
+    try {
+        console.log("vectorId ", vectorId);
+        const response = await FaceVector.deleteSesionVector(vectorId);
+        return response;
+    } catch (error) {
+        console.error("Error deleteSesionVector:", error);
+        return { success: false, message: "Failed to deleteSesionVector", error };
     }
 }
