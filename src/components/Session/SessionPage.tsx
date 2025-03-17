@@ -7,13 +7,14 @@ import type { RootState } from "../../store";
 import { fetchSessionByIdAction } from "../../store/action-creators/sessionAction";
 import { fetchStudentByGroupIdAction } from "../../store/action-creators/userActions";
 import type { AppDispatch } from "../../store";
-import { addedVectorsToStudents, deleteVector } from "../../services/api-faceVectors-service";
+import { addedVectorsToStudents, deleteVector, markStudentsPresent } from "../../services/api-faceVectors-service";
+import { Modal, message } from "antd";
 
 interface IFace {
   name: string;
   faceImageBase64: string;
   vectorId: number;
-  assignedStudentId?: string;
+  userId?: string;
 }
 
 const SessionPage: React.FC = () => {
@@ -89,6 +90,60 @@ const SessionPage: React.FC = () => {
     return new File([blob], "frame.png", { type: "image/png" });
   };
 
+  const markAttendance = async () => {
+    if (!sessionId) return;
+
+    const attendanceData = recognizedFaces
+      .filter((face) => face.name !== "Unknown" && face.userId) 
+      .map((face) => ({
+        sessionId: Number(sessionId),
+        studentId: face.userId, 
+      }));
+
+    if (attendanceData.length === 0) {
+      message.warning("There are no recognized students to mark.");
+      return;
+    }
+
+    if (attendanceData.length === 0) {
+        message.warning("There are no recognized students to mark.");
+        return;
+    }
+
+    const studentNames = recognizedFaces
+        .filter((face) => face.name !== "Unknown" && face.userId)
+        .map((face) => face.name)
+        .join(", ");
+
+    Modal.confirm(
+    {
+      title: "Confirmation of presence check-in",
+      content: `Are you sure you want to tag the following students: ${studentNames}?`,
+      okText: "Yes, mark",
+      cancelText: "Cancel",
+      onOk: async () => {
+        try {
+          const response = await markStudentsPresent(attendanceData);
+          console.log(response);
+        
+          const { success, message: serverMessage } = response as any;
+        
+          if (success) {
+            message.success("Students have been successfully marked as present!"); 
+          } else {
+            console.error("Server error while marking attendance:", serverMessage);
+            message.error("Error while checking presence.");
+          }
+        } catch (error) {
+          console.error("Unexpected error marking attendance:", error);
+          message.error("Unexpected error, please try again.");
+        }
+        
+      },
+    });
+  };
+
+
   const processFrame = async () => {
     setLoading(true);
     try {
@@ -101,15 +156,13 @@ const SessionPage: React.FC = () => {
       if (Array.isArray(faces)) {
         setRecognizedFaces((prevFaces) => {
           const existingVectorIds = new Set(prevFaces.map((face) => face.vectorId));
-          const existingUserNames = new Set(prevFaces.map((face) => face.name));
+          const existingUserIds = new Set(prevFaces.map((face) => face.userId));
   
+          
           const newFaces = faces.filter((newFace: IFace) => {
-           
             if (existingVectorIds.has(newFace.vectorId)) return false;
   
-            if (newFace.name !== "Unknown" && existingUserNames.has(newFace.name)) {
-              return false;
-            }
+            if (newFace.userId && existingUserIds.has(newFace.userId)) return false;
   
             return true;
           });
@@ -159,10 +212,10 @@ const SessionPage: React.FC = () => {
   const saveVectors = async () => {
     try {
       const assignmentData = recognizedFaces
-        .filter((face) => face.name === "Unknown" && face.assignedStudentId)
+        .filter((face) => face.name === "Unknown" && face.userId)
         .map((face) => ({
           vectorId: face.vectorId,
-          studentId: face.assignedStudentId
+          studentId: face.userId
         }));
 
       if (assignmentData.length === 0) {
@@ -174,8 +227,8 @@ const SessionPage: React.FC = () => {
 
       setRecognizedFaces((prev) =>
         prev.map((face) => {
-          if (face.name === "Unknown" && face.assignedStudentId) {
-            const st = studentsFromStore.find((s) => s.id === face.assignedStudentId);
+          if (face.name === "Unknown" && face.userId) {
+            const st = studentsFromStore.find((s) => s.id === face.userId);
             if (st) {
               return { ...face, name: st.fullName };
             }
@@ -215,6 +268,12 @@ const SessionPage: React.FC = () => {
             <div className="mt-3">
               <h4>Recognized Faces</h4>
 
+              <div className="mb-2">
+                  <Button onClick={markAttendance} variant="success">
+                      Mark Attendance
+                  </Button>
+              </div>
+
               {!isCapturing && (
                 <div className="mb-2">
                   <Button onClick={saveVectors} variant="primary">
@@ -252,7 +311,7 @@ const SessionPage: React.FC = () => {
                           <select
                             className="form-select me-2"
                             style={{ maxWidth: "200px" }}
-                            value={face.assignedStudentId || ""}
+                            value={face.userId || ""}
                             onChange={(e) =>
                               handleAssignStudent(face.vectorId, e.target.value)
                             }
