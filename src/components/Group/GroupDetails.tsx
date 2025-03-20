@@ -9,6 +9,7 @@ import { fetchStudentByGroupIdAction, addStudentToGroupAction } from "../../stor
 import { fetchSessionsAction, createSessionAction, updateSessionAction, deleteSessionAction } from "../../store/action-creators/sessionAction";
 import dayjs from "dayjs";    
 import { useNavigate } from "react-router-dom";
+import { getAttendanceBySession } from "../../services/api-attendance-service";
 
 const { Title } = Typography;
 
@@ -28,6 +29,8 @@ const GroupDetails: React.FC = () => {
     const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
     const [endTime, setEndTime] = useState<dayjs.Dayjs | null>(null);
     const [currentSession, setCurrentSession] = useState<any>(null);
+    const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+    const [attendanceList, setAttendanceList] = useState<any[]>([]);
 
     useEffect(() => {
         console.log(groupId)
@@ -50,6 +53,18 @@ const GroupDetails: React.FC = () => {
         setIsEmailModalOpen(false);
         setEmail(""); 
     };
+
+    const handleViewAttendance = async (sessionId: number) => {
+        const response = await getAttendanceBySession(sessionId);
+        const { success, payload } = response as any;
+        if (success && Array.isArray(payload)) {
+            console.log(payload)
+          setAttendanceList(payload);
+          setAttendanceModalOpen(true);
+        } else {
+          message.error("Failed to load attendance data.");
+        }
+      };
 
     const handleAddStudent = async () => {
         if (!email) {
@@ -181,6 +196,7 @@ const GroupDetails: React.FC = () => {
                                     <Button type="primary" onClick={() => handleStartSession(Number(session.id))}>Start Session</Button>
                                     <Button icon={<EditOutlined />} onClick={() => showModal(session)} />
                                     <Button icon={<DeleteOutlined />} danger onClick={() => handleDeleteSession(Number(session.id))} />
+                                    <Button onClick={() => handleViewAttendance(Number(session.id))}>View Attendance</Button>
                                 </div>
                             </List.Item>
                             )}
@@ -231,6 +247,30 @@ const GroupDetails: React.FC = () => {
                     style={{ width: "100%" }}
                 />
             </Modal>
+
+            <Modal
+            title="Attendance List"
+            open={attendanceModalOpen}
+            onCancel={() => setAttendanceModalOpen(false)}
+            footer={null}
+            centered
+            >
+            {attendanceList.length > 0 ? (
+                <List
+                dataSource={attendanceList}
+                renderItem={(record) => (
+                  <List.Item>
+                    {record.user?.fullName || record.studentId}
+                  </List.Item>
+                )}
+              />
+              
+            ) : (
+                <p>No students marked as present.</p>
+            )}
+            </Modal>
+
+
         </div>
     )
 };

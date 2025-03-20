@@ -10,7 +10,7 @@ const requests = {
 };
 
 const Attendance = {
-    getAttendanceBySession: (Id: number) => requests.get(`/Group/${Id}`),
+    getAttendanceBySession: (Id: number) => requests.get(`/attendance/session/${Id}`),
 };
 
 export async function getAttendanceBySession(sessionId: number) {
