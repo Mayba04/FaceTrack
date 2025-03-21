@@ -12,7 +12,6 @@ const requests = {
 const FaceVector = {
     addedVectorsToStudents: (vectorUserData: any) => requests.post("/sessionFaceVector/vectorUserAdded", vectorUserData),
     deleteSesionVector: (Id: number) => requests.delete(`/sessionFaceVector/delete/${Id}`),
-    markStudentsPresent: (attendanceData: any) => requests.post("/attendance/create", attendanceData),
 };
 
 export async function addedVectorsToStudents(vectorUserData: any) {
@@ -33,14 +32,5 @@ export async function deleteVector(vectorId: number) {
     } catch (error) {
         console.error("Error deleteSesionVector:", error);
         return { success: false, message: "Failed to deleteSesionVector", error };
-    }
-}
-
-export async function markStudentsPresent(attendanceData: any) {
-    try {
-        return await FaceVector.markStudentsPresent(attendanceData);
-    } catch (error) {
-        console.error("Error marking students present:", error);
-        return { success: false, message: "Failed to mark students present", error };
     }
 }

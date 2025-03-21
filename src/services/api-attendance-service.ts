@@ -11,6 +11,7 @@ const requests = {
 
 const Attendance = {
     getAttendanceBySession: (Id: number) => requests.get(`/attendance/session/${Id}`),
+    markStudentsPresent: (attendanceData: any) => requests.post("/attendance/create", attendanceData),
 };
 
 export async function getAttendanceBySession(sessionId: number) {
@@ -23,3 +24,11 @@ export async function getAttendanceBySession(sessionId: number) {
     }
   }
   
+  export async function markStudentsPresent(attendanceData: any) {
+    try {
+        return await Attendance.markStudentsPresent(attendanceData);
+    } catch (error) {
+        console.error("Error marking students present:", error);
+        return { success: false, message: "Failed to mark students present", error };
+    }
+}

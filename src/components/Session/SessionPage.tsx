@@ -7,8 +7,9 @@ import type { RootState } from "../../store";
 import { fetchSessionByIdAction } from "../../store/action-creators/sessionAction";
 import { fetchStudentByGroupIdAction } from "../../store/action-creators/userActions";
 import type { AppDispatch } from "../../store";
-import { addedVectorsToStudents, deleteVector, markStudentsPresent } from "../../services/api-faceVectors-service";
+import { addedVectorsToStudents, deleteVector } from "../../services/api-faceVectors-service";
 import { Modal, message } from "antd";
+import { markStudentsPresent } from "../../services/api-attendance-service";
 
 interface IFace {
   name: string;
