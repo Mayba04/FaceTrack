@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button, Card, Upload, Spin } from "antd";
 import { UploadOutlined, CloseCircleOutlined } from "@ant-design/icons";
-import { detectBase64 } from "../services/face-recognition-service";
+import { detectBase64 } from "../../services/face-recognition-service";
 import "./FaceUpload.css"; // Додано кастомні стилі
 
 const FaceUpload: React.FC = () => {

@@ -2,8 +2,8 @@ import React from 'react';
 import { Form, Input, Button, Typography, message } from 'antd';
 import { LockOutlined, UserOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUserAction } from '../store/action-creators/userActions';
-import { RootState } from '../store/reducers';
+import { loginUserAction } from '../../store/action-creators/userActions';
+import { RootState } from '../../store/reducers';
 import { useNavigate } from 'react-router-dom'; // ✅ Додаємо useNavigate
 
 const { Title, Text } = Typography;

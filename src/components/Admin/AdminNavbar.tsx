@@ -2,7 +2,7 @@ import { Menu } from "antd";
 import { DashboardOutlined, UserOutlined, LogoutOutlined } from "@ant-design/icons";
 import { NavLink } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { logout } from "../store/action-creators/userActions";
+import { logout } from "../../store/action-creators/userActions";
 
 const AdminNavbar: React.FC = () => {
     const dispatch = useDispatch();

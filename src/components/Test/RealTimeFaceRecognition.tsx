@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Card, Avatar, List, Spin } from "antd";
-import { detectBase64Video } from "../services/face-recognition-service";
+import { detectBase64Video } from "../../services/face-recognition-service";
 import "./RealTimeFaceRecognition.css";
 
 interface IFace {
