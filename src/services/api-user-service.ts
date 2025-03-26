@@ -16,8 +16,18 @@ const User = {
     addStudentToGroup: (email: string, groupId: number) => requests.post("/user/addStudent", { email,groupId }),
     auditStudent: (email: string) => requests.get("/user/auditStudent", { email }),
     registerUser: (data: { email: string; password: string; confirmPassword: string, groupId: number }) => requests.post("/user/registerStudent", data),
-    
+    filterUsers: (filter: any) => requests.post("/user/filter", filter),
 };
+
+export async function fetchFilteredUsers(filter: any) {
+    try {
+        const response = await User.filterUsers(filter);
+        return response;
+    } catch (error) {
+        console.error("Error fetchFilteredUsers:", error);
+        return { success: false, message: "Failed to fetch users", error };
+    }
+}
 
 export async function registerUser (data: { email: string; password: string; confirmPassword: string, groupId: number}) {
     try {

@@ -17,7 +17,7 @@ const AdminNavbar: React.FC = () => {
             key: "2",
             icon: <UserOutlined style={{ fontSize: "18px" }} />,
             label: <NavLink to="/manage-users" style={{ fontSize: "18px" }}>Manage Users</NavLink>,
-        },
+        },          
         {
             key: "3",
             icon: <LogoutOutlined style={{ fontSize: "18px" }} />,

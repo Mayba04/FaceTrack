@@ -13,6 +13,10 @@ const AdminDashboard: React.FC = () => {
                 <Button type="primary" onClick={() => navigate("/FaceUpload")}>
                     Go to Face Upload
                 </Button>
+                <Button type="primary" onClick={() => navigate("/manage-users")}>
+                    Go to User Management
+                </Button>
+
             </Card>
         </div>
     );

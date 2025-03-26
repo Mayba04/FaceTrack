@@ -1,11 +1,41 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
 
 
+export const fetchFilteredUsersAction = (filter: any) => {
+    return async (dispatch: Dispatch<any>) => {
+        dispatch({ type: UserActionTypes.START_REQUEST });
+
+        try {
+            const response = await fetchFilteredUsers(filter);
+            const { payload, success, message, totalCount, pageNumber, pageSize } = response as any;
+
+            if (success) {
+                const totalPages = Math.ceil(totalCount / pageSize);
+                dispatch({
+                    type: UserActionTypes.FETCH_STUDENTS_SUCCESS,
+                    payload: {
+                        users: payload,
+                        currentPage: pageNumber,
+                        totalPages,
+                        pageSize,
+                        totalCount
+                    },
+                });
+            } else {
+                throw new Error(message);
+            }
+        } catch (error: any) {
+            console.error("Error fetching filtered users:", error);
+            dispatch({ type: UserActionTypes.FETCH_STUDENTS_ERROR, payload: "Error fetching filtered users" });
+            message.error(error?.message || "Failed to fetch filtered users");
+        }
+    };
+};
 
 export const registerUserAction = async (email: string, password: string, confirmPassword: string, groupId: number) => {
     try {
