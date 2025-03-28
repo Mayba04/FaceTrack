@@ -1,4 +1,4 @@
-import instance from "./api-instance";
+import instance, { getAccessToken } from "./api-instance";
 
 const responseBody: any = (response: any) => response.data;
 
@@ -17,7 +17,22 @@ const User = {
     auditStudent: (email: string) => requests.get("/user/auditStudent", { email }),
     registerUser: (data: { email: string; password: string; confirmPassword: string, groupId: number }) => requests.post("/user/registerStudent", data),
     filterUsers: (filter: any) => requests.post("/user/filter", filter),
+    updateUser: (updatedUser: { id: string; fullName: string; email: string; }) => requests.put("/User/update", updatedUser)
+    
 };
+
+export async function updateUser(updatedUser: { id: string; fullName: string; email: string; }) {
+    try {
+        const token = getAccessToken();
+        console.log("Токен перед запитом:", token);
+
+        const response = await User.updateUser(updatedUser);
+        return response;
+    } catch (error) {
+        console.error("Error updateUser:", error);
+        return { success: false, message: "Failed to update user", error };
+    }
+}
 
 export async function fetchFilteredUsers(filter: any) {
     try {

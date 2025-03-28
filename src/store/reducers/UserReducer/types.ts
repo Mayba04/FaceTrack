@@ -11,6 +11,7 @@ export interface User {
 export interface UserState {
   user: User | null; 
   users: User[]; 
+  loggedInUser: User | null; 
   token: string | null;
   refreshToken: string | null;
   role: string | null;
@@ -33,7 +34,12 @@ export enum UserActionTypes {
   FETCH_STUDENTS_SUCCESS = "FETCH_STUDENTS_SUCCESS",
   FETCH_STUDENTS_ERROR = "FETCH_STUDENTS_ERROR",
   ADD_STUDENTGROUP_SUCCESS = "ADD_STUDENTGROUP_SUCCESS",
-  ADD_STUDENTGROUP_ERROR = "ADD_STUDENTGROUP_ERROR"
+  ADD_STUDENTGROUP_ERROR = "ADD_STUDENTGROUP_ERROR",
+  FINISH_REQUEST = "FINISH_REQUEST",
+}
+
+interface FinishRequestAction {
+  type: UserActionTypes.FINISH_REQUEST;
 }
 
 interface AddStudentGroupSuccessAction {
@@ -105,4 +111,5 @@ export type UserActions =
   | FetchStudentsSuccessAction
   | ServerErrorAction
   | AddStudentGroupSuccessAction
-  | AddStudentGroupErrorAction;
+  | AddStudentGroupErrorAction
+  | FinishRequestAction;

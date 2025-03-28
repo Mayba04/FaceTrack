@@ -1,9 +1,33 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
+
+export const updateUserAction = (updatedUser: { id: string; fullName: string; email: string; }) => {
+    return async (dispatch: Dispatch<any>) => {
+        dispatch({ type: UserActionTypes.START_REQUEST });
+
+        try {
+            const response = await updateUser(updatedUser);
+            const { success, message: responseMessage } = response as any;
+
+            if (success) {
+                message.success("Користувача успішно оновлено");
+            } else {
+                throw new Error(responseMessage || "Оновлення не вдалося");
+            }
+        } catch (error: any) {
+            console.error("Помилка при оновленні користувача:", error);
+            dispatch({ type: UserActionTypes.SERVER_ERROR, payload: "Update failed" });
+            message.error(error?.message || "Помилка при оновленні користувача");
+        } finally {
+            dispatch({ type: UserActionTypes.FINISH_REQUEST });
+        }
+    };
+};
+
 
 
 export const fetchFilteredUsersAction = (filter: any) => {

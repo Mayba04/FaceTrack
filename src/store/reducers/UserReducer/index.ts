@@ -3,6 +3,7 @@ import { UserState, UserActions, UserActionTypes } from "./types";
 const initialState: UserState = {
     user: null,
     users: [],
+    loggedInUser: null,
     token: null,
     refreshToken: null,
     role: null,
@@ -22,6 +23,7 @@ const UserReducer = (state = initialState, action: UserActions): UserState => {
             return {
                 ...state,
                 user: action.payload.user || null,
+                loggedInUser: action.payload.user || null, 
                 token: action.payload.token || null,
                 refreshToken: action.payload.refreshToken || null,
                 role: action.payload.user?.role || null,
@@ -42,10 +44,11 @@ const UserReducer = (state = initialState, action: UserActions): UserState => {
         case UserActionTypes.SERVER_ERROR:
             return { ...state, loading: false, error: action.payload };
 
+        case UserActionTypes.FINISH_REQUEST:
+            return { ...state, loading: false };
+
         case UserActionTypes.REFRESH_TOKEN_SUCCESS:
             return { ...state, token: action.payload.token };
-
-        
 
         case UserActionTypes.LOGOUT_USER:
             return { ...initialState, loading: false };
