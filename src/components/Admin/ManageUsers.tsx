@@ -1,21 +1,8 @@
 import React, { useEffect, useState } from "react";
-import {
-  Input,
-  Select,
-  Button,
-  Table,
-  Typography,
-  Space,
-  Modal,
-  Form,
-  message,
-} from "antd";
+import { Input, Select, Button, Table, Typography,  Space, Modal,  Form, message} from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
-import {
-  fetchFilteredUsersAction,
-  updateUserAction,
-} from "../../store/action-creators/userActions";
+import { deleteUserAction, fetchFilteredUsersAction, updateUserAction} from "../../store/action-creators/userActions";
 import type { User } from "../../store/reducers/UserReducer/types";
 
 const { Title } = Typography;
@@ -24,14 +11,7 @@ const { Option } = Select;
 const ManageUsers: React.FC = () => {
   const dispatch = useDispatch<any>();
 
-  const {
-    users,
-    loading,
-    totalCount,
-    pageSize,
-    currentPage,
-    loggedInUser,
-  } = useSelector((state: RootState) => state.UserReducer);
+  const { users, loading, totalCount, pageSize, currentPage, loggedInUser} = useSelector((state: RootState) => state.UserReducer);
 
   const [fullName, setFullName] = useState<string>("");
   const [role, setRole] = useState<string | null>(null);
@@ -81,6 +61,19 @@ const ManageUsers: React.FC = () => {
     setIsModalVisible(true);
   };
 
+  const handleDelete = (userId: string) => {
+    Modal.confirm({
+      title: "Підтвердження",
+      content: "Ви впевнені, що хочете видалити цього користувача?",
+      okText: "Так",
+      cancelText: "Скасувати",
+      onOk: async () => {
+        await dispatch(deleteUserAction(userId));
+        handleSearch(); 
+      },
+    });
+  };  
+
   const handleUpdate = () => {
     form
       .validateFields()
@@ -127,9 +120,12 @@ const ManageUsers: React.FC = () => {
       title: "Actions",
       key: "actions",
       render: (_: any, record: User) => (
-        <Button type="link" onClick={() => handleEdit(record)}>
-          Edit
-        </Button>
+        <Space>
+          <Button type="link" onClick={() => handleEdit(record)}>Edit</Button>
+          {record.id !== loggedInUser?.id && (
+            <Button type="link" danger onClick={() => handleDelete(record.id)}>Delete</Button>
+          )}
+        </Space>
       ),
     },
   ];

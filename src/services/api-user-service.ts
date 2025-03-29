@@ -17,9 +17,20 @@ const User = {
     auditStudent: (email: string) => requests.get("/user/auditStudent", { email }),
     registerUser: (data: { email: string; password: string; confirmPassword: string, groupId: number }) => requests.post("/user/registerStudent", data),
     filterUsers: (filter: any) => requests.post("/user/filter", filter),
-    updateUser: (updatedUser: { id: string; fullName: string; email: string; }) => requests.put("/User/update", updatedUser)
-    
+    updateUser: (updatedUser: { id: string; fullName: string; email: string; }) => requests.put("/User/update", updatedUser),
+    deleteUser: (id: string) =>  requests.delete(`/User/delete/${id}`),
 };
+
+export async function deleteUser(userId: string) {
+    try {
+        const response = await User.deleteUser(userId);
+        return response;
+    } catch (error) {
+        console.error("Error deleteUser:", error);
+        return { success: false, message: "Failed to delete user", error };
+    }
+}
+
 
 export async function updateUser(updatedUser: { id: string; fullName: string; email: string; }) {
     try {

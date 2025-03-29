@@ -1,5 +1,5 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
@@ -29,6 +29,27 @@ export const updateUserAction = (updatedUser: { id: string; fullName: string; em
 };
 
 
+export const deleteUserAction = (userId: string) => {
+    return async (dispatch: Dispatch<any>) => {
+        dispatch({ type: UserActionTypes.START_REQUEST });
+
+        try {
+            const response = await deleteUser(userId);
+            const { success,  message: responseMessage } = response as any;
+            if (success) {
+                message.success("Користувача успішно видалено");
+            } else {
+                throw new Error(responseMessage || "Не вдалося видалити користувача");
+            }
+        } catch (error: any) {
+            console.error("Помилка при видаленні користувача:", error);
+            dispatch({ type: UserActionTypes.SERVER_ERROR, payload: "Delete failed" });
+            message.error(error?.message || "Помилка при видаленні користувача");
+        } finally {
+            dispatch({ type: UserActionTypes.FINISH_REQUEST });
+        }
+    };
+};
 
 export const fetchFilteredUsersAction = (filter: any) => {
     return async (dispatch: Dispatch<any>) => {
