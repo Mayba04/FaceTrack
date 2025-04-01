@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Input, Select, Button, Table, Typography,  Space, Modal,  Form, message} from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { deleteUserAction, fetchFilteredUsersAction, updateUserAction} from "../../store/action-creators/userActions";
+import { changeUserRoleAction, deleteUserAction, fetchFilteredUsersAction, updateUserAction} from "../../store/action-creators/userActions";
 import type { User } from "../../store/reducers/UserReducer/types";
+import { hasGroups } from "../../services/api-group-service";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -12,7 +13,6 @@ const ManageUsers: React.FC = () => {
   const dispatch = useDispatch<any>();
 
   const { users, loading, totalCount, pageSize, currentPage, loggedInUser} = useSelector((state: RootState) => state.UserReducer);
-
   const [fullName, setFullName] = useState<string>("");
   const [role, setRole] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<number | null>(null);
@@ -24,7 +24,6 @@ const ManageUsers: React.FC = () => {
 
   useEffect(() => {
     handleSearch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   const handleSearch = () => {
@@ -39,7 +38,19 @@ const ManageUsers: React.FC = () => {
     );
   };
 
-  // Клік "Edit"
+  const getAllowedRoles = (currentRole: string): string[] => {
+    switch (currentRole) {
+      case "Lecturer":
+        return ["Lecturer", "Student", "Moderator"];
+      case "Student":
+        return ["Student", "Lecturer", "Moderator"];
+      case "Moderator":
+        return ["Moderator", "Lecturer", "Student"];
+      default:
+        return ["Admin", "Student", "Lecturer", "Moderator"];
+    }
+  };
+
   const handleEdit = (user: User) => {
     if (user.id === loggedInUser?.id) {
       Modal.warning({
@@ -51,17 +62,31 @@ const ManageUsers: React.FC = () => {
 
     setSelectedUser(user);
 
-    const allowedRoles = ["Admin", "Student", "Lecturer", "Moderator"];
     form.setFieldsValue({
       fullName: user.fullName,
       email: user.email,
-      role: allowedRoles.includes(user.role) ? user.role : undefined,
+      role: getAllowedRoles(user.role).includes(user.role) ? user.role : undefined,
     });
 
     setIsModalVisible(true);
   };
 
-  const handleDelete = (userId: string) => {
+  const handleDelete = async (userId: string) => {
+    const user = users.find((u) => u.id === userId);
+    if (!user) return;
+
+    if (user.role === "Lecturer") {
+      const hasLinkedGroups = await hasGroups(userId);
+      console.log(hasLinkedGroups)
+      if (hasLinkedGroups) {
+        return Modal.warning({
+          title: "Видалення неможливе",
+          content:
+            "Цей викладач має закріплені групи. Видаліть групи перед видаленням користувача.",
+        });
+      }
+    }
+
     Modal.confirm({
       title: "Підтвердження",
       content: "Ви впевнені, що хочете видалити цього користувача?",
@@ -69,36 +94,79 @@ const ManageUsers: React.FC = () => {
       cancelText: "Скасувати",
       onOk: async () => {
         await dispatch(deleteUserAction(userId));
-        handleSearch(); 
+        handleSearch();
       },
     });
-  };  
+  };
 
   const handleUpdate = () => {
-    form
-      .validateFields()
-      .then((formValues) => {
-        if (!selectedUser) return;
-  
-        
-        const updatedUser = {
-          id: selectedUser.id,
-          fullName: formValues.fullName,
-          email: selectedUser.email 
-        };
-  
-        dispatch(updateUserAction(updatedUser));
+    form.validateFields().then(async (formValues) => {
+      if (!selectedUser) return;
+
+      const { fullName, role: newRole } = formValues;
+      const currentRole = selectedUser.role;
+
+      if (selectedUser.id === loggedInUser?.id || currentRole === "Admin") {
+        return Modal.warning({
+          title: "Заборонено",
+          content:
+            "Ви не можете змінити свою роль або роль адміністратора.",
+        });
+      }
+
+      const confirmChange = async () => {
+        dispatch(
+          updateUserAction({
+            id: selectedUser.id,
+            fullName,
+            email: selectedUser.email,
+          })
+        );
+        if (newRole !== currentRole) {
+          await dispatch(changeUserRoleAction(selectedUser.id, newRole));
+        }
         setIsModalVisible(false);
         handleSearch();
         message.success("Користувача оновлено");
-      })
-      .catch((info) => {
-        console.log("Validation Failed:", info);
-      });
-  };
-  
+      };
 
-  // Налаштування стовпців таблиці
+      if (currentRole === "Lecturer" && ["Moderator", "Student"].includes(newRole)) {
+        const hasLinkedGroups = await hasGroups(selectedUser.id);
+        if (hasLinkedGroups) {
+          return Modal.warning({
+            title: "Неможливо змінити роль",
+            content:
+              "Цей викладач має закріплені групи. Видаліть їх, щоб змінити роль.",
+          });
+        }
+        return Modal.confirm({
+          title: "Підтвердження",
+          content: `Ви впевнені, що хочете змінити роль викладача на ${newRole}?`,
+          onOk: confirmChange,
+        });
+      }
+
+      if (currentRole === "Student" && ["Lecturer", "Moderator"].includes(newRole)) {
+        return Modal.confirm({
+          title: "Увага",
+          content:
+            "Усі студентські дані буде втрачено. Ви впевнені, що хочете змінити роль?",
+          onOk: confirmChange,
+        });
+      }
+
+      if (currentRole === "Moderator" && ["Lecturer", "Student"].includes(newRole)) {
+        return Modal.confirm({
+          title: "Підтвердження",
+          content: `Ви впевнені, що хочете змінити роль модератора на ${newRole}?`,
+          onOk: confirmChange,
+        });
+      }
+
+      await confirmChange();
+    });
+  };
+
   const columns = [
     {
       title: "Full Name",
@@ -121,9 +189,17 @@ const ManageUsers: React.FC = () => {
       key: "actions",
       render: (_: any, record: User) => (
         <Space>
-          <Button type="link" onClick={() => handleEdit(record)}>Edit</Button>
+          <Button type="link" onClick={() => handleEdit(record)}>
+            Edit
+          </Button>
           {record.id !== loggedInUser?.id && (
-            <Button type="link" danger onClick={() => handleDelete(record.id)}>Delete</Button>
+            <Button
+              type="link"
+              danger
+              onClick={() => handleDelete(record.id)}
+            >
+              Delete
+            </Button>
           )}
         </Space>
       ),
@@ -200,10 +276,12 @@ const ManageUsers: React.FC = () => {
 
           <Form.Item name="role" label="Role" rules={[{ required: true }]}>
             <Select>
-              <Option value="Admin">Admin</Option>
-              <Option value="Student">Student</Option>
-              <Option value="Lecturer">Lecturer</Option>
-              <Option value="Moderator">Moderator</Option>
+              {selectedUser &&
+                getAllowedRoles(selectedUser.role).map((r) => (
+                  <Option key={r} value={r}>
+                    {r}
+                  </Option>
+                ))}
             </Select>
           </Form.Item>
         </Form>

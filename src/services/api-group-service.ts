@@ -16,7 +16,20 @@ const Group = {
     deleteGroup: (groupId: number) => requests.delete(`/group/delete/${groupId}`),
     getGroupDetails: (Id: number) => requests.get(`/Group/${Id}`),
     updateGroup: (id: number, name: string, teacherId: string ) => requests.put(`/Group/update`, { name, id, teacherId}),
+    hasGroups: (userId: string) => requests.get(`/group/has-groups/${userId}`),
 };
+
+export const hasGroups = async (userId: string): Promise<boolean> => {
+    try {
+      const response = await Group.hasGroups(userId);
+      const { payload } = response as any;
+      console.log(response)
+      return payload; 
+    } catch (error) {
+      console.error("Помилка при перевірці груп:", error);
+      return false;
+    }
+  };
 
 export async function fetchGroupDetails(groupId: number) {
     try {

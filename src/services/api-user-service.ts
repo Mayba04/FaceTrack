@@ -19,7 +19,18 @@ const User = {
     filterUsers: (filter: any) => requests.post("/user/filter", filter),
     updateUser: (updatedUser: { id: string; fullName: string; email: string; }) => requests.put("/User/update", updatedUser),
     deleteUser: (id: string) =>  requests.delete(`/User/delete/${id}`),
+    changeUserRole: (userId: string, newRole: string) => requests.post('/User/changerole', { userId, newRole }),
 };
+
+export async function changeUserRole(userId: string, newRole: string) {
+    try {
+        const response = await User.changeUserRole(userId,newRole);
+        return response;
+    } catch (error) {
+        console.error("Error changeUserRole:", error);
+        return { success: false, message: "Failed to changeUserRole", error };
+    }
+}
 
 export async function deleteUser(userId: string) {
     try {
@@ -30,7 +41,6 @@ export async function deleteUser(userId: string) {
         return { success: false, message: "Failed to delete user", error };
     }
 }
-
 
 export async function updateUser(updatedUser: { id: string; fullName: string; email: string; }) {
     try {

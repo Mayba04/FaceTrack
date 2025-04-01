@@ -1,9 +1,31 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser, changeUserRole } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
+
+export const changeUserRoleAction = (userId: string, newRole: string) => {
+    return async (dispatch: Dispatch<any>) => {
+        dispatch({ type: UserActionTypes.START_REQUEST });
+        try {
+            const response = await changeUserRole( userId, newRole);
+            const { success, message: responseMessage } = response as any;
+
+            if (success) {
+                message.success("Роль користувача оновлено");
+            } else {
+                throw new Error(responseMessage || "Не вдалося змінити роль");
+            }
+        } catch (error: any) {
+            console.error("Помилка при зміні ролі користувача:", error);
+            dispatch({ type: UserActionTypes.SERVER_ERROR, payload: "Change role failed" });
+            message.error(error?.message || "Помилка при зміні ролі");
+        } finally {
+            dispatch({ type: UserActionTypes.FINISH_REQUEST });
+        }
+    };
+};
 
 export const updateUserAction = (updatedUser: { id: string; fullName: string; email: string; }) => {
     return async (dispatch: Dispatch<any>) => {

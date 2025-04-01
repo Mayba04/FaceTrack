@@ -186,10 +186,11 @@ const SessionPage: React.FC = () => {
   const handleAssignStudent = (vectorId: number, studentId: string) => {
     setRecognizedFaces((prev) =>
       prev.map((face) =>
-        face.vectorId === vectorId ? { ...face, assignedStudentId: studentId } : face
+        face.vectorId === vectorId ? { ...face, userId: studentId } : face
       )
     );
   };
+  
 
   const handleRemoveFace = async (vectorId: number) => {
     if (!vectorId) return;
