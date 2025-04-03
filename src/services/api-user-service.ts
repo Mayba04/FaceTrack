@@ -20,7 +20,23 @@ const User = {
     updateUser: (updatedUser: { id: string; fullName: string; email: string; }) => requests.put("/User/update", updatedUser),
     deleteUser: (id: string) =>  requests.delete(`/User/delete/${id}`),
     changeUserRole: (userId: string, newRole: string) => requests.post('/User/changerole', { userId, newRole }),
+    toggleBlockUser: (userId: string, comment?: string, blockUntil?: string) => requests.post("/User/toggle-block", {
+        userId,
+        comment: comment || "",
+        blockUntil: blockUntil || null,
+      })
 };
+
+
+export async function toggleBlockUser(userId: string, comment?: string, blockUntil?: string) {
+    try {
+        const response = await User.toggleBlockUser(userId,comment,blockUntil);
+        return response;
+    } catch (error) {
+        console.error("Error toggleBlockUser:", error);
+        return { success: false, message: "Failed to toggleBlockUser", error };
+    }
+}
 
 export async function changeUserRole(userId: string, newRole: string) {
     try {

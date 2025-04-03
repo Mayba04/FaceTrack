@@ -1,9 +1,34 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser, changeUserRole } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser, changeUserRole, toggleBlockUser } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
+
+
+export const toggleBlockUserAction = (userId: string, comment?: string, blockUntil?: string) => {
+    return async (dispatch: Dispatch<any>) => {
+      dispatch({ type: UserActionTypes.START_REQUEST });
+  
+      try {
+        const response = await toggleBlockUser(userId, comment, blockUntil);
+        const { success, message: responseMessage } = response as any;
+  
+        if (success) {
+          message.success(responseMessage || "Статус блокування оновлено");
+        } else {
+          throw new Error(responseMessage || "Не вдалося змінити статус блокування");
+        }
+  
+      } catch (error: any) {
+        console.error("Помилка при блокуванні/розблокуванні користувача:", error);
+        dispatch({ type: UserActionTypes.SERVER_ERROR, payload: "Block/unblock failed" });
+        message.error(error?.message || "Помилка при зміні статусу блокування");
+      } finally {
+        dispatch({ type: UserActionTypes.FINISH_REQUEST });
+      }
+    };
+  };
 
 export const changeUserRoleAction = (userId: string, newRole: string) => {
     return async (dispatch: Dispatch<any>) => {

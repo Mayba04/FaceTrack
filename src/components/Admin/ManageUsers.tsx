@@ -2,17 +2,21 @@ import React, { useEffect, useState } from "react";
 import { Input, Select, Button, Table, Typography,  Space, Modal,  Form, message} from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { changeUserRoleAction, deleteUserAction, fetchFilteredUsersAction, updateUserAction} from "../../store/action-creators/userActions";
+import { changeUserRoleAction, deleteUserAction, fetchFilteredUsersAction, toggleBlockUserAction, updateUserAction} from "../../store/action-creators/userActions";
 import type { User } from "../../store/reducers/UserReducer/types";
 import { hasGroups } from "../../services/api-group-service";
 
 const { Title } = Typography;
 const { Option } = Select;
 
+
 const ManageUsers: React.FC = () => {
   const dispatch = useDispatch<any>();
 
-  const { users, loading, totalCount, pageSize, currentPage, loggedInUser} = useSelector((state: RootState) => state.UserReducer);
+  const { users, loading, totalCount, pageSize, currentPage, loggedInUser } = useSelector(
+    (state: RootState) => state.UserReducer
+  );
+
   const [fullName, setFullName] = useState<string>("");
   const [role, setRole] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<number | null>(null);
@@ -77,12 +81,10 @@ const ManageUsers: React.FC = () => {
 
     if (user.role === "Lecturer") {
       const hasLinkedGroups = await hasGroups(userId);
-      console.log(hasLinkedGroups)
       if (hasLinkedGroups) {
         return Modal.warning({
           title: "Видалення неможливе",
-          content:
-            "Цей викладач має закріплені групи. Видаліть групи перед видаленням користувача.",
+          content: "Цей викладач має закріплені групи. Видаліть групи перед видаленням користувача.",
         });
       }
     }
@@ -109,8 +111,7 @@ const ManageUsers: React.FC = () => {
       if (selectedUser.id === loggedInUser?.id || currentRole === "Admin") {
         return Modal.warning({
           title: "Заборонено",
-          content:
-            "Ви не можете змінити свою роль або роль адміністратора.",
+          content: "Ви не можете змінити свою роль або роль адміністратора.",
         });
       }
 
@@ -135,8 +136,7 @@ const ManageUsers: React.FC = () => {
         if (hasLinkedGroups) {
           return Modal.warning({
             title: "Неможливо змінити роль",
-            content:
-              "Цей викладач має закріплені групи. Видаліть їх, щоб змінити роль.",
+            content: "Цей викладач має закріплені групи. Видаліть їх, щоб змінити роль.",
           });
         }
         return Modal.confirm({
@@ -149,8 +149,7 @@ const ManageUsers: React.FC = () => {
       if (currentRole === "Student" && ["Lecturer", "Moderator"].includes(newRole)) {
         return Modal.confirm({
           title: "Увага",
-          content:
-            "Усі студентські дані буде втрачено. Ви впевнені, що хочете змінити роль?",
+          content: "Усі студентські дані буде втрачено. Ви впевнені, що хочете змінити роль?",
           onOk: confirmChange,
         });
       }
@@ -164,6 +163,44 @@ const ManageUsers: React.FC = () => {
       }
 
       await confirmChange();
+    });
+  };
+
+  const handleToggleBlock = (user: User) => {
+    if (!user) return;
+
+    let comment = "";
+    let blockUntil = "";
+
+    Modal.confirm({
+      title: user.lockoutEnabled ? "Розблокувати користувача?" : "Заблокувати користувача",
+      content: (
+        <>
+          {!user.lockoutEnabled && (
+            <>
+              <p>Введіть дату розблокування (необов’язково):</p>
+              <Input
+                type="datetime-local"
+                onChange={(e) => (blockUntil = e.target.value)}
+              />
+              <p>Коментар адміністратора (необов’язково):</p>
+              <Input
+                placeholder="Коментар"
+                onChange={(e) => (comment = e.target.value)}
+              />
+            </>
+          )}
+        </>
+      ),
+      onOk: async () => {
+       
+        await dispatch(toggleBlockUserAction(
+          user.id,
+          comment || undefined,
+          blockUntil ? new Date(blockUntil).toISOString() : undefined
+        ));
+        handleSearch();
+      },
     });
   };
 
@@ -185,6 +222,27 @@ const ManageUsers: React.FC = () => {
       render: (role: string) => role || "—",
     },
     {
+      title: "Status",
+      dataIndex: "lockoutEnabled",
+      key: "lockoutEnabled",
+      render: (_: any, record: User) => (
+        <Space>
+          {record.lockoutEnabled ? "Blocked" : "Active"}
+          {loggedInUser?.id !== record.id &&
+            ((loggedInUser?.role === "Admin" && record.role !== "Admin") ||
+              (loggedInUser?.role === "Moderator" && !["Admin", "Moderator"].includes(record.role))) && (
+              <Button
+                type="link"
+                danger={record.lockoutEnabled}
+                onClick={() => handleToggleBlock(record)}
+              >
+                {record.lockoutEnabled ? "Unblock" : "Block"}
+              </Button>
+          )}
+        </Space>
+      ),
+    },
+    {
       title: "Actions",
       key: "actions",
       render: (_: any, record: User) => (
@@ -193,11 +251,7 @@ const ManageUsers: React.FC = () => {
             Edit
           </Button>
           {record.id !== loggedInUser?.id && (
-            <Button
-              type="link"
-              danger
-              onClick={() => handleDelete(record.id)}
-            >
+            <Button type="link" danger onClick={() => handleDelete(record.id)}>
               Delete
             </Button>
           )}
@@ -262,11 +316,7 @@ const ManageUsers: React.FC = () => {
         cancelText="Cancel"
       >
         <Form form={form} layout="vertical">
-          <Form.Item
-            name="fullName"
-            label="Full Name"
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="fullName" label="Full Name" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
 
