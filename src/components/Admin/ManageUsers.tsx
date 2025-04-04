@@ -56,6 +56,13 @@ const ManageUsers: React.FC = () => {
   };
 
   const handleEdit = (user: User) => {
+    if (user.role === "Admin" && loggedInUser?.role !== "Admin") {
+      return Modal.warning({
+        title: "Редагування заборонено",
+        content: "Модератор не може редагувати адміністратора.",
+      });
+    }
+
     if (user.id === loggedInUser?.id) {
       Modal.warning({
         title: "Редагування недоступне",
@@ -78,6 +85,13 @@ const ManageUsers: React.FC = () => {
   const handleDelete = async (userId: string) => {
     const user = users.find((u) => u.id === userId);
     if (!user) return;
+
+    if (user.role === "Admin" && loggedInUser?.role !== "Admin") {
+      return Modal.warning({
+        title: "Видалення заборонено",
+        content: "Модератор не може видалити адміністратора.",
+      });
+    }    
 
     if (user.role === "Lecturer") {
       const hasLinkedGroups = await hasGroups(userId);
@@ -172,6 +186,14 @@ const ManageUsers: React.FC = () => {
     let comment = "";
     let blockUntil = "";
 
+    if (user.role === "Admin" && loggedInUser?.role !== "Admin") {
+      return Modal.warning({
+        title: "Блокування заборонено",
+        content: "Модератор не може заблокувати адміністратора.",
+      });
+    }
+    
+
     Modal.confirm({
       title: user.lockoutEnabled ? "Розблокувати користувача?" : "Заблокувати користувача",
       content: (
@@ -228,9 +250,11 @@ const ManageUsers: React.FC = () => {
       render: (_: any, record: User) => (
         <Space>
           {record.lockoutEnabled ? "Blocked" : "Active"}
-          {loggedInUser?.id !== record.id &&
-            ((loggedInUser?.role === "Admin" && record.role !== "Admin") ||
-              (loggedInUser?.role === "Moderator" && !["Admin", "Moderator"].includes(record.role))) && (
+          {record.id !== loggedInUser?.id &&
+            (
+              (loggedInUser?.role === "Admin" && record.role !== "Admin") ||
+              (loggedInUser?.role === "Moderator" && !["Admin", "Moderator"].includes(record.role))
+            ) && (
               <Button
                 type="link"
                 danger={record.lockoutEnabled}
@@ -247,14 +271,22 @@ const ManageUsers: React.FC = () => {
       key: "actions",
       render: (_: any, record: User) => (
         <Space>
-          <Button type="link" onClick={() => handleEdit(record)}>
-            Edit
-          </Button>
-          {record.id !== loggedInUser?.id && (
+        {(loggedInUser?.role === "Admin" && record.role !== "Admin") ||
+            (loggedInUser?.role === "Moderator" && !["Admin", "Moderator"].includes(record.role)) ? (
+              <Button type="link" onClick={() => handleEdit(record)}>
+                Edit
+              </Button>
+          ) : null
+        }
+          {record.id !== loggedInUser?.id &&
+          (
+            (loggedInUser?.role === "Admin" && record.role !== "Admin") ||
+            (loggedInUser?.role === "Moderator" && !["Admin", "Moderator"].includes(record.role))
+          ) && (
             <Button type="link" danger onClick={() => handleDelete(record.id)}>
               Delete
             </Button>
-          )}
+        )}
         </Space>
       ),
     },
