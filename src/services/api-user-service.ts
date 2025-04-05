@@ -24,9 +24,45 @@ const User = {
         userId,
         comment: comment || "",
         blockUntil: blockUntil || null,
-      })
+      }),
+    addUser: (email: string, role: string) => requests.post("/user/add", { email, role }),
+    registerUserWithRole: (email: string, password: string, confirmPassword: string, role: string) => requests.post("/user/register-by-role", {
+        email,
+        password,
+        confirmPassword,
+        role,
+      }),
 };
 
+export async function registerUserWithRole(email: string, password: string, confirmPassword: string, role: string) {
+    try {
+      const response = await requests.post("/user/register-by-role", {
+        email,
+        password,
+        confirmPassword,
+        role,
+      });
+      return response;
+    } catch (error: any) {
+      console.error("Error registerUserWithRole:", error);
+      throw error;
+    }
+  }  
+
+export async function addUserService(email: string, role: string) {
+    try {
+      const response = await User.addUser(email, role);
+      return response;
+    } catch (error: any) {
+      console.error("Error addUser:", error);
+  
+      const message =
+        error?.response?.data?.message || error.message || "Failed to add user";
+  
+      return { success: false, message, error };
+    }
+  }
+  
 
 export async function toggleBlockUser(userId: string, comment?: string, blockUntil?: string) {
     try {

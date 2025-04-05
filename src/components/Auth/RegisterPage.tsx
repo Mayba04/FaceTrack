@@ -5,6 +5,7 @@ import { Input, Button, message, Form, Card, Typography, Spin } from "antd";
 import { jwtDecode } from "jwt-decode";
 import { auditStudentAction, logout, registerUserAction } from "../../store/action-creators/userActions";
 import { useDispatch } from "react-redux";
+import { registerUserWithRole } from "../../services/api-user-service";
 
 const { Title } = Typography;
 
@@ -12,6 +13,7 @@ const RegisterPage: React.FC = () => {
     const dispatch = useDispatch();
     const location = useLocation();
     const navigate = useNavigate();
+    const [role, setRole] = useState<string | null>(null);
     const [confirmPassword, setConfirmPassword] = useState<string>("");
     const [email, setEmail] = useState<string | null>(null);
     const [token, setToken] = useState<string | null>(null);
@@ -35,69 +37,85 @@ const RegisterPage: React.FC = () => {
         }
     }, [location]);
 
+    
     const checkTokenValidity = async (token: string) => {
         try {
-            const decodedToken: any = jwtDecode(token); 
-            console.log(decodedToken);
-            const currentTime = Math.floor(Date.now() / 1000); 
-            
-            const result = await auditStudentAction(decodedToken.email);
-            console.log(result)
-            const { success } = result as any; 
-            console.log(success)
-            if (success) {
-                setIsTokenValid(false);
-                return;
-            }
-
-            if (decodedToken.exp < currentTime) {
-                setError("This link has either expired or has already been used.");
-                setIsTokenValid(false);
-            } else {
-                setIsTokenValid(true);
-            }
-
-            setGroupId(decodedToken.groupId)
-        } catch {
-            setError("Invalid token format.");
+          const decodedToken: any = jwtDecode(token);
+          console.log("Decoded token:", decodedToken);
+      
+          const currentTime = Math.floor(Date.now() / 1000);
+      
+          // 1. Перевірка, чи не зареєстрований вже
+          const auditResult = await auditStudentAction(decodedToken.email);
+          const { success } = auditResult as any; 
+          if (success) {
             setIsTokenValid(false);
+            return;
+          }
+      
+          if (decodedToken.exp < currentTime) {
+            setError("This link has either expired or has already been used.");
+            setIsTokenValid(false);
+            return;
+          }
+      
+          if (decodedToken.groupId) {
+            setGroupId(decodedToken.groupId);
+          }
+          if (decodedToken.role) {
+            setRole(decodedToken.role);
+          }
+      
+          setIsTokenValid(true);
+        } catch {
+          setError("Invalid token format.");
+          setIsTokenValid(false);
         }
-    };
+      };
+      
     
     
     
-    const handleRegister = async () => {
+      const handleRegister = async () => {
         if (!email || !token || !isTokenValid) {
-            setError("Invalid or expired token.");
-            return;
+          setError("Invalid or expired token.");
+          return;
         }
-    
+      
         if (!password || !confirmPassword) {
-            setError("Please enter both password fields.");
-            return;
+          setError("Please enter both password fields.");
+          return;
         }
-    
+      
         if (password !== confirmPassword) {
-            setError("Passwords do not match.");
-            return;
+          setError("Passwords do not match.");
+          return;
         }
-    
+      
         setLoading(true);
         try {
+          if (groupId) {
             await registerUserAction(email, password, confirmPassword, groupId);
-            message.success("Registration successful");
-            await dispatch(logout() as any)
-            navigate("/login");
+          } else if (role) {
+            await registerUserWithRole(email, password, confirmPassword, role); 
+          } else {
+            setError("Token is missing both group and role info.");
+            return;
+          }
+      
+          message.success("Registration successful");
+          await dispatch(logout() as any);
+          navigate("/login");
         } catch (error: unknown) {
-            if (error instanceof Error) {
-                setError(`Registration failed: ${error.message}`);
-            } else {
-                setError("Registration failed. Please try again.");
-            }
+          if (error instanceof Error) {
+            setError(`Registration failed: ${error.message}`);
+          } else {
+            setError("Registration failed. Please try again.");
+          }
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
-    };
+      };
     
     if (isTokenValid === false) {
         navigate("/invalidlink");

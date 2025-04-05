@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Input, Select, Button, Table, Typography,  Space, Modal,  Form, message} from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { changeUserRoleAction, deleteUserAction, fetchFilteredUsersAction, toggleBlockUserAction, updateUserAction} from "../../store/action-creators/userActions";
+import { addNewUserAction, changeUserRoleAction, deleteUserAction, fetchFilteredUsersAction, toggleBlockUserAction, updateUserAction} from "../../store/action-creators/userActions";
 import type { User } from "../../store/reducers/UserReducer/types";
 import { hasGroups } from "../../services/api-group-service";
 
@@ -17,6 +17,8 @@ const ManageUsers: React.FC = () => {
     (state: RootState) => state.UserReducer
   );
 
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [addForm] = Form.useForm();
   const [fullName, setFullName] = useState<string>("");
   const [role, setRole] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<number | null>(null);
@@ -324,6 +326,9 @@ const ManageUsers: React.FC = () => {
         <Button type="primary" onClick={handleSearch} loading={loading}>
           Search
         </Button>
+        <Button type="dashed" onClick={() => setIsAddModalVisible(true)}>
+          Add User
+        </Button>
       </Space>
 
       <Table
@@ -368,6 +373,55 @@ const ManageUsers: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      <Modal
+        title="Add New User"
+        open={isAddModalVisible}
+        onCancel={() => setIsAddModalVisible(false)}
+        onOk={() => {
+          addForm.validateFields().then(async (values) => {
+            const { email, role } = values;
+            const result = await dispatch(addNewUserAction(email, role));
+            if (result.success) {
+              message.success(result.message); // буде "Користувача додано успішно"
+              setIsAddModalVisible(false);
+              addForm.resetFields();
+              handleSearch();
+            } else {
+              message.error(result.message); // тепер сюди приходить "User with this email already exists"
+            }
+          });
+        }}
+        okText="Add"
+        cancelText="Cancel"
+      >
+        <Form form={addForm} layout="vertical">
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[
+              { required: true, message: "Введіть email" },
+              { type: "email", message: "Невірний формат email" },
+            ]}
+          >
+            <Input placeholder="example@email.com" />
+          </Form.Item>
+
+          <Form.Item
+            name="role"
+            label="Role"
+            rules={[{ required: true, message: "Оберіть роль" }]}
+          >
+            <Select placeholder="Select role">
+              <Option value="Student">Student</Option>
+              <Option value="Lecturer">Lecturer</Option>
+              <Option value="Moderator">Moderator</Option>
+              {loggedInUser?.role === "Admin" && <Option value="Admin">Admin</Option>}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+
     </div>
   );
 };

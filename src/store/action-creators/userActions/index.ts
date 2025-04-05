@@ -1,10 +1,43 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser, changeUserRole, toggleBlockUser } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser, changeUserRole, toggleBlockUser, addUserService } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
 
+
+export const addNewUserAction = (email: string, role: string) => {
+    return async (dispatch: Dispatch<any>) => {
+      dispatch({ type: UserActionTypes.START_REQUEST });
+  
+      try {
+        const response = await addUserService(email, role);
+        const { success, message: responseMessage } = response as any;
+        console.log(response)
+        if (success) {
+          return { success: true, message: responseMessage || "Користувача додано успішно" };
+        } else {
+          // Повертаємо замість throw
+          return { success: false, message: responseMessage || "Не вдалося додати користувача" };
+        }
+  
+      } catch (error: any) {
+        console.error("Помилка при додаванні користувача:", error);
+  
+        const errorMessage =
+          error?.response?.data?.message || error.message || "Помилка при додаванні користувача";
+  
+        dispatch({ type: UserActionTypes.SERVER_ERROR, payload: "Add user failed" });
+  
+        return { success: false, message: errorMessage };
+      } finally {
+        dispatch({ type: UserActionTypes.FINISH_REQUEST });
+      }
+    };
+  };
+  
+  
+  
 
 export const toggleBlockUserAction = (userId: string, comment?: string, blockUntil?: string) => {
     return async (dispatch: Dispatch<any>) => {
