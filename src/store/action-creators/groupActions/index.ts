@@ -1,7 +1,46 @@
 import { Dispatch } from "redux";
-import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup, fetchGroupDetails } from "../../../services/api-group-service";
+import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup, fetchGroupDetails, fetchFilteredGroups } from "../../../services/api-group-service";
 import { GroupActionTypes, GroupActions } from "../../reducers/GroupReducer/types";
 import { message } from "antd";
+
+export const fetchFilteredGroupsAction = (filter: any) => {
+    return async (dispatch: Dispatch<GroupActions>) => {
+      dispatch({ type: GroupActionTypes.START_REQUEST });
+  
+      try {
+        const res = await fetchFilteredGroups(filter);
+        const {
+          success,
+          payload,
+          totalCount,
+          countPages,
+          pageNumber,
+          pageSize,
+          message: msg
+        } = res as any;
+  
+        if (success) {
+          dispatch({
+            type: GroupActionTypes.FETCH_GROUPS_SUCCESS,
+            payload: {
+              groups: payload,       
+              currentPage: pageNumber,
+              pageSize: pageSize,
+              totalCount: totalCount,
+              totalPages: countPages,
+            },
+          });
+        } else {
+          throw new Error(msg);
+        }
+      } catch (err: any) {
+        dispatch({
+          type: GroupActionTypes.FETCH_GROUPS_ERROR,
+          payload: err?.message || "Error",
+        });
+      }
+    };
+  };
 
 export const fetchGroupByIdAction = (groupId: number) => {
     return async (dispatch: Dispatch<GroupActions>) => {

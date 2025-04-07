@@ -17,7 +17,17 @@ const Group = {
     getGroupDetails: (Id: number) => requests.get(`/Group/${Id}`),
     updateGroup: (id: number, name: string, teacherId: string ) => requests.put(`/Group/update`, { name, id, teacherId}),
     hasGroups: (userId: string) => requests.get(`/group/has-groups/${userId}`),
+    filterGroups: (body: any) => requests.post("/group/filter", body),
 };
+
+export async function fetchFilteredGroups(filter: any) {
+  try {
+    return await Group.filterGroups(filter);
+  } catch (error) {
+    console.error("Error filter groups:", error);
+    return { success: false, message: "Failed to filter groups", error };
+  }
+}
 
 export const hasGroups = async (userId: string): Promise<boolean> => {
     try {

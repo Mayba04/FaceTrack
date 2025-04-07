@@ -1,6 +1,8 @@
 export interface Group {
     id: number;
     name: string;
+    teacherName?: string;    
+    studentsCount?: number;  
   }
   
   export interface GroupState {
