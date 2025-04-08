@@ -143,12 +143,12 @@ export const deleteGroupAction = (groupId: number) => {
 
         try {
             const response = await deleteGroup(groupId);
-            const {  success, message } = response as any; 
+            const { success, message: responseMessage } = response as any;
             if (success) {
                 dispatch({ type: GroupActionTypes.DELETE_GROUP_SUCCESS, payload: groupId });
                 message.success("Group deleted successfully!");
             } else {
-                throw new Error(message);
+                throw new Error(responseMessage);
             }
         } catch (error) {
             console.error("Failed to delete group: ", error);
