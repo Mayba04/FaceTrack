@@ -1,11 +1,11 @@
 import { Dispatch } from "redux";
-import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup, fetchGroupDetails, fetchFilteredGroups } from "../../../services/api-group-service";
+import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup, fetchGroupDetails, fetchFilteredGroups, changeGroupTeacher } from "../../../services/api-group-service";
 import { GroupActionTypes, GroupActions } from "../../reducers/GroupReducer/types";
 import { message } from "antd";
 
 export const fetchFilteredGroupsAction = (filter: any) => {
     return async (dispatch: Dispatch<GroupActions>) => {
-      dispatch({ type: GroupActionTypes.START_REQUEST });
+      dispatch({ type: GroupActionTypes.START_REQUEST_GROUPS });
   
       try {
         const res = await fetchFilteredGroups(filter);
@@ -44,7 +44,7 @@ export const fetchFilteredGroupsAction = (filter: any) => {
 
 export const fetchGroupByIdAction = (groupId: number) => {
     return async (dispatch: Dispatch<GroupActions>) => {
-        dispatch({ type: GroupActionTypes.START_REQUEST });
+        dispatch({ type: GroupActionTypes.START_REQUEST_GROUPS });
 
         try {
             const response = await fetchGroupDetails(groupId);
@@ -70,7 +70,7 @@ export const fetchGroupByIdAction = (groupId: number) => {
 
 export const fetchGroupsAction = (teacherId: string) => {
     return async (dispatch: Dispatch<GroupActions>) => {
-        dispatch({ type: GroupActionTypes.START_REQUEST });
+        dispatch({ type: GroupActionTypes.START_REQUEST_GROUPS });
 
         try {
             const response = await fetchTeacherGroups(teacherId);
@@ -102,7 +102,7 @@ export const fetchGroupsAction = (teacherId: string) => {
 
 export const createGroupAction = (name: string, teacherId: string) => {
     return async (dispatch: Dispatch<GroupActions>) => {
-        dispatch({ type: GroupActionTypes.START_REQUEST });
+        dispatch({ type: GroupActionTypes.START_REQUEST_GROUPS });
 
         try {
             const response = await createGroup(name, teacherId);
@@ -139,7 +139,7 @@ export const createGroupAction = (name: string, teacherId: string) => {
 
 export const deleteGroupAction = (groupId: number) => {
     return async (dispatch: Dispatch<GroupActions>) => {
-        dispatch({ type: GroupActionTypes.START_REQUEST });
+        dispatch({ type: GroupActionTypes.START_REQUEST_GROUPS });
 
         try {
             const response = await deleteGroup(groupId);
@@ -161,7 +161,7 @@ export const deleteGroupAction = (groupId: number) => {
 
 export const updateGroupAction = (groupId: number, name: string, teacherId: string) => {
     return async (dispatch: Dispatch<GroupActions>) => {
-        dispatch({ type: GroupActionTypes.START_REQUEST });
+        dispatch({ type: GroupActionTypes.START_REQUEST_GROUPS });
 
         try {
             const response = await updateGroup(groupId, name, teacherId);
@@ -182,3 +182,35 @@ export const updateGroupAction = (groupId: number, name: string, teacherId: stri
         }
     };
 };
+
+export const changeGroupTeacherAction = (groupId: number, currentTeacherId: string, futureTeacherId: string) => {
+    return async (dispatch: Dispatch<GroupActions>) => {
+      dispatch({ type: GroupActionTypes.START_REQUEST_GROUPS });
+  
+      try {
+        const response = await changeGroupTeacher(groupId, currentTeacherId, futureTeacherId);
+        const { success, message, payload } = response as any;
+  
+        if (success) {
+            dispatch({
+                type: GroupActionTypes.CHANGE_GROUP_TEACHER_SUCCESS,
+                payload: {
+                  groupId,
+                  teacherName: payload?.teacherName || "—",
+                },
+              });
+              
+        } else {
+          throw new Error(message);
+        }
+      } catch (error) {
+        console.error("Failed to change teacher:", error);
+        dispatch({ type: GroupActionTypes.UPDATE_GROUP_ERROR, payload: "Failed to change teacher" });
+        message.error("Failed to change teacher");
+      }
+      finally {
+        dispatch({ type: GroupActionTypes.END_REQUEST });
+      }
+    };
+  };
+  

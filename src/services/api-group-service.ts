@@ -18,7 +18,19 @@ const Group = {
     updateGroup: (id: number, name: string, teacherId: string ) => requests.put(`/Group/update`, { name, id, teacherId}),
     hasGroups: (userId: string) => requests.get(`/group/has-groups/${userId}`),
     filterGroups: (body: any) => requests.post("/group/filter", body),
+    changeGroupTeacher: (groupId: number, currentTeacherId: string, futureTeacherId: string) => requests.put("/group/change-teacher", {
+        groupId, currentTeacherId, futureTeacherId, })
 };
+
+export async function changeGroupTeacher(groupId: number, currentTeacherId: string, futureTeacherId: string) {
+    try {
+        return await Group.changeGroupTeacher(groupId, currentTeacherId, futureTeacherId);
+    } catch (error) {
+      console.error("Error changing teacher:", error);
+      return { success: false, message: "Failed to change teacher", error };
+    }
+  }
+  
 
 export async function fetchFilteredGroups(filter: any) {
   try {

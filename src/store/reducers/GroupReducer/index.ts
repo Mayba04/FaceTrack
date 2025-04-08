@@ -13,7 +13,7 @@ const initialState: GroupState = {
 
 const GroupReducer = (state = initialState, action: GroupActions): GroupState => {
   switch (action.type) {
-    case GroupActionTypes.START_REQUEST:
+    case GroupActionTypes.START_REQUEST_GROUPS:
       return { ...state, loading: true, error: null };
 
     case GroupActionTypes.FETCH_GROUPS_SUCCESS:
@@ -26,7 +26,16 @@ const GroupReducer = (state = initialState, action: GroupActions): GroupState =>
         totalCount: action.payload.totalCount,
         loading: false,
       };
-
+    case GroupActionTypes.CHANGE_GROUP_TEACHER_SUCCESS:
+      return {
+        ...state,
+        groups: state.groups.map((group) =>
+          group.id === action.payload.groupId
+            ? { ...group, teacherName: action.payload.teacherName }
+            : group
+        ),
+        loading: false,
+      };
     case GroupActionTypes.FETCH_GROUP_BY_ID_SUCCESS:
       return {
         ...state,
@@ -55,7 +64,10 @@ const GroupReducer = (state = initialState, action: GroupActions): GroupState =>
           totalCount: state.totalCount + 1,
           loading: false,
       };
-}
+    }
+
+    case GroupActionTypes.END_REQUEST:
+      return { ...state, loading: false };
 
     case GroupActionTypes.DELETE_GROUP_SUCCESS:
       return {

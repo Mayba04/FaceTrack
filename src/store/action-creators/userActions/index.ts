@@ -151,6 +151,7 @@ export const fetchFilteredUsersAction = (filter: any) => {
                         totalCount
                     },
                 });
+                return { success: true, payload }; 
             } else {
                 throw new Error(message);
             }
@@ -158,7 +159,11 @@ export const fetchFilteredUsersAction = (filter: any) => {
             console.error("Error fetching filtered users:", error);
             dispatch({ type: UserActionTypes.FETCH_STUDENTS_ERROR, payload: "Error fetching filtered users" });
             message.error(error?.message || "Failed to fetch filtered users");
+            return { success: false, message: error?.message || "Unknown error" };
         }
+        finally {
+            dispatch({ type: UserActionTypes.FINISH_REQUEST });
+          }
     };
 };
 

@@ -1,7 +1,8 @@
 export interface Group {
     id: number;
     name: string;
-    teacherName?: string;    
+    teacherName?: string;  
+    teacherId?: string;  
     studentsCount?: number;  
   }
   
@@ -17,7 +18,7 @@ export interface Group {
   }
   
   export enum GroupActionTypes {
-    START_REQUEST = "START_REQUEST",
+    START_REQUEST_GROUPS = "START_REQUEST_GROUPS",
     FETCH_GROUPS_SUCCESS = "FETCH_GROUPS_SUCCESS",
     FETCH_GROUPS_ERROR = "FETCH_GROUPS_ERROR",
     CREATE_GROUP_SUCCESS = "CREATE_GROUP_SUCCESS",
@@ -28,10 +29,18 @@ export interface Group {
     UPDATE_GROUP_ERROR = "UPDATE_GROUP_ERROR",
     FETCH_GROUP_BY_ID_SUCCESS = "FETCH_GROUP_BY_ID_SUCCESS",
     FETCH_GROUP_BY_ID_ERROR = "FETCH_GROUP_BY_ID_ERROR",
+    CHANGE_GROUP_TEACHER_SUCCESS = "CHANGE_GROUP_TEACHER_SUCCESS",
+    END_REQUEST = "END_REQUEST",
   }
   
+  interface ChangeGroupTeacherSuccessAction {
+    type: GroupActionTypes.CHANGE_GROUP_TEACHER_SUCCESS;
+    payload: { groupId: number; teacherName: string };
+  }
+  
+
   interface StartRequestAction {
-    type: GroupActionTypes.START_REQUEST;
+    type: GroupActionTypes.START_REQUEST_GROUPS;
   }
   
   interface FetchGroupsSuccessAction {
@@ -89,6 +98,10 @@ interface FetchGroupByIdErrorAction {
   type: GroupActionTypes.FETCH_GROUP_BY_ID_ERROR;
   payload: string;
 }
+
+interface EndRequestAction {
+  type: GroupActionTypes.END_REQUEST;  // Додано для кінця запиту
+}
   
   export type GroupActions =
     | StartRequestAction
@@ -101,5 +114,7 @@ interface FetchGroupByIdErrorAction {
     | UpdateGroupSuccessAction  
     | UpdateGroupErrorAction
     | FetchGroupByIdSuccessAction
-    | FetchGroupByIdErrorAction;   
+    | FetchGroupByIdErrorAction   
+    | ChangeGroupTeacherSuccessAction   
+    | EndRequestAction;   
   
