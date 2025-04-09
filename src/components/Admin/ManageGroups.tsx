@@ -6,13 +6,13 @@ import { fetchFilteredGroupsAction, createGroupAction, deleteGroupAction, update
 import { GroupActionTypes, type Group } from "../../store/reducers/GroupReducer/types";
 import { User } from "../../store/reducers/UserReducer/types";
 import { fetchFilteredUsersAction } from "../../store/action-creators/userActions";
-
+import { useNavigate } from "react-router-dom";
 const { Title } = Typography;
 
 
 const ManageGroups: React.FC = () => {
   const dispatch = useDispatch<any>();
-
+  const navigate = useNavigate();
   const { groups, totalCount, pageSize, currentPage, loading: groupLoading } =
     useSelector((state: RootState) => state.GroupReducer);
 
@@ -142,7 +142,11 @@ const ManageGroups: React.FC = () => {
   };
 
   const columns = [
-    { title: "Group", dataIndex: "name", key: "name" },
+    { title: "Group", dataIndex: "name", 
+      key: "name",
+      render: (_: string, record: Group) => (
+        <a onClick={() => navigate(`/groups/${record.id}`)}>{record.name}</a>
+      ), },
     { title: "Teacher", dataIndex: "teacherName", key: "teacherName" },
     { title: "Students", dataIndex: "studentsCount", key: "studentsCount" },
     {

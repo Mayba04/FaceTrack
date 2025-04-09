@@ -21,6 +21,7 @@ import SessionPage from "./components/Session/SessionPage";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import ManageUsers from "./components/Admin/ManageUsers";
 import ManageGroups from "./components/Admin/ManageGroups";
+import GroupDetailsAdmin from "./components/Admin/GroupDetailsAdmin";
 const App: React.FC = () => {
     const token = useSelector((state: RootState) => state.UserReducer.token);
     const role = useSelector((state: RootState) => state.UserReducer.role);
@@ -47,6 +48,13 @@ const App: React.FC = () => {
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/manage-users" element={<ManageUsers />} />
                     <Route path="/admin/groups" element={<ManageGroups />} />
+                </Route>
+
+                <Route element={<PrivateRoute allowedRoles={["Admin", "Moderator"]} />}>
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/manage-users" element={<ManageUsers />} />
+                    <Route path="/admin/groups" element={<ManageGroups />} />
+                    <Route path="/groups/:id" element={<GroupDetailsAdmin />} />
                 </Route>
 
                 <Route element={<PrivateRoute allowedRoles={["Lecturer"]} />}>
