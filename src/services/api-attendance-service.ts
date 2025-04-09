@@ -12,7 +12,17 @@ const requests = {
 const Attendance = {
     getAttendanceBySession: (Id: number) => requests.get(`/attendance/session/${Id}`),
     markStudentsPresent: (attendanceData: any) => requests.post("/attendance/create", attendanceData),
+    getMatrixByGroupId: (groupId: number) => requests.get(`/attendance/matrix/group/${groupId}`),
 };
+
+export async function getAttendanceMatrixByGroupId(groupId: number) {
+  try {
+      return await Attendance.getMatrixByGroupId(groupId);
+  } catch (error) {
+      console.error("Error fetching attendance matrix:", error);
+      return { success: false, message: "Failed to fetch attendance matrix", error };
+  }
+}
 
 export async function getAttendanceBySession(sessionId: number) {
     try {
