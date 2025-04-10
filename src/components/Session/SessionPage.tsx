@@ -247,106 +247,95 @@ const SessionPage: React.FC = () => {
   };
 
   return (
-    <div className="container-fluid vh-100 d-flex flex-column">
-      <div className="row flex-grow-1">
-        <div className="col-lg-8 mx-auto mt-3">
-          <div className="card shadow-lg p-4">
-            <h2 className="text-center">
-              Session {sessionId} - Face Recognition
-            </h2>
-
+    <div className="container py-3">
+      <h2 className="text-center mb-4">Session {sessionId} - Face Recognition</h2>
+  
+      <div className="row">
+        {/* Блок відео */}
+        <div className="col-lg-8 mb-4">
+          <div className="card shadow-sm p-3">
             <video
               ref={videoRef}
               autoPlay
               muted
-              className="w-100 rounded mb-3"
-              style={{ maxHeight: "400px", objectFit: "cover" }}
+              className="w-100 rounded"
+              style={{ maxHeight: "450px", objectFit: "cover" }}
             />
+            <div className="d-flex justify-content-center gap-3 mt-3 flex-wrap">
+              <Button variant={isCapturing ? "danger" : "success"} onClick={toggleCapture}>
+                {isCapturing ? "Stop Capturing" : "Start Capturing"}
+              </Button>
+              <Button variant="success" onClick={markAttendance}>Mark Attendance</Button>
+              {!isCapturing && <Button variant="primary" onClick={saveVectors}>Save Vectors</Button>}
+            </div>
+          </div>
+        </div>
+  
+        {/* Блок розпізнаних облич */}
+        <div className="col-lg-4">
+          <div className="card shadow-sm p-3">
+            <h5 className="text-center">Recognized Faces</h5>
+            {loading && recognizedFaces.length === 0 ? (
+              <div className="text-center my-4">
+                <div className="spinner-border text-primary" />
+              </div>
+            ) : recognizedFaces.length > 0 ? (
+              <div className="d-flex flex-wrap gap-3">
+                {recognizedFaces.map((face) => {
+                  const isUnknown = face.name === "Unknown";
+                  return (
+                    <div
+                      key={face.vectorId}
+                      className="card p-2 shadow-sm"
+                      style={{ width: "220px" }}
+                    >
+                      <img
+                        src={`data:image/jpeg;base64,${face.faceImageBase64}`}
+                        alt={face.name}
+                        className="rounded mb-2"
+                        style={{ width: "100%", height: "200px", objectFit: "cover" }}
+                      />
+                      <div className="text-center fw-bold">{face.name}</div>
 
-            <Button variant={isCapturing ? "danger" : "success"} onClick={toggleCapture}>
-              {isCapturing ? "Stop Capturing" : "Start Capturing"}
-            </Button>
+                      {isUnknown && !isCapturing && (
+                        <select
+                          className="form-select mt-2"
+                          value={face.userId || ""}
+                          onChange={(e) =>
+                            handleAssignStudent(face.vectorId, e.target.value)
+                          }
+                        >
+                          <option value="">Select student...</option>
+                          {studentsFromStore.map((st) => (
+                            <option key={st.id} value={st.id}>
+                              {st.fullName}
+                            </option>
+                          ))}
+                        </select>
+                      )}
 
-            <div className="mt-3">
-              <h4>Recognized Faces</h4>
-
-              <div className="mb-2">
-                  <Button onClick={markAttendance} variant="success">
-                      Mark Attendance
-                  </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        className="mt-2 w-100"
+                        onClick={() => handleRemoveFace(face.vectorId)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
 
-              {!isCapturing && (
-                <div className="mb-2">
-                  <Button onClick={saveVectors} variant="primary">
-                    Save Vectors
-                  </Button>
-                </div>
-              )}
-
-              {loading && recognizedFaces.length === 0 ? (
-                <div className="text-center">
-                  <div className="spinner-border text-primary" role="status" />
-                </div>
-              ) : recognizedFaces.length > 0 ? (
-                <ul
-                  className="list-group"
-                  style={{ maxHeight: "300px", overflowY: "auto" }}
-                >
-                  {recognizedFaces.map((face) => {
-                    const isUnknown = face.name === "Unknown";
-                    return (
-                      <li
-                        key={face.vectorId}
-                        className="list-group-item d-flex align-items-center"
-                      >
-                        <img
-                          src={`data:image/jpeg;base64,${face.faceImageBase64}`}
-                          alt={face.name}
-                          className="rounded-circle me-3"
-                          width={50}
-                          height={50}
-                        />
-                        <span className="me-3">{face.name}</span>
-
-                        {isUnknown && !isCapturing && (
-                          <select
-                            className="form-select me-2"
-                            style={{ maxWidth: "200px" }}
-                            value={face.userId || ""}
-                            onChange={(e) =>
-                              handleAssignStudent(face.vectorId, e.target.value)
-                            }
-                          >
-                            <option value="">Select student...</option>
-                            {studentsFromStore.map((st) => (
-                              <option key={st.id} value={st.id}>
-                                {st.fullName}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          onClick={() => handleRemoveFace(face.vectorId)}
-                        >
-                          Remove
-                        </Button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <p className="text-center text-muted">No faces recognized yet.</p>
-              )}
-            </div>
+            ) : (
+              <p className="text-center text-muted mt-3">No faces recognized yet.</p>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
+  
 };
 
 export default SessionPage;
