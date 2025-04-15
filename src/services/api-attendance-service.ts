@@ -13,7 +13,28 @@ const Attendance = {
     getAttendanceBySession: (Id: number) => requests.get(`/attendance/session/${Id}`),
     markStudentsPresent: (attendanceData: any) => requests.post("/attendance/create", attendanceData),
     getMatrixByGroupId: (groupId: number) => requests.get(`/attendance/matrix/group/${groupId}`),
+    markAbsent: (attendanceData: any) => requests.post("/attendance/mark-absent", attendanceData),
+    deleteAttendanceById: (id: number) => requests.delete(`/attendance/delete/${id}`),
 };
+
+
+export async function markStudentAbsent(data: any) {
+  try {
+    return await Attendance.markAbsent(data);
+  } catch (error) {
+    console.error("Error marking student absent:", error);
+    return { success: false };
+  }
+}
+
+export async function deleteAttendance(id: number) {
+  try {
+    return await Attendance.deleteAttendanceById(id);
+  } catch (error) {
+    console.error("Error deleting attendance:", error);
+    return { success: false };
+  }
+}
 
 export async function getAttendanceMatrixByGroupId(groupId: number) {
   try {

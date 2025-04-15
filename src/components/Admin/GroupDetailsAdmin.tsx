@@ -3,7 +3,11 @@ import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { fetchStudentByGroupIdAction } from "../../store/action-creators/userActions";
-import { fetchAttendanceMatrixAction } from "../../store/action-creators/attendanceAction";
+import {
+  fetchAttendanceMatrixAction,
+  addAbsenceAction,
+  deleteAbsenceAction,
+} from "../../store/action-creators/attendanceAction";
 import { Table, Typography, Spin } from "antd";
 import moment from "moment";
 import { ColumnsType } from "antd/es/table";
@@ -13,26 +17,40 @@ const { Title } = Typography;
 const GroupDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const dispatch = useDispatch<any>();
+  const groupId = Number(id);
 
   const { users: students, loading: studentsLoading } = useSelector((state: RootState) => state.UserReducer);
   const { matrix, loading: attendanceLoading } = useSelector((state: RootState) => state.AttendanceReducer);
 
   useEffect(() => {
-    if (id) {
-      dispatch(fetchStudentByGroupIdAction(Number(id)));
-      dispatch(fetchAttendanceMatrixAction(Number(id)));
+    if (groupId) {
+      dispatch(fetchStudentByGroupIdAction(groupId));
+      dispatch(fetchAttendanceMatrixAction(groupId));
     }
-  }, [id]);
+  }, [groupId]);
 
-  const studentColumns = [
-    { title: "ПІБ", dataIndex: "fullName", key: "fullName" },
-    { title: "Email", dataIndex: "email", key: "email" },
-  ];
+  const getRecord = (studentId: string, virtualSessionId: number) =>
+    matrix?.attendances.find(a => a.sessionId === virtualSessionId && a.studentId === studentId);
 
-  const getAttendanceValue = (studentId: string, sessionId: number) => {
-    const record = matrix?.attendances.find(a => a.sessionId === sessionId && a.studentId === studentId);
-    return record ? (record.isPresent ? "✓" : "н") : "";
+  const handleCellClick = async (studentId: string, virtualSessionId: number) => {
+    const session = matrix?.sessions.find(s => s.id === virtualSessionId);
+    if (!session) return;
+  
+    const originalSessionId = (session as any).originalSessionId;
+    const timestamp = session.startTime;
+    const record = getRecord(studentId, virtualSessionId);
+    console.log(record?.id)
+    if (record?.id) {
+      // якщо вже є відмітка — видаляємо її незалежно від isPresent
+      await dispatch(deleteAbsenceAction(record.id));
+    } else {
+      // немає запису — додаємо "н"
+      await dispatch(addAbsenceAction(studentId, originalSessionId, timestamp));
+    }
+  
+    dispatch(fetchAttendanceMatrixAction(groupId));
   };
+
 
   const attendanceColumns: ColumnsType<{ id: string; fullName: string }> = [
     {
@@ -46,7 +64,35 @@ const GroupDetails: React.FC = () => {
       dataIndex: session.id.toString(),
       key: session.id.toString(),
       align: "center" as const,
-      render: (_: any, record: any) => getAttendanceValue(record.id, session.id),
+      render: (_: any, student: any) => {
+        const recordData = getRecord(student.id, session.id);
+        let value = "";
+      
+        if (recordData) {
+          value = recordData.isPresent ? "✓" : "н";
+        } else {
+          value = "н"; 
+        }
+      
+        return (
+          <button
+            onClick={() => handleCellClick(student.id, session.id)} 
+            style={{
+              background: "none",
+              border: "none",
+              color:
+                value === "н" ? "red" :
+                value === "✓" ? "green" :
+                "#888",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              cursor: "pointer",
+            }}
+          >
+            {value}
+          </button>
+        );
+      },      
     })) || []),
   ];
 
@@ -63,7 +109,7 @@ const GroupDetails: React.FC = () => {
       {studentsLoading ? (
         <Spin />
       ) : students.length ? (
-        <Table columns={studentColumns} dataSource={students} rowKey="id" pagination={false} />
+        <Table columns={[{ title: "ПІБ", dataIndex: "fullName" }]} dataSource={students} rowKey="id" pagination={false} />
       ) : (
         <p>У цій групі немає студентів</p>
       )}

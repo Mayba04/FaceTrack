@@ -6,9 +6,11 @@ export interface StudentShort {
   export interface SessionShort {
     id: number;
     startTime: string;
+    originalSessionId: number; 
   }
   
   export interface AttendanceItem {
+    id?: number;
     sessionId: number;
     studentId: string;
     isPresent: boolean;
@@ -29,7 +31,9 @@ export interface StudentShort {
   export enum AttendanceActionTypes {
     START_REQUEST = "START_ATTENDANCE_REQUEST",
     FETCH_MATRIX_SUCCESS = "FETCH_MATRIX_SUCCESS",
-    FETCH_MATRIX_ERROR = "FETCH_MATRIX_ERROR"
+    FETCH_MATRIX_ERROR = "FETCH_MATRIX_ERROR",
+    ADD_ABSENCE = "ADD_ABSENCE",
+    DELETE_ABSENCE = "DELETE_ABSENCE"
   }
   
   interface StartRequestAction {
@@ -45,9 +49,25 @@ export interface StudentShort {
     type: AttendanceActionTypes.FETCH_MATRIX_ERROR;
     payload: string;
   }
+
+  interface AddAbsenceAction {
+    type: AttendanceActionTypes.ADD_ABSENCE;
+    payload: {
+      id: number;
+      sessionId: number;
+      studentId: string;
+    };
+  }
+  
+  interface DeleteAbsenceAction {
+    type: AttendanceActionTypes.DELETE_ABSENCE;
+    payload: number;
+  }
   
   export type AttendanceActions =
     | StartRequestAction
     | FetchMatrixSuccessAction
-    | FetchMatrixErrorAction;
+    | FetchMatrixErrorAction
+    | AddAbsenceAction
+    | DeleteAbsenceAction;
   
