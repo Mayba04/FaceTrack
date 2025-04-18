@@ -17,7 +17,19 @@ const Session = {
         requests.put(`/session/update`, sessionData),
     deleteSession: (sessionId: string) => requests.delete(`/session/delete/${sessionId}`),
     getSessionsById: (Id: number) => requests.get(`/session/group/${Id}`),
+    startSession: (sessionId: number, userId: string) =>
+        requests.post(`/session/start/${sessionId}?userId=${userId}`),
+      
 };
+
+export async function startSession(sessionId: number, userId: string) {
+    try {
+        return await Session.startSession(sessionId, userId);
+    } catch (error) {
+        console.error("Error start sessions:", error);
+        return { success: false, message: "Failed to start sessions", error };
+    }
+}
 
 export async function fetchSessionById(Id: number) {
     try {

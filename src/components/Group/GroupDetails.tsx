@@ -10,6 +10,7 @@ import { fetchSessionsAction, createSessionAction, updateSessionAction, deleteSe
 import dayjs from "dayjs";    
 import { useNavigate } from "react-router-dom";
 import { getAttendanceBySession } from "../../services/api-attendance-service";
+import { startSession } from "../../services/api-session-service";
 
 const { Title } = Typography;
 
@@ -134,7 +135,13 @@ const GroupDetails: React.FC = () => {
     };
 
 
-    const handleStartSession = (sessionId: number) => {
+    const handleStartSession = async (sessionId: number) => {
+        if (!user?.id) {
+            console.error("User ID is missing");
+            return;
+        }
+    
+        await startSession(sessionId, user?.id);
         navigate(`/session/${sessionId}`);
     };
 

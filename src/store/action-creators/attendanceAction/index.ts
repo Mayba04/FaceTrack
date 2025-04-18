@@ -5,17 +5,17 @@ import {
   AttendanceActions,
 } from "../../reducers/AttendanceReducer/types";
 
-export const addAbsenceAction = (studentId: string, sessionId: number, timestamp: string) => {
+export const addAbsenceAction = (studentId: string, sessionHistoryId: number, timestamp: string) => {
   return async (dispatch: Dispatch<AttendanceActions>) => {
     try {
-      const response = await markStudentAbsent({ studentId, sessionId, timestamp });
+      const response = await markStudentAbsent({ studentId, sessionHistoryId, timestamp });
       const { payload, success } = response as any;
 
       if (success && payload) {
         dispatch({
           type: AttendanceActionTypes.ADD_ABSENCE,
           payload: {
-            sessionId: payload.sessionId,
+            sessionHistoryId: payload.sessionId,
             studentId: payload.studentId,
             id: payload.id, 
           },

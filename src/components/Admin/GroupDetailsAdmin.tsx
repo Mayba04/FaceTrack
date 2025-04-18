@@ -30,7 +30,7 @@ const GroupDetails: React.FC = () => {
   }, [groupId]);
 
   const getRecord = (studentId: string, virtualSessionId: number) =>
-    matrix?.attendances.find(a => a.sessionId === virtualSessionId && a.studentId === studentId);
+    matrix?.attendances.find(a => a.sessionHistoryId === virtualSessionId && a.studentId === studentId);
 
   const handleCellClick = async (studentId: string, virtualSessionId: number) => {
     const session = matrix?.sessions.find(s => s.id === virtualSessionId);

@@ -35,7 +35,7 @@ export const AttendanceReducer = (
                 ...state.matrix.attendances,
                 {
                   id: action.payload.id,
-                  sessionId: action.payload.sessionId,
+                  sessionHistoryId: action.payload.sessionHistoryId, 
                   studentId: action.payload.studentId,
                   isPresent: false,
                 },

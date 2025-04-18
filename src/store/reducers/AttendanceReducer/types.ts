@@ -6,16 +6,16 @@ export interface StudentShort {
   export interface SessionShort {
     id: number;
     startTime: string;
-    originalSessionId: number; 
+    sessionHistoryId: number; 
   }
   
   export interface AttendanceItem {
     id?: number;
-    sessionId: number;
+    sessionHistoryId: number;
     studentId: string;
     isPresent: boolean;
   }
-  
+
   export interface AttendanceMatrix {
     students: StudentShort[];
     sessions: SessionShort[];
@@ -54,7 +54,7 @@ export interface StudentShort {
     type: AttendanceActionTypes.ADD_ABSENCE;
     payload: {
       id: number;
-      sessionId: number;
+      sessionHistoryId: number;
       studentId: string;
     };
   }
