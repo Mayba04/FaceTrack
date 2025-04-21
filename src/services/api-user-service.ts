@@ -1,4 +1,5 @@
 import instance, { getAccessToken } from "./api-instance";
+import type { AxiosError } from "axios";
 
 const responseBody: any = (response: any) => response.data;
 
@@ -138,15 +139,19 @@ export async function auditStudent(email: string) {
     }
 }
 
+
+
 export async function addStudentToGroup(email: string, groupId: number) {
     try {
-        const response = await User.addStudentToGroup(email,groupId );
-        return response;
-    } catch (error) {
-        console.error("Error addStudentToGroup:", error);
-        return { success: false, message: "Failed to addStudentToGroup", error };
+        const response = await User.addStudentToGroup(email, groupId);
+        return response.data;
+    } catch (error: unknown) {
+        const err = error as AxiosError<{ message?: string }>;
+        const msg = err.response?.data?.message || "Failed to addStudentToGroup";
+        return { success: false, message: msg };
     }
 }
+
 
 
 export async function fetchStudentByGroupId(groupId: number) {

@@ -192,29 +192,37 @@ export const addStudentToGroupAction = (email: string, groupId: number) => {
 
         try {
             const response = await addStudentToGroup(email, groupId);
-            console.log("response create:", response);
-
-            const { success, message } = response as any; 
-
+            const { success, message } = response as any;
+            console.log("success: ", success )
+            console.log("message: ", message )
             if (success) {
                 dispatch({
                     type: UserActionTypes.ADD_STUDENTGROUP_SUCCESS,
-                    message: message,
+                    message,
                 });
-            
+                return { success: true, message }; // ✅ правильне повернення
             } else {
-                console.error(" Unexpected response format:", response);
-                throw new Error(message || "Unknown error");
+                dispatch({
+                    type: UserActionTypes.ADD_STUDENTGROUP_ERROR,
+                    payload: message,
+                });
+                return { success: false, message }; // 🔁
             }
         } catch (error: any) {
-            console.error(" Failed to create StudentToGroup: ", error?.message || error);
+            const msg = error?.response?.data?.message || error?.message || "Unexpected error";
+            
+            dispatch({
+                type: UserActionTypes.ADD_STUDENTGROUP_ERROR,
+                payload: msg,
+            });
 
-            dispatch({ type: UserActionTypes.ADD_STUDENTGROUP_ERROR, payload: "Error creating StudentToGroup" });
-
-            message.error(error?.message || "Failed to create StudentToGroup");
+            return { success: false, message: msg };
         }
     };
 };
+
+
+
 
 
 

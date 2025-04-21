@@ -67,18 +67,30 @@ const GroupDetails: React.FC = () => {
         }
       };
 
-    const handleAddStudent = async () => {
+      const handleAddStudent = async () => {
         if (!email) {
             message.warning("Please enter a valid email.");
             return;
         }
-
-        await dispatch(addStudentToGroupAction(email, Number(groupId)));
-        await dispatch(fetchStudentByGroupIdAction(Number(groupId)));
-        message.success(`Student with email ${email} added successfully!`);
-        setIsEmailModalOpen(false);
-        setEmail(""); 
+    
+        try {
+            const response = await dispatch(addStudentToGroupAction(email, Number(groupId))) as any;
+    
+            if (response?.success) {
+                await dispatch(fetchStudentByGroupIdAction(Number(groupId)));
+                message.success(`Student with email ${email} added successfully!`);
+                setIsEmailModalOpen(false);
+                setEmail("");
+            } else {
+                message.error(response?.message || "Failed to add student to group.");
+            }
+    
+        } catch (error: any) {
+            message.error(error?.message || "An unexpected error occurred.");
+        }
     };
+    
+    
 
     const showModal = (session?: any) => {
         setIsModalOpen(true);
