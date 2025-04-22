@@ -66,6 +66,7 @@ const App: React.FC = () => {
 
                 <Route element={<PrivateRoute allowedRoles={["Student"]} />}>
                     <Route path="/student" element={<StudentDashboard />} />
+                    <Route path="/student/sessions/today" element={<TodaySessions />} />
                 </Route>
 
                 <Route path="*" element={<NotFound />} />
