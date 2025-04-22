@@ -22,6 +22,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import ManageUsers from "./components/Admin/ManageUsers";
 import ManageGroups from "./components/Admin/ManageGroups";
 import GroupDetailsAdmin from "./components/Admin/GroupDetailsAdmin";
+import TodaySessions from "./components/Student/TodaySessions";
 const App: React.FC = () => {
     const token = useSelector((state: RootState) => state.UserReducer.token);
     const role = useSelector((state: RootState) => state.UserReducer.role);

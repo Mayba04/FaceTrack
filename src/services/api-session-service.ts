@@ -19,8 +19,18 @@ const Session = {
     getSessionsById: (Id: number) => requests.get(`/session/group/${Id}`),
     startSession: (sessionId: number, userId: string) =>
         requests.post(`/session/start/${sessionId}?userId=${userId}`),
+    getTodaysSessions: (studentId: string) => requests.get(`/session/todaysessions/${studentId}`),
       
 };
+
+export async function getTodaysSessions(studentId: string) {
+    try {
+        return await Session.getTodaysSessions(studentId);
+    } catch (error) {
+        console.error("Error fetching today's sessions:", error);
+        return { success: false, message: "Failed to fetch today's sessions", error };
+    }
+}
 
 export async function startSession(sessionId: number, userId: string) {
     try {
