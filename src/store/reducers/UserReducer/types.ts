@@ -6,6 +6,7 @@ export interface User {
   lockoutEnd?: Date | null;
   lockoutEnabled: boolean;
   role: string;
+  mainPhotoFileName : string;
 }
 
 export interface UserState {

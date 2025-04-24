@@ -363,7 +363,8 @@ const authUser = async (token: string, dispatch: Dispatch<any>): Promise<boolean
             emailConfirmed: decodedToken.EmailConfirm,
             lockoutEnd: null, 
             lockoutEnabled: decodedToken.LockoutEnabled, 
-            role: decodedToken.role
+            role: decodedToken.role,
+            mainPhotoFileName : decodedToken.mainPhotoFileName
         };
         
 
