@@ -200,7 +200,7 @@ export const addStudentToGroupAction = (email: string, groupId: number) => {
                     type: UserActionTypes.ADD_STUDENTGROUP_SUCCESS,
                     message,
                 });
-                return { success: true, message }; // ✅ правильне повернення
+                return { success: true, message };
             } else {
                 dispatch({
                     type: UserActionTypes.ADD_STUDENTGROUP_ERROR,

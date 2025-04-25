@@ -20,8 +20,19 @@ const Session = {
     startSession: (sessionId: number, userId: string) =>
         requests.post(`/session/start/${sessionId}?userId=${userId}`),
     getTodaysSessions: (studentId: string) => requests.get(`/session/todaysessions/${studentId}`),
-      
+    
+    getPendingBySession: (sessionId: number) =>
+        instance.get(`/sessionfacevector/pending/${sessionId}`).then(responseBody),
 };
+
+export async function getPendingFaceRequests(sessionId: number) {
+    try {
+      return await Session.getPendingBySession(sessionId);
+    } catch (error) {
+      console.error("Error fetching pending face requests:", error);
+      return { success: false, payload: [] };
+    }
+  }
 
 export async function getTodaysSessions(studentId: string) {
     try {

@@ -1,4 +1,5 @@
 import instance from "./api-instance";
+import type { AxiosError } from "axios";
 
 const responseBody: any = (response: any) => response.data;
 
@@ -15,8 +16,36 @@ const Attendance = {
     getMatrixByGroupId: (groupId: number) => requests.get(`/attendance/matrix/group/${groupId}`),
     markAbsent: (attendanceData: any) => requests.post("/attendance/mark-absent", attendanceData),
     deleteAttendanceById: (id: number) => requests.delete(`/attendance/delete/${id}`),
+    getTodayAttendance: (sessionId: number, studentId: string) =>
+      instance.get(`/attendance/today/${sessionId}/${studentId}`).then(responseBody),
+    markAttendance: (formData: FormData) =>
+      instance.post("/AttendanceMark/mark-attendance", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      }).then(responseBody),
 };
 
+export async function markAttendance(formData: FormData) {
+  try {
+    const response = await Attendance.markAttendance(formData);
+    // тут response вже готовий об'єкт: { success, message, ... }
+    return response;
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ message?: string }>;
+    // якщо бекенд повертає щось у error.response?.data, витягуємо message:
+    const msg = err.response?.data?.message || "Failed to mark attendance";
+    return { success: false, message: msg };
+  }
+}
+
+
+export async function getTodayAttendance(sessionId: number, studentId: string) {
+  try {
+    return await Attendance.getTodayAttendance(sessionId, studentId);
+  } catch (error) {
+    console.error("Error getting today's attendance:", error);
+    return { success: false };
+  }
+}
 
 export async function markStudentAbsent(data: any) {
   try {

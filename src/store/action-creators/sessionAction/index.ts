@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
 import { SessionActions, SessionActionTypes } from "../../reducers/SessionReducer/type";
-import { fetchGroupSessions, createSession, updateSession, deleteSession, fetchSessionById} from "../../../services/api-session-service";
+import { fetchGroupSessions, createSession, updateSession, deleteSession, fetchSessionById, getTodaysSessions, getPendingFaceRequests} from "../../../services/api-session-service";
 import { message } from "antd";
 
 export const fetchSessionsAction = (groupId: string) => {
@@ -128,4 +128,26 @@ export const deleteSessionAction = (sessionId: string) => {
     };
 };
 
+export const fetchTodaysSessionsAction = (studentId: string) => {
+    return async () => {
+    
+      try {
+        const response = await getTodaysSessions(studentId);
+        return response;
+      } catch  {
+        return { success: false, payload: [] }; 
+      }
+    };
+  };
 
+
+  export const fetchPendingFaceRequestsAction = (sessionId: number) => {
+    return async () => {
+      try {
+        const response = await getPendingFaceRequests(sessionId);
+        return response;
+      } catch {
+        return { success: false, payload: [] };
+      }
+    };
+  };

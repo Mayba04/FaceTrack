@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { APP_ENV } from "../../env";
 import { useParams } from "react-router-dom";
 import { Card, Button, Typography, Spin, List, Modal, DatePicker, message, Input } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
@@ -6,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { fetchGroupByIdAction } from "../../store/action-creators/groupActions";
 import { fetchStudentByGroupIdAction, addStudentToGroupAction } from "../../store/action-creators/userActions";
-import { fetchSessionsAction, createSessionAction, updateSessionAction, deleteSessionAction } from "../../store/action-creators/sessionAction";
+import { fetchSessionsAction, createSessionAction, updateSessionAction, deleteSessionAction, fetchPendingFaceRequestsAction } from "../../store/action-creators/sessionAction";
 import dayjs from "dayjs";    
 import { useNavigate } from "react-router-dom";
 import { getAttendanceBySession } from "../../services/api-attendance-service";
@@ -32,6 +33,9 @@ const GroupDetails: React.FC = () => {
     const [currentSession, setCurrentSession] = useState<any>(null);
     const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
     const [attendanceList, setAttendanceList] = useState<any[]>([]);
+    const [faceRequests, setFaceRequests] = useState<any[]>([]);
+    const [checkModalOpen, setCheckModalOpen] = useState(false);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     useEffect(() => {
         console.log(groupId)
@@ -54,6 +58,10 @@ const GroupDetails: React.FC = () => {
         setIsEmailModalOpen(false);
         setEmail(""); 
     };
+
+    const handleImageClick = (src: string) => {
+        setPreviewImage(src);
+      };      
 
     const handleViewAttendance = async (sessionId: number) => {
         const response = await getAttendanceBySession(sessionId);
@@ -157,6 +165,22 @@ const GroupDetails: React.FC = () => {
         navigate(`/session/${sessionId}`);
     };
 
+    const handleCheckFaceRequests = async (sessionId: number) => {
+        setCheckModalOpen(true);
+        const response = await dispatch(fetchPendingFaceRequestsAction(sessionId) as any);
+        setFaceRequests(response?.payload || []);
+      };
+
+    const handleApprove = async (id: number) => {
+    await approveFaceRequest(id); // твій сервіс чи екшен
+    setFaceRequests(prev => prev.filter(item => item.id !== id));
+    };
+
+    const handleReject = async (id: number) => {
+    await rejectFaceRequest(id); // твій сервіс чи екшен
+    setFaceRequests(prev => prev.filter(item => item.id !== id));
+    };
+
     if (!groupDetails) return <Title level={3} style={{ textAlign: "center", marginTop: "20px" }}>Group not found</Title>;
 
     return (
@@ -216,6 +240,7 @@ const GroupDetails: React.FC = () => {
                                     <Button icon={<EditOutlined />} onClick={() => showModal(session)} />
                                     <Button icon={<DeleteOutlined />} danger onClick={() => handleDeleteSession(Number(session.id))} />
                                     <Button onClick={() => handleViewAttendance(Number(session.id))}>View Attendance</Button>
+                                    <Button onClick={() => handleCheckFaceRequests(Number(session.id))}>Check</Button>
                                 </div>
                             </List.Item>
                             )}
@@ -287,6 +312,55 @@ const GroupDetails: React.FC = () => {
             ) : (
                 <p>No students marked as present.</p>
             )}
+            </Modal>
+
+            <Modal
+            title="Manual Face ID Requests"
+            open={checkModalOpen}
+            onCancel={() => setCheckModalOpen(false)}
+            footer={null}
+            centered
+            >
+            {faceRequests.length ? (
+                <List
+                dataSource={faceRequests}
+                renderItem={item => (
+                    <List.Item
+                    actions={[
+                        <Button onClick={() => handleApprove(item.id)} type="primary">Approve</Button>,
+                        <Button onClick={() => handleReject(item.id)} danger>Reject</Button>,
+                    ]}
+                    >
+                    <img src={`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`} alt="Face" 
+                    style={{ width: 60, borderRadius: 6, marginRight: 14, cursor: "pointer" }}
+                    onClick={() => handleImageClick(`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`)} />
+                    <span>{item.name || item.studentId}</span>
+                    </List.Item>
+                )}
+                />
+            ) : (
+                <p>No requests for manual check.</p>
+            )}
+            </Modal>
+
+            <Modal
+            open={!!previewImage}
+            footer={null}
+            onCancel={() => setPreviewImage(null)}
+            centered
+            width={400} // або 600, як тобі зручно
+            bodyStyle={{ textAlign: "center" }}
+            >
+            <img
+                src={previewImage!}
+                alt="Face"
+                style={{
+                maxWidth: "100%",
+                maxHeight: "70vh",
+                borderRadius: 10,
+                boxShadow: "0 6px 32px 0 rgba(30,64,175,0.18)"
+                }}
+            />
             </Modal>
 
 

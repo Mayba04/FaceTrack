@@ -1,38 +1,47 @@
 import React, { useRef, useState } from "react";
 import Webcam from "react-webcam";
 import { Button, message, Checkbox, Typography, Card } from "antd";
-import axios from "axios";
 import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { markAttendanceAction } from "../../store/action-creators/attendanceAction"; 
+import { RootState } from "../../store";
 
 const { Paragraph } = Typography;
 
 const AttendanceMark: React.FC = () => {
   const webcamRef = useRef<any>(null);
+  const user = useSelector((state: RootState) => state.UserReducer.loggedInUser);
   const [loading, setLoading] = useState(false);
   const [consent, setConsent] = useState(false);
   const { sessionId } = useParams();
+  const dispatch = useDispatch();
 
   const handleCapture = async () => {
     setLoading(true);
-    const imageSrc = webcamRef.current.getScreenshot();
     try {
+      // 1) Робимо скрін із веб-камери
+      const imageSrc = webcamRef.current.getScreenshot();
       const blob = await (await fetch(imageSrc)).blob();
+  
+      // 2) Формуємо FormData з тими полями, які відповідають DTO
       const formData = new FormData();
-      formData.append("file", blob, "face.webp");
-      formData.append("sessionId", sessionId!);
-
-      const response = await axios.post("/api/attendance/mark", formData);
-      if (response.data && response.data.success) {
-        message.success("Відмітка успішна!");
+      formData.append("SessionId", sessionId!);           // назва має точно співпасти з SessionId
+      formData.append("StudentId", user!.id);              // і тут — точно StudentId
+      formData.append("Photo", blob, "face.webp");         // ключ “Photo” → IFormFile Photo
+  
+      // 3) Відправляємо через наш Redux-action
+      const response: any = await dispatch(markAttendanceAction(formData) as any);
+  
+      if (response.success) {
+        message.success(response.message);
       } else {
-        message.error(response.data.error || "Не знайдено обличчя. Спробуйте ще раз.");
+        message.error(response.message || "Не вдалося відмітити присутність");
       }
-    } catch {
-      message.error("Помилка під час відправки фото.");
-    } finally {
+    }  finally {
       setLoading(false);
     }
   };
+  
 
   return (
     <div
@@ -71,7 +80,7 @@ const AttendanceMark: React.FC = () => {
         <Webcam
           audio={false}
           ref={webcamRef}
-          screenshotFormat="image/webp"
+          screenshotFormat="image/jpeg"
           style={{
             width: 320,
             height: 240,

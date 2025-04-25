@@ -1,5 +1,5 @@
 import { Dispatch } from "redux";
-import { deleteAttendance, getAttendanceMatrixByGroupId, markStudentAbsent } from "../../../services/api-attendance-service";
+import { deleteAttendance, getAttendanceMatrixByGroupId, getTodayAttendance, markAttendance, markStudentAbsent } from "../../../services/api-attendance-service";
 import {
   AttendanceActionTypes,
   AttendanceActions,
@@ -66,6 +66,40 @@ export const fetchAttendanceMatrixAction = (groupId: number) => {
         type: AttendanceActionTypes.FETCH_MATRIX_ERROR,
         payload: "Помилка при завантаженні матриці відвідуваності",
       });
+    }
+  };
+};
+
+export const fetchTodayAttendanceAction = (sessionId: number, studentId: string) => {
+  return async () => {
+    try {
+      const response = await getTodayAttendance(sessionId, studentId);
+      return response;
+    } catch {
+      return { success: false };
+    }
+  };
+};
+
+export const markAttendanceAction = (formData: FormData) => {
+  return async () => {
+    try {
+      const response = await markAttendance(formData);
+      console.log("response: ", response)
+      if (!response) {
+        return { success: false, message: "Пуста відповідь від серверу" };
+      }
+
+      const { success, message } = response as any;
+
+      if (success) {
+        return { success: true, message };
+      } else {
+        return { success: false, message };
+      }
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || error?.message || "Unexpected error";
+      return { success: false, message: msg };
     }
   };
 };

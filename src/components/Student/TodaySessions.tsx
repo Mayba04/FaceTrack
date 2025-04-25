@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/reducers";
-import { getTodaysSessions } from "../../services/api-session-service";
+import { fetchTodayAttendanceAction } from "../../store/action-creators/attendanceAction";
+import { fetchTodaysSessionsAction } from "../../store/action-creators/sessionAction";
 import { Button, Spin, Typography } from "antd";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import { UserOutlined, ClockCircleOutlined } from "@ant-design/icons";
 
+
 const { Title } = Typography;
 
 const TodaySessions: React.FC = () => {
+  const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.UserReducer.user);
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [marked, setMarked] = useState<{ [sessionId: number]: boolean }>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,13 +29,20 @@ const TodaySessions: React.FC = () => {
   const fetchSessions = async () => {
     setLoading(true);
     try {
-      const response = await getTodaysSessions(user!.id);
+      const response = await dispatch(fetchTodaysSessionsAction(user!.id) as any);
       const { success, payload } = response as any;
+      console.log("sesion: ",payload)
       if (success) {
         setSessions(payload);
+
+        // Для кожної сесії окремо запитуємо статус відмітки
+        for (const session of payload) {
+          // ОБОВ'ЯЗКОВО await dispatch(...), бо dispatch повертає проміс!
+          const status = await dispatch(fetchTodayAttendanceAction(session.sessionId, user!.id) as any);
+          const { payload } = status as any;
+          setMarked(prev => ({ ...prev, [session.sessionId]: !!payload }));
+        }
       }
-    } catch {
-      // error handled UI
     } finally {
       setLoading(false);
     }
@@ -82,6 +93,7 @@ const TodaySessions: React.FC = () => {
               session.startTime,
               session.endTime
             );
+            const alreadyMarked = marked[session.sessionId] || false;
             return (
               <div
                 key={`${session.sessionId}-${session.startTime}`}
@@ -117,23 +129,27 @@ const TodaySessions: React.FC = () => {
                   type="primary"
                   block
                   size="large"
-                  disabled={!isActive}
-                  onClick={() => handleNavigate(session.sessionHistoryId)}
+                  disabled={!isActive || alreadyMarked}
+                  onClick={() => handleNavigate(session.sessionId)}
                   style={{
                     marginTop: 10,
-                    background: isActive
+                    background: isActive && !alreadyMarked
                       ? "linear-gradient(90deg,#1976d2 60%,#64b5f6)"
                       : "#f0f2f5",
-                    color: isActive ? "#fff" : "#7a92b3",
+                    color: isActive && !alreadyMarked ? "#fff" : "#7a92b3",
                     border: "none",
                     fontWeight: 700,
                     fontSize: 16,
                     letterSpacing: 1,
-                    boxShadow: isActive ? "0 2px 10px #1976d229" : "none",
+                    boxShadow: isActive && !alreadyMarked ? "0 2px 10px #1976d229" : "none",
                     transition: "background .15s, color .15s",
                   }}
                 >
-                  {isActive ? "Перейти до заняття" : "Поза часом заняття"}
+                  {alreadyMarked
+                    ? "Ви вже відмітилися"
+                    : isActive
+                    ? "Перейти до заняття"
+                    : "Поза часом заняття"}
                 </Button>
               </div>
             );
@@ -156,3 +172,5 @@ const TodaySessions: React.FC = () => {
 };
 
 export default TodaySessions;
+
+
