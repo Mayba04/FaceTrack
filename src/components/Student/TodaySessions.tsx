@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/reducers";
 import { fetchTodayAttendanceAction } from "../../store/action-creators/attendanceAction";
-import { fetchTodaysSessionsAction } from "../../store/action-creators/sessionAction";
-import { Button, Spin, Typography } from "antd";
+import {
+  checkManualCheckPendingAction,
+  fetchTodaysSessionsAction
+} from "../../store/action-creators/sessionAction";
+import { Button, Spin, Typography, Alert } from "antd";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import { UserOutlined, ClockCircleOutlined } from "@ant-design/icons";
-
 
 const { Title } = Typography;
 
@@ -17,6 +19,7 @@ const TodaySessions: React.FC = () => {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [marked, setMarked] = useState<{ [sessionId: number]: boolean }>({});
+  const [pendingManualChecks, setPendingManualChecks] = useState<{ [sessionId: number]: boolean }>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,16 +34,25 @@ const TodaySessions: React.FC = () => {
     try {
       const response = await dispatch(fetchTodaysSessionsAction(user!.id) as any);
       const { success, payload } = response as any;
-      console.log("sesion: ",payload)
       if (success) {
         setSessions(payload);
 
-        // Для кожної сесії окремо запитуємо статус відмітки
+        // Перевіряємо статус відмітки присутності
         for (const session of payload) {
-          // ОБОВ'ЯЗКОВО await dispatch(...), бо dispatch повертає проміс!
           const status = await dispatch(fetchTodayAttendanceAction(session.sessionId, user!.id) as any);
-          const { payload } = status as any;
-          setMarked(prev => ({ ...prev, [session.sessionId]: !!payload }));
+          const { payload: markPayload } = status as any;
+          setMarked(prev => ({ ...prev, [session.sessionId]: !!markPayload }));
+        }
+
+        // Перевіряємо наявність заявки на ручну перевірку
+        for (const session of payload) {
+          const res: any = await dispatch(
+            checkManualCheckPendingAction(session.sessionId, user!.id) as any
+          );
+          setPendingManualChecks(prev => ({
+            ...prev,
+            [session.sessionId]: !!res.payload,
+          }));
         }
       }
     } finally {
@@ -94,6 +106,7 @@ const TodaySessions: React.FC = () => {
               session.endTime
             );
             const alreadyMarked = marked[session.sessionId] || false;
+            const manualCheckPending = pendingManualChecks[session.sessionId] || false;
             return (
               <div
                 key={`${session.sessionId}-${session.startTime}`}
@@ -125,31 +138,42 @@ const TodaySessions: React.FC = () => {
                   {moment(session.startTime).format("HH:mm")} –{" "}
                   {moment(session.endTime).format("HH:mm")}
                 </div>
+                {/* --- Ручна перевірка --- */}
+                {manualCheckPending && (
+                  <Alert
+                    message="Ваша заявка на ручну перевірку відправлена, чекайте рішення викладача"
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 8, fontWeight: 500 }}
+                  />
+                )}
                 <Button
                   type="primary"
                   block
                   size="large"
-                  disabled={!isActive || alreadyMarked}
+                  disabled={!isActive || alreadyMarked || manualCheckPending}
                   onClick={() => handleNavigate(session.sessionId)}
                   style={{
                     marginTop: 10,
-                    background: isActive && !alreadyMarked
+                    background: isActive && !alreadyMarked && !manualCheckPending
                       ? "linear-gradient(90deg,#1976d2 60%,#64b5f6)"
                       : "#f0f2f5",
-                    color: isActive && !alreadyMarked ? "#fff" : "#7a92b3",
+                    color: isActive && !alreadyMarked && !manualCheckPending ? "#fff" : "#7a92b3",
                     border: "none",
                     fontWeight: 700,
                     fontSize: 16,
                     letterSpacing: 1,
-                    boxShadow: isActive && !alreadyMarked ? "0 2px 10px #1976d229" : "none",
+                    boxShadow: isActive && !alreadyMarked && !manualCheckPending ? "0 2px 10px #1976d229" : "none",
                     transition: "background .15s, color .15s",
                   }}
                 >
-                  {alreadyMarked
-                    ? "Ви вже відмітилися"
-                    : isActive
-                    ? "Перейти до заняття"
-                    : "Поза часом заняття"}
+                  {manualCheckPending
+                    ? "Відправлено на ручну перевірку"
+                    : alreadyMarked
+                      ? "Ви вже відмітилися"
+                      : isActive
+                        ? "Перейти до заняття"
+                        : "Поза часом заняття"}
                 </Button>
               </div>
             );
@@ -172,5 +196,3 @@ const TodaySessions: React.FC = () => {
 };
 
 export default TodaySessions;
-
-

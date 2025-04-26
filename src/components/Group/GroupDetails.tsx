@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { fetchGroupByIdAction } from "../../store/action-creators/groupActions";
 import { fetchStudentByGroupIdAction, addStudentToGroupAction } from "../../store/action-creators/userActions";
-import { fetchSessionsAction, createSessionAction, updateSessionAction, deleteSessionAction, fetchPendingFaceRequestsAction } from "../../store/action-creators/sessionAction";
+import { fetchSessionsAction, createSessionAction, updateSessionAction, deleteSessionAction, fetchPendingFaceRequestsAction, rejectFaceRequestAction, approveFaceRequestAction } from "../../store/action-creators/sessionAction";
 import dayjs from "dayjs";    
 import { useNavigate } from "react-router-dom";
 import { getAttendanceBySession } from "../../services/api-attendance-service";
@@ -171,16 +171,24 @@ const GroupDetails: React.FC = () => {
         setFaceRequests(response?.payload || []);
       };
 
-    const handleApprove = async (id: number) => {
-    await approveFaceRequest(id); // твій сервіс чи екшен
-    setFaceRequests(prev => prev.filter(item => item.id !== id));
-    };
+      const handleApprove = async (id: number) => {
+        const res: any = await dispatch(approveFaceRequestAction(id) as any);
+        if (res.success) {
+          setFaceRequests(prev => prev.filter(item => item.id !== id));
+        } else {
+          message.error(res.message);
+        }
+      };
+      
 
     const handleReject = async (id: number) => {
-    await rejectFaceRequest(id); // твій сервіс чи екшен
-    setFaceRequests(prev => prev.filter(item => item.id !== id));
-    };
-
+        const res: any = await dispatch(rejectFaceRequestAction(id) as any);
+        if (res.success) {
+          setFaceRequests(prev => prev.filter(item => item.id !== id));
+        } else {
+          message.error(res.message);
+        }
+      };
     if (!groupDetails) return <Title level={3} style={{ textAlign: "center", marginTop: "20px" }}>Group not found</Title>;
 
     return (
@@ -348,7 +356,7 @@ const GroupDetails: React.FC = () => {
             footer={null}
             onCancel={() => setPreviewImage(null)}
             centered
-            width={400} // або 600, як тобі зручно
+            width={600} // або 600, як тобі зручно
             bodyStyle={{ textAlign: "center" }}
             >
             <img

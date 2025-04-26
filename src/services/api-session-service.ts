@@ -23,7 +23,41 @@ const Session = {
     
     getPendingBySession: (sessionId: number) =>
         instance.get(`/sessionfacevector/pending/${sessionId}`).then(responseBody),
+
+    reject: (id: number) =>requests.delete(`/sessionfacevector/delete/${id}`),
+
+    approve: (id: number) => requests.post(`/sessionfacevector/approve/${id}`),
+
+    checkManualCheckPending: (sessionId: number, studentId: string) =>
+        requests.get(`/sessionfacevector/manual-check-pending/${sessionId}/${studentId}`),
+
 };
+
+export async function checkManualCheckPending(sessionId: number, studentId: string) {
+    try {
+      return await Session.checkManualCheckPending(sessionId, studentId);
+    } catch (error) {
+      console.error("Error checking pending manual check:", error);
+      return { success: false, payload: false, message: "Помилка перевірки ручної заявки" };
+    }
+  }
+export async function approveFaceRequest(id: number) {
+    try {
+      return await Session.approve(id);
+    } catch (err) {
+      console.error("Error approving face request:", err);
+      return { success: false, payload: [] };
+    }
+}
+
+export async function rejectFaceRequest(id: number) {
+    try {
+      return await Session.reject(id);
+    } catch (err) {
+      console.error("Error rejecting face request:", err);
+      return { success: false, payload: [] };
+    }
+  }
 
 export async function getPendingFaceRequests(sessionId: number) {
     try {
@@ -32,7 +66,7 @@ export async function getPendingFaceRequests(sessionId: number) {
       console.error("Error fetching pending face requests:", error);
       return { success: false, payload: [] };
     }
-  }
+}
 
 export async function getTodaysSessions(studentId: string) {
     try {

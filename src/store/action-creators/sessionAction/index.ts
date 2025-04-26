@@ -1,6 +1,6 @@
 import { Dispatch } from "redux";
 import { SessionActions, SessionActionTypes } from "../../reducers/SessionReducer/type";
-import { fetchGroupSessions, createSession, updateSession, deleteSession, fetchSessionById, getTodaysSessions, getPendingFaceRequests} from "../../../services/api-session-service";
+import { fetchGroupSessions, createSession, updateSession, deleteSession, fetchSessionById, getTodaysSessions, getPendingFaceRequests, rejectFaceRequest, approveFaceRequest, checkManualCheckPending} from "../../../services/api-session-service";
 import { message } from "antd";
 
 export const fetchSessionsAction = (groupId: string) => {
@@ -151,3 +151,37 @@ export const fetchTodaysSessionsAction = (studentId: string) => {
       }
     };
   };
+
+  export const approveFaceRequestAction = (id: number) => {
+    return async () => {
+        try {
+          const response = await  approveFaceRequest(id);
+          return response;
+        } catch {
+          return { success: false, payload: [] };
+        }
+      };
+  };
+
+  export const rejectFaceRequestAction = (id: number) => {
+    return async () => {
+        try {
+          const response = await  rejectFaceRequest(id);
+          return response;
+        } catch {
+          return { success: false, payload: [] };
+        }
+      };
+  };
+
+  export const checkManualCheckPendingAction = (sessionId: number, studentId: string) => {
+    return async () => {
+      try {
+        const response = await checkManualCheckPending(sessionId, studentId);
+        return response; // { success: true, payload: true/false }
+      } catch  {
+        return { success: false, payload: false };
+      }
+    };
+  };
+  

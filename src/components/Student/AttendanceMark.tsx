@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import Webcam from "react-webcam";
 import { Button, message, Checkbox, Typography, Card } from "antd";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { markAttendanceAction } from "../../store/action-creators/attendanceAction"; 
 import { RootState } from "../../store";
@@ -14,6 +14,7 @@ const AttendanceMark: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [consent, setConsent] = useState(false);
   const { sessionId } = useParams();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleCapture = async () => {
@@ -34,6 +35,7 @@ const AttendanceMark: React.FC = () => {
   
       if (response.success) {
         message.success(response.message);
+        navigate("/student/sessions/today");
       } else {
         message.error(response.message || "Не вдалося відмітити присутність");
       }
