@@ -31,6 +31,8 @@ const Session = {
     checkManualCheckPending: (sessionId: number, studentId: string) =>
         requests.get(`/sessionfacevector/manual-check-pending/${sessionId}/${studentId}`),
 
+    getSessionsByStudentId: (studentId: string) => requests.get(`/session/studentid/${studentId}`),
+
 };
 
 export async function checkManualCheckPending(sessionId: number, studentId: string) {

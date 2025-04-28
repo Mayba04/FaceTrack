@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "./store/reducers";
 import FaceUpload from "./components/Test/FaceUpload";
@@ -31,6 +31,8 @@ const App: React.FC = () => {
 
     return (
         <div>
+          
+
             {token && (
                 role === "Admin" || role === "Moderator" ? <AdminNavbar /> :
                 role === "Lecturer" ? <TeacherNavbar /> :
@@ -38,6 +40,17 @@ const App: React.FC = () => {
             )}
 
             <Routes>
+
+                <Route path="/" element={
+                    token ? (
+                        role === "Admin" || role === "Moderator" ? <Navigate to="/admin" /> :
+                        role === "Lecturer" ? <Navigate to="/teacher" /> :
+                        <Navigate to="/student" />
+                    ) : (
+                        <Login />
+                    )
+                } />
+
                 <Route path="/" element={token ? <HomePage /> : <Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<RegisterPage />} />
