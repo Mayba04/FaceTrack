@@ -1,7 +1,36 @@
 import { Dispatch } from "redux";
 import { SessionActions, SessionActionTypes } from "../../reducers/SessionReducer/type";
-import { fetchGroupSessions, createSession, updateSession, deleteSession, fetchSessionById, getTodaysSessions, getPendingFaceRequests, rejectFaceRequest, approveFaceRequest, checkManualCheckPending} from "../../../services/api-session-service";
+import { fetchGroupSessions, createSession, updateSession, deleteSession, fetchSessionById, getTodaysSessions, getPendingFaceRequests, rejectFaceRequest, approveFaceRequest, checkManualCheckPending, getSessionsByStudentId} from "../../../services/api-session-service";
 import { message } from "antd";
+
+export const fetchSessionsByStudentIdAction = (studentId: string) => {
+    return async (dispatch: Dispatch<SessionActions>) => {
+        dispatch({ type: SessionActionTypes.START_REQUEST });
+
+        try {
+            const response = await getSessionsByStudentId(studentId);
+            const { success, payload, message } = response as any;
+
+            if (success) {
+                dispatch({
+                    type: SessionActionTypes.FETCH_SESSIONS_SUCCESS,
+                    payload: {
+                        sessions: payload,
+                        currentPage: 1,
+                        totalPages: 1,
+                        pageSize: payload.length,
+                        totalCount: payload.length,
+                    },
+                });
+            } else {
+                throw new Error(message);
+            }
+        } catch (error) {
+            console.error("Error fetching sessions: ", error);
+            dispatch({ type: SessionActionTypes.FETCH_SESSIONS_ERROR, payload: "Error fetching sessions" });
+        }
+    };
+};
 
 export const fetchSessionsAction = (groupId: string) => {
     return async (dispatch: Dispatch<SessionActions>) => {

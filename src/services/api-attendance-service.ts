@@ -22,16 +22,41 @@ const Attendance = {
       instance.post("/AttendanceMark/mark-attendance", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       }).then(responseBody),
+    getStudentSessionStats: (studentId: string, sessionId: number) =>
+      requests.get(`/attendance/stats/session/${sessionId}/student/${studentId}`),
+    getAbsencesByStudentAndSessionId: (studentId: string, sessionId: number) =>
+      requests.get(`/attendance/by-session/${sessionId}/student/${studentId}`),
 };
+
+export async function getAbsencesByStudentAndSessionId(studentId: string, sessionId: number) {
+  try {
+    const response = await Attendance.getAbsencesByStudentAndSessionId(studentId, sessionId);
+    return response;
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ message?: string }>;
+    const msg = err.response?.data?.message || "Failed to fetch stats";
+    return { success: false, message: msg };
+  }
+}
+
+
+export async function getStudentSessionStats(studentId: string, sessionId: number) {
+  try {
+    const response = await Attendance.getStudentSessionStats(studentId, sessionId);
+    return response;
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ message?: string }>;
+    const msg = err.response?.data?.message || "Failed to fetch stats";
+    return { success: false, message: msg };
+  }
+}
 
 export async function markAttendance(formData: FormData) {
   try {
     const response = await Attendance.markAttendance(formData);
-    // тут response вже готовий об'єкт: { success, message, ... }
     return response;
   } catch (error: unknown) {
     const err = error as AxiosError<{ message?: string }>;
-    // якщо бекенд повертає щось у error.response?.data, витягуємо message:
     const msg = err.response?.data?.message || "Failed to mark attendance";
     return { success: false, message: msg };
   }

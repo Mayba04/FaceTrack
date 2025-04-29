@@ -35,6 +35,15 @@ const Session = {
 
 };
 
+export async function getSessionsByStudentId(studentId: string) {
+    try {
+      return await Session.getSessionsByStudentId(studentId);
+    } catch (error) {
+      console.error("Error getSessionsByStudentId:", error);
+      return { success: false, payload: false, message: "Eror" };
+    }
+  }
+
 export async function checkManualCheckPending(sessionId: number, studentId: string) {
     try {
       return await Session.checkManualCheckPending(sessionId, studentId);

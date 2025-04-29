@@ -5,6 +5,7 @@ export interface Session {
     endTime?: Date | null;
     createdBy: string;
     userId: string;
+    name?: string;
   }
   
   export interface SessionState {
