@@ -17,7 +17,7 @@ const Attendance = {
     markAbsent: (attendanceData: any) => requests.post("/attendance/mark-absent", attendanceData),
     deleteAttendanceById: (id: number) => requests.delete(`/attendance/delete/${id}`),
     getTodayAttendance: (sessionId: number, studentId: string) =>
-      instance.get(`/attendance/today/${sessionId}/${studentId}`).then(responseBody),
+      requests.get(`/attendance/today/${sessionId}/${studentId}`),
     markAttendance: (formData: FormData) =>
       instance.post("/AttendanceMark/mark-attendance", formData, {
         headers: { "Content-Type": "multipart/form-data" }
@@ -26,6 +26,18 @@ const Attendance = {
       requests.get(`/attendance/stats/session/${sessionId}/student/${studentId}`),
     getAbsencesByStudentAndSessionId: (studentId: string, sessionId: number) =>
       requests.get(`/attendance/by-session/${sessionId}/student/${studentId}`),
+    getTotalAttendanceStats: (studentId: string) => requests.get(`/attendance/total-stats/${studentId}`),    
+};
+
+export const getTotalAttendanceStats = async (studentId: string) => {
+  try {
+    const response = await Attendance.getTotalAttendanceStats(studentId);
+    return response;
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ message?: string }>;
+    const msg = err.response?.data?.message || "Failed to fetch stats";
+    return { success: false, message: msg };
+  }
 };
 
 export async function getAbsencesByStudentAndSessionId(studentId: string, sessionId: number) {
@@ -65,10 +77,12 @@ export async function markAttendance(formData: FormData) {
 
 export async function getTodayAttendance(sessionId: number, studentId: string) {
   try {
-    return await Attendance.getTodayAttendance(sessionId, studentId);
+    const response = await Attendance.getTodayAttendance(sessionId, studentId);
+    return response;
   } catch (error) {
-    console.error("Error getting today's attendance:", error);
-    return { success: false };
+    const axiosError = error as AxiosError<{ message?: string }>;
+    const msg = axiosError.response?.data?.message || "Не вдалося отримати відмітку на сьогодні";
+    return { success: false, message: msg };
   }
 }
 

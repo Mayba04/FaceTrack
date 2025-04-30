@@ -9,7 +9,7 @@ import {
 import { Button, Spin, Typography, Alert } from "antd";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
-import { UserOutlined, ClockCircleOutlined } from "@ant-design/icons";
+import { UserOutlined, ClockCircleOutlined, BookOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -26,7 +26,6 @@ const TodaySessions: React.FC = () => {
     if (user?.id) {
       fetchSessions();
     }
-    // eslint-disable-next-line
   }, [user]);
 
   const fetchSessions = async () => {
@@ -37,21 +36,17 @@ const TodaySessions: React.FC = () => {
       if (success) {
         setSessions(payload);
 
-        // Перевіряємо статус відмітки присутності
         for (const session of payload) {
           const status = await dispatch(fetchTodayAttendanceAction(session.sessionId, user!.id) as any);
           const { payload: markPayload } = status as any;
           setMarked(prev => ({ ...prev, [session.sessionId]: !!markPayload }));
-        }
 
-        // Перевіряємо наявність заявки на ручну перевірку
-        for (const session of payload) {
-          const res: any = await dispatch(
+          const manualCheck = await dispatch(
             checkManualCheckPendingAction(session.sessionId, user!.id) as any
           );
           setPendingManualChecks(prev => ({
             ...prev,
-            [session.sessionId]: !!res.payload,
+            [session.sessionId]: !!manualCheck.payload,
           }));
         }
       }
@@ -70,16 +65,17 @@ const TodaySessions: React.FC = () => {
         minHeight: "100vh",
         background: "linear-gradient(120deg, #e3f0ff 0%, #c6e6fb 100%)",
         paddingTop: 48,
+        paddingBottom: 64,
         boxSizing: "border-box",
       }}
     >
       <div
         style={{
-          maxWidth: 540,
+          maxWidth: 600,
           margin: "0 auto",
           background: "#fff",
           borderRadius: 24,
-          padding: "32px 18px 24px 18px",
+          padding: "32px 20px",
           boxShadow: "0 6px 32px 0 rgba(30,64,175,0.12)",
         }}
       >
@@ -90,90 +86,117 @@ const TodaySessions: React.FC = () => {
             marginBottom: 36,
             color: "#1976d2",
             fontWeight: 800,
-            letterSpacing: 1.2,
+            letterSpacing: 1.1,
           }}
         >
           Сьогоднішні заняття
         </Title>
+
         {loading ? (
           <div style={{ textAlign: "center", margin: "32px 0" }}>
             <Spin size="large" />
           </div>
         ) : sessions.length ? (
           sessions.map((session) => {
-            const isActive = moment().isBetween(
-              session.startTime,
-              session.endTime
-            );
+            const isActive = moment().isBetween(session.startTime, session.endTime);
             const alreadyMarked = marked[session.sessionId] || false;
             const manualCheckPending = pendingManualChecks[session.sessionId] || false;
+
             return (
               <div
-                key={`${session.sessionId}-${session.startTime}`}
+                key={session.sessionId}
                 style={{
                   background: "#f6fafd",
                   borderRadius: 16,
                   marginBottom: 24,
-                  padding: "22px 18px",
-                  boxShadow: "0 2px 8px rgba(0,51,102,0.06)",
-                  border: isActive
-                    ? "2px solid #1976d2"
-                    : "2px solid #eaf1fa",
-                  transition: "border 0.3s",
+                  padding: "20px 18px",
+                  border: isActive ? "2px solid #1976d2" : "2px solid #d8e5f2",
+                  boxShadow: "0 3px 10px rgba(0,0,0,0.05)",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 10,
+                  gap: 12,
                 }}
               >
-                <div style={{ fontWeight: 600, fontSize: 18, color: "#24292f" }}>
-                  <UserOutlined style={{ marginRight: 7, color: "#1976d2" }} />
-                  Група:{" "}
-                  <span style={{ color: "#3b2fc0", fontWeight: 700 }}>
-                    {session.groupName}
-                  </span>
+               <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 32,
+                    flexWrap: "wrap",
+                    fontWeight: 600,
+                    fontSize: 18,
+                    color: "#24292f"
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <UserOutlined style={{ marginRight: 7, color: "#1976d2" }} />
+                    Група:{" "}
+                    <span style={{ color: "#3b2fc0", fontWeight: 700, marginLeft: 4 }}>
+                      {session.groupName}
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <BookOutlined style={{ marginRight: 7, color: "#1976d2" }} />
+                    Сесія:{" "}
+                    <span style={{ color: "#3b2fc0", fontWeight: 700, marginLeft: 4 }}>
+                      {session.name}
+                    </span>
+                  </div>
                 </div>
-                <div style={{ color: "#363e4d", fontSize: 16 }}>
-                  <ClockCircleOutlined style={{ marginRight: 7, color: "#1976d2" }} />
-                  <span style={{ fontWeight: 500 }}>Час:</span>{" "}
-                  {moment(session.startTime).format("HH:mm")} –{" "}
-                  {moment(session.endTime).format("HH:mm")}
+
+
+                <div style={{ fontSize: 16, color: "#4b5563" }}>
+                  <ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
+                  Час: {moment(session.startTime).format("HH:mm")} – {moment(session.endTime).format("HH:mm")}
                 </div>
-                {/* --- Ручна перевірка --- */}
+
                 {manualCheckPending && (
                   <Alert
-                    message="Ваша заявка на ручну перевірку відправлена, чекайте рішення викладача"
+                    message="Ваша заявка на ручну перевірку відправлена"
                     type="info"
                     showIcon
-                    style={{ marginBottom: 8, fontWeight: 500 }}
+                    style={{ marginBottom: 4, fontWeight: 500 }}
                   />
                 )}
+
+                {alreadyMarked && (
+                  <div style={{ color: "#52c41a", fontWeight: 500, fontSize: 16 }}>
+                    ✅ Ви вже відмітилися
+                  </div>
+                )}
+
                 <Button
-                  type="primary"
                   block
                   size="large"
                   disabled={!isActive || alreadyMarked || manualCheckPending}
                   onClick={() => handleNavigate(session.sessionId)}
                   style={{
-                    marginTop: 10,
-                    background: isActive && !alreadyMarked && !manualCheckPending
-                      ? "linear-gradient(90deg,#1976d2 60%,#64b5f6)"
-                      : "#f0f2f5",
-                    color: isActive && !alreadyMarked && !manualCheckPending ? "#fff" : "#7a92b3",
+                    marginTop: 8,
+                    background:
+                      isActive && !alreadyMarked && !manualCheckPending
+                        ? "linear-gradient(90deg,#1976d2 0%,#64b5f6 100%)"
+                        : "#f0f2f5",
+                    color:
+                      isActive && !alreadyMarked && !manualCheckPending ? "#fff" : "#7a92b3",
                     border: "none",
                     fontWeight: 700,
                     fontSize: 16,
-                    letterSpacing: 1,
-                    boxShadow: isActive && !alreadyMarked && !manualCheckPending ? "0 2px 10px #1976d229" : "none",
-                    transition: "background .15s, color .15s",
+                    letterSpacing: 0.5,
+                    boxShadow:
+                      isActive && !alreadyMarked && !manualCheckPending
+                        ? "0 2px 12px #1976d240"
+                        : "none",
+                    transition: "all 0.2s ease-in-out",
                   }}
                 >
                   {manualCheckPending
-                    ? "Відправлено на ручну перевірку"
+                    ? "Очікує ручної перевірки"
                     : alreadyMarked
-                      ? "Ви вже відмітилися"
-                      : isActive
-                        ? "Перейти до заняття"
-                        : "Поза часом заняття"}
+                    ? "Вже відмічено"
+                    : isActive
+                    ? "Перейти до заняття"
+                    : "Час заняття ще не настав"}
                 </Button>
               </div>
             );
@@ -185,6 +208,7 @@ const TodaySessions: React.FC = () => {
               padding: 32,
               color: "#8c9cb1",
               fontSize: 18,
+              fontWeight: 500,
             }}
           >
             На сьогодні немає запланованих занять.
