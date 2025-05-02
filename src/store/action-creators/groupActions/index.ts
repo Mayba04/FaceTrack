@@ -146,7 +146,6 @@ export const deleteGroupAction = (groupId: number) => {
             const { success, message: responseMessage } = response as any;
             if (success) {
                 dispatch({ type: GroupActionTypes.DELETE_GROUP_SUCCESS, payload: groupId });
-                message.success("Group deleted successfully!");
             } else {
                 throw new Error(responseMessage);
             }
