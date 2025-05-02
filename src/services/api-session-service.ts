@@ -33,7 +33,29 @@ const Session = {
 
     getSessionsByStudentId: (studentId: string) => requests.get(`/session/studentid/${studentId}`),
 
+    getSessionsByTeacherId: (teacherId: string) => requests.get(`/session/todaysessionsbyteacher/${teacherId}`),
+
+    getSessionById: (sesionId: number) => requests.get(`/session/getsession/${sesionId}`),
 };
+
+export async function getSessionById(sessionId: number) {
+    try {
+      return await Session.getSessionById(sessionId);
+    } catch (error) {
+      console.error("Error fetching session by ID:", error);
+      return { success: false, message: "Failed to fetch session", error };
+    }
+  }
+  
+
+export async function getSessionsByTeacherId(teacherId: string) {
+    try {
+        return await Session.getSessionsByTeacherId(teacherId);
+    } catch (error) {
+        console.error("Error fetching today's sessions:", error);
+        return { success: false, message: "Failed to fetch today's sessions", error };
+    }
+}
 
 export async function getSessionsByStudentId(studentId: string) {
     try {

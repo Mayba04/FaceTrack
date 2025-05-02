@@ -1,7 +1,38 @@
 import { Dispatch } from "redux";
 import { SessionActions, SessionActionTypes } from "../../reducers/SessionReducer/type";
-import { fetchGroupSessions, createSession, updateSession, deleteSession, fetchSessionById, getTodaysSessions, getPendingFaceRequests, rejectFaceRequest, approveFaceRequest, checkManualCheckPending, getSessionsByStudentId} from "../../../services/api-session-service";
+import { fetchGroupSessions, createSession, updateSession, deleteSession, fetchSessionById, getTodaysSessions, getPendingFaceRequests, rejectFaceRequest, approveFaceRequest, checkManualCheckPending, getSessionsByStudentId, getSessionsByTeacherId, getSessionById} from "../../../services/api-session-service";
 import { message } from "antd";
+
+
+export const fetchTodaySessionsByTeacherAction = (studentId: string) => {
+    return async (dispatch: Dispatch<SessionActions>) => {
+        dispatch({ type: SessionActionTypes.START_REQUEST });
+
+        try {
+            const response = await getSessionsByTeacherId(studentId);
+            const { success, payload, message } = response as any;
+
+            if (success) {
+                dispatch({
+                    type: SessionActionTypes.FETCH_SESSIONS_SUCCESS,
+                    payload: {
+                        sessions: payload,
+                        currentPage: 1,
+                        totalPages: 1,
+                        pageSize: payload.length,
+                        totalCount: payload.length,
+                    },
+                });
+            } else {
+                throw new Error(message);
+            }
+        } catch (error) {
+            console.error("Error fetching sessions: ", error);
+            dispatch({ type: SessionActionTypes.FETCH_SESSIONS_ERROR, payload: "Error fetching sessions" });
+        }
+    };
+};
+
 
 export const fetchSessionsByStudentIdAction = (studentId: string) => {
     return async (dispatch: Dispatch<SessionActions>) => {
@@ -70,7 +101,7 @@ export const fetchSessionByIdAction = (Id: number) => {
             const { payload, success, message } = response as any; 
             if (success) {
                 dispatch({
-                    type: SessionActionTypes.FETCH_SESSION_SUCCESS,
+                    type: SessionActionTypes.FETCH_SESSIONS_SUCCESS,
                     payload: payload,
                 });
             } else {
@@ -79,13 +110,40 @@ export const fetchSessionByIdAction = (Id: number) => {
         } catch (error: any) {
             console.error("Failed to fetching session:", error?.message || error);
             dispatch({
-                type: SessionActionTypes.FETCH_SESSION_ERROR,
+                type: SessionActionTypes.FETCH_SESSIONS_ERROR,
                 payload: "Error fetching session",
             });
             message.error(error?.message || "Failed fetching sessions");
         }
     };
 };
+
+export const GetSessionByIdAction = (sessionId: number) => {
+    return async (dispatch: Dispatch<SessionActions>) => {
+      dispatch({ type: SessionActionTypes.START_REQUEST });
+  
+      try {
+        const response = await getSessionById(sessionId);
+        const { success, payload, message: errorMsg } = response as any;
+  
+        if (success) {
+          dispatch({
+            type: SessionActionTypes.FETCH_SESSION_SUCCESS,
+            payload: payload,
+          });
+        } else {
+          throw new Error(errorMsg);
+        }
+      } catch (error: any) {
+        console.error("Failed to fetch session:", error?.message || error);
+        dispatch({
+          type: SessionActionTypes.FETCH_SESSION_ERROR,
+          payload: "Error fetching session",
+        });
+        message.error(error?.message || "Не вдалося отримати сесію");
+      }
+    };
+  };
 
 export const createSessionAction = (sessionData: { groupId: number; startTime: string; endTime: string; createdBy: string, userId: string } ) => {
     return async (dispatch: Dispatch<SessionActions>) => {

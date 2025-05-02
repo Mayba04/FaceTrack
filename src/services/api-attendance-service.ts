@@ -27,8 +27,20 @@ const Attendance = {
     getAbsencesByStudentAndSessionId: (studentId: string, sessionId: number) =>
       requests.get(`/attendance/by-session/${sessionId}/student/${studentId}`),
     getTotalAttendanceStats: (studentId: string) => requests.get(`/attendance/total-stats/${studentId}`),    
+    getTeacherStats: (teacherId: string) =>
+      requests.get(`/attendance/stats/${teacherId}`),
 };
 
+export async function fetchTeacherStatsAction(teacherId: string) {
+  try {
+    const response = await Attendance.getTeacherStats(teacherId);
+    return response;
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ message?: string }>;
+    const msg = err.response?.data?.message || "Failed to fetch stats";
+    return { success: false, message: msg };
+  }
+}
 export const getTotalAttendanceStats = async (studentId: string) => {
   try {
     const response = await Attendance.getTotalAttendanceStats(studentId);
