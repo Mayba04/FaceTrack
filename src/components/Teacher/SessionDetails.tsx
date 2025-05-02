@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  Card,
   Typography,
   Button,
   Modal,
@@ -10,6 +9,7 @@ import {
   message,
   DatePicker,
   Input,
+  Tooltip,
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,12 +24,18 @@ import {
 } from "../../store/action-creators/sessionAction";
 import { getAttendanceBySession } from "../../services/api-attendance-service";
 import { startSession } from "../../services/api-session-service";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { APP_ENV } from "../../env"; // ← база URL для зображень
+import {
+  EditOutlined,
+  DeleteOutlined,
+  UserOutlined,
+  ClockCircleOutlined,
+  PlayCircleOutlined,
+  TeamOutlined,
+  EyeOutlined,
+} from "@ant-design/icons";
+import { APP_ENV } from "../../env";
 
 const { Title } = Typography;
-
-const toArray = <T,>(x: unknown): T[] => (Array.isArray(x) ? x : []);
 const keyOf = (item: any): React.Key =>
   item?.id ?? item?.studentId ?? item?.requestId ?? JSON.stringify(item);
 
@@ -37,30 +43,23 @@ const SessionDetails: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  const session = useSelector(
-    (state: RootState) => state.SessionReducer.session
-  );
+  const session = useSelector((state: RootState) => state.SessionReducer.session);
   const user = useSelector((state: RootState) => state.UserReducer.user);
   const groups = useSelector((state: RootState) => state.GroupReducer.groups);
-  const groupName =
-    groups.find((g) => g.id === Number(session?.groupId))?.name ?? "—";
+  const groupName = groups.find((g) => g.id === Number(session?.groupId))?.name ?? "—";
 
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
   const [editOpen, setEditOpen] = useState(false);
-
   const [attendanceOpen, setAttendanceOpen] = useState(false);
   const [attendance, setAttendance] = useState<any[]>([]);
-
   const [checkModalOpen, setCheckModalOpen] = useState(false);
   const [faceRequests, setFaceRequests] = useState<any[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [name, setName] = useState("");
+
   useEffect(() => {
-    if (sessionId) {
-      dispatch(GetSessionByIdAction(Number(sessionId)) as any);
-    }
+    if (sessionId) dispatch(GetSessionByIdAction(Number(sessionId)) as any);
   }, [sessionId, dispatch]);
 
   const handleStart = async () => {
@@ -79,18 +78,17 @@ const SessionDetails: React.FC = () => {
 
   const handleSave = async () => {
     if (!startTime || !endTime || !session) return;
-
     const payload = {
-        id: String(session.id),              
-        groupId: Number(session.groupId),   
-        startTime: startTime.toDate().toISOString(),
-        endTime: endTime.toDate().toISOString(),
-        createdBy: session.createdBy,
-        userId: session.userId,           
-        name: name,             
-      };
-    
-      await dispatch(updateSessionAction(payload) as any);
+      id: String(session.id),
+      groupId: Number(session.groupId),
+      startTime: startTime.toDate().toISOString(),
+      endTime: endTime.toDate().toISOString(),
+      createdBy: session.createdBy,
+      userId: session.userId,
+      name,
+    };
+    await dispatch(updateSessionAction(payload) as any);
+    await dispatch(GetSessionByIdAction(Number(sessionId)) as any);
     message.success("Сесію оновлено");
     setEditOpen(false);
   };
@@ -109,16 +107,23 @@ const SessionDetails: React.FC = () => {
 
   const openAttendance = async () => {
     const res = await getAttendanceBySession(Number(sessionId));
-    setAttendance(toArray(res && (res as any).payload));
-    setAttendanceOpen(true);
+    const { success, payload } = res as any;
+  
+    if (success && Array.isArray(payload)) {
+      console.log("Attendance loaded:", payload);
+      setAttendance(payload);
+      setAttendanceOpen(true);
+    } else {
+      message.error("Не вдалося завантажити відвідуваність.");
+    }
   };
+  
+
 
   const openFaceReq = async () => {
     setCheckModalOpen(true);
-    const res = await dispatch(
-      fetchPendingFaceRequestsAction(Number(sessionId)) as any
-    );
-    setFaceRequests(toArray(res && res.payload));
+    const res = await dispatch(fetchPendingFaceRequestsAction(Number(sessionId)) as any);
+    setFaceRequests(res?.payload || []);
   };
 
   const handleApprove = async (id: number) => {
@@ -136,48 +141,96 @@ const SessionDetails: React.FC = () => {
   if (!session) return <Spin style={{ marginTop: 64 }} size="large" />;
 
   return (
-    <div style={{ padding: 24, maxWidth: 800, margin: "auto" }}>
-      
-      <Card>
-        <Title level={3}>Сесія: {session.name}</Title>
-        <p>
-          <b>Група:</b> {groupName}
-        </p>
-        <p>
-          <b>Час:</b>{" "}
-          {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} –{" "}
-          {dayjs(session.endTime).format("HH:mm")}
-        </p>
-        <p>
-          <b>Створив:</b> {session.createdBy}
-        </p>
-
-        <Button type="primary" onClick={handleStart}>
-          Запустити
-        </Button>{" "}
-        <Button icon={<EditOutlined />} onClick={handleEdit}>
-          Редагувати
-        </Button>{" "}
-        <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
-          Видалити
-        </Button>{" "}
-        <Button onClick={openAttendance}>Відвідуваність</Button>{" "}
-        <Button onClick={openFaceReq}>Перевірити Face ID</Button>
-      </Card>
-
-      <Modal
-        title="Редагування сесії"
-        open={editOpen}
-        onCancel={() => setEditOpen(false)}
-        onOk={handleSave}
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(120deg, #e3f0ff 0%, #c6e6fb 100%)",
+        paddingTop: 48,
+        paddingBottom: 64,
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 700,
+          margin: "0 auto",
+          background: "#fff",
+          borderRadius: 24,
+          padding: 32,
+          boxShadow: "0 6px 32px 0 rgba(30,64,175,0.12)",
+        }}
       >
-        <p>Введіть назву сесії:</p>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Введіть назву сесії"
-            style={{ width: "100%", marginBottom: 10 }}
-          />
+        <Title level={3} style={{ color: "#1976d2", fontWeight: 800 }}>
+          Сесія: {session.name}
+        </Title>
+        <p><UserOutlined style={{ marginRight: 8, color: "#1976d2" }} />Група: <b>{groupName}</b></p>
+        <p><ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
+          {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} – {dayjs(session.endTime).format("HH:mm")}</p>
+        <p>Створив: <b>{session.createdBy}</b></p>
+
+        
+        <div
+        style={{
+            display: "flex",
+            gap: 16,
+            marginTop: 20,
+            justifyContent: "center",
+            flexWrap: "wrap",
+        }}
+        >
+        <Tooltip title="Запустити сесію">
+            <Button
+            shape="circle"
+            type="primary"
+            icon={<PlayCircleOutlined />}
+            onClick={handleStart}
+            />
+        </Tooltip>
+
+        <Tooltip title="Редагувати сесію">
+            <Button
+            shape="circle"
+            icon={<EditOutlined />}
+            onClick={handleEdit}
+            />
+        </Tooltip>
+
+        <Tooltip title="Видалити сесію">
+            <Button
+            shape="circle"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={handleDelete}
+            />
+        </Tooltip>
+
+        <Tooltip title="Переглянути відвідуваність">
+            <Button
+            shape="circle"
+            icon={<TeamOutlined />}
+            onClick={openAttendance}
+            />
+        </Tooltip>
+
+        <Tooltip title="Перевірити Face ID-запити">
+            <Button
+            shape="circle"
+            icon={<EyeOutlined />}
+            onClick={openFaceReq}
+            />
+        </Tooltip>
+        </div>
+
+
+
+      </div>
+
+      <Modal title="Редагування сесії" open={editOpen} onCancel={() => setEditOpen(false)} onOk={handleSave}>
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Назва сесії"
+          style={{ marginBottom: 12 }}
+        />
         <DatePicker
           showTime
           style={{ width: "100%", marginBottom: 12 }}
@@ -192,28 +245,15 @@ const SessionDetails: React.FC = () => {
         />
       </Modal>
 
-      <Modal
-        title="Відвідуваність"
-        open={attendanceOpen}
-        onCancel={() => setAttendanceOpen(false)}
-        footer={null}
-      >
+      <Modal title="Відвідуваність" open={attendanceOpen} onCancel={() => setAttendanceOpen(false)} footer={null}>
         <List
           dataSource={attendance}
           rowKey={keyOf}
-          renderItem={(a: any) => (
-            <List.Item>{a?.user?.fullName ?? a?.studentId ?? "—"}</List.Item>
-          )}
+          renderItem={(a: any) => <List.Item>{a?.user?.fullName ?? a?.studentId ?? "—"}</List.Item>}
         />
       </Modal>
 
-      <Modal
-        title="Запити Face ID"
-        open={checkModalOpen}
-        onCancel={() => setCheckModalOpen(false)}
-        footer={null}
-        centered
-      >
+      <Modal title="Запити Face ID" open={checkModalOpen} onCancel={() => setCheckModalOpen(false)} footer={null} centered>
         {faceRequests.length ? (
           <List
             dataSource={faceRequests}
@@ -221,36 +261,15 @@ const SessionDetails: React.FC = () => {
             renderItem={(item: any) => (
               <List.Item
                 actions={[
-                  <Button
-                    key="ok"
-                    type="primary"
-                    onClick={() => handleApprove(item.id)}
-                  >
-                    Підтвердити
-                  </Button>,
-                  <Button
-                    key="no"
-                    danger
-                    onClick={() => handleReject(item.id)}
-                  >
-                    Відхилити
-                  </Button>,
+                  <Button key="ok" type="primary" onClick={() => handleApprove(item.id)}>Підтвердити</Button>,
+                  <Button key="no" danger onClick={() => handleReject(item.id)}>Відхилити</Button>,
                 ]}
               >
                 <img
                   src={`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`}
                   alt="Face"
-                  style={{
-                    width: 60,
-                    borderRadius: 6,
-                    marginRight: 14,
-                    cursor: "pointer",
-                  }}
-                  onClick={() =>
-                    handleImageClick(
-                      `${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`,
-                    )
-                  }
+                  style={{ width: 60, borderRadius: 6, marginRight: 14, cursor: "pointer" }}
+                  onClick={() => handleImageClick(`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`)}
                 />
                 <span>{item.name || item.studentId}</span>
               </List.Item>
