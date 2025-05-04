@@ -10,6 +10,7 @@ import {
   DatePicker,
   Input,
   Tooltip,
+  Table
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
@@ -34,6 +35,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import { APP_ENV } from "../../env";
+import { addAbsenceAction, deleteAbsenceAction, fetchAttendanceMatrixAction } from "../../store/action-creators/attendanceAction";
 
 const { Title } = Typography;
 const keyOf = (item: any): React.Key =>
@@ -43,48 +45,55 @@ const SessionDetails: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const session = useSelector((state: RootState) => state.SessionReducer.session);
+  const mainSession = useSelector((state: RootState) => state.SessionReducer.session);
   const user = useSelector((state: RootState) => state.UserReducer.user);
   const groups = useSelector((state: RootState) => state.GroupReducer.groups);
-  const groupName = groups.find((g) => g.id === Number(session?.groupId))?.name ?? "—";
+  const groupName = groups.find((g) => g.id === Number(mainSession?.groupId))?.name ?? "—";
 
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [attendanceOpen, setAttendanceOpen] = useState(false);
-  const [attendance, setAttendance] = useState<any[]>([]);
   const [checkModalOpen, setCheckModalOpen] = useState(false);
   const [faceRequests, setFaceRequests] = useState<any[]>([]);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [name, setName] = useState("");
+  const { matrix, loading: attendanceLoading } = useSelector((state: RootState) => state.AttendanceReducer);
 
   useEffect(() => {
     if (sessionId) dispatch(GetSessionByIdAction(Number(sessionId)) as any);
   }, [sessionId, dispatch]);
 
+  useEffect(() => {
+    if (mainSession?.groupId) {
+      dispatch(fetchAttendanceMatrixAction(Number(mainSession.groupId)) as any);
+    }
+  }, [mainSession?.groupId]);
+  
+
   const handleStart = async () => {
-    if (!user?.id || !session?.id) return;
-    await startSession(Number(session.id), user.id);
-    navigate(`/session/${session.id}`);
+    if (!user?.id || !mainSession?.id) return;
+    await startSession(Number(mainSession.id), user.id);
+    navigate(`/session/${mainSession.id}`);
   };
 
   const handleEdit = () => {
-    if (!session) return;
-    setName(session.name || "");
-    setStartTime(dayjs(session.startTime));
-    setEndTime(dayjs(session.endTime));
+    if (!mainSession) return;
+    setName(mainSession.name || "");
+    setStartTime(dayjs(mainSession.startTime));
+    setEndTime(dayjs(mainSession.endTime));
     setEditOpen(true);
   };
 
   const handleSave = async () => {
-    if (!startTime || !endTime || !session) return;
+    if (!startTime || !endTime || !mainSession) return;
     const payload = {
-      id: String(session.id),
-      groupId: Number(session.groupId),
+      id: String(mainSession.id),
+      groupId: Number(mainSession.groupId),
       startTime: startTime.toDate().toISOString(),
       endTime: endTime.toDate().toISOString(),
-      createdBy: session.createdBy,
-      userId: session.userId,
+      createdBy: mainSession.createdBy,
+      userId: mainSession.userId,
       name,
     };
     await dispatch(updateSessionAction(payload) as any);
@@ -94,11 +103,11 @@ const SessionDetails: React.FC = () => {
   };
 
   const handleDelete = () => {
-    if (!session) return;
+    if (!mainSession) return;
     Modal.confirm({
       title: "Видалити сесію?",
       onOk: async () => {
-        await dispatch(deleteSessionAction(session.id) as any);
+        await dispatch(deleteSessionAction(mainSession.id) as any);
         message.success("Сесію видалено");
         navigate("/teacher/groups");
       },
@@ -111,7 +120,6 @@ const SessionDetails: React.FC = () => {
   
     if (success && Array.isArray(payload)) {
       console.log("Attendance loaded:", payload);
-      setAttendance(payload);
       setAttendanceOpen(true);
     } else {
       message.error("Не вдалося завантажити відвідуваність.");
@@ -138,7 +146,7 @@ const SessionDetails: React.FC = () => {
 
   const handleImageClick = (url: string) => setPreviewImage(url);
 
-  if (!session) return <Spin style={{ marginTop: 64 }} size="large" />;
+  if (!mainSession) return <Spin style={{ marginTop: 64 }} size="large" />;
 
   return (
     <div
@@ -160,12 +168,12 @@ const SessionDetails: React.FC = () => {
         }}
       >
         <Title level={3} style={{ color: "#1976d2", fontWeight: 800 }}>
-          Сесія: {session.name}
+          Сесія: {mainSession.name}
         </Title>
         <p><UserOutlined style={{ marginRight: 8, color: "#1976d2" }} />Група: <b>{groupName}</b></p>
         <p><ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
-          {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} – {dayjs(session.endTime).format("HH:mm")}</p>
-        <p>Створив: <b>{session.createdBy}</b></p>
+          {dayjs(mainSession.startTime).format("DD.MM.YYYY HH:mm")} – {dayjs(mainSession.endTime).format("HH:mm")}</p>
+        <p>Створив: <b>{mainSession.createdBy}</b></p>
 
         
         <div
@@ -245,14 +253,6 @@ const SessionDetails: React.FC = () => {
         />
       </Modal>
 
-      <Modal title="Відвідуваність" open={attendanceOpen} onCancel={() => setAttendanceOpen(false)} footer={null}>
-        <List
-          dataSource={attendance}
-          rowKey={keyOf}
-          renderItem={(a: any) => <List.Item>{a?.user?.fullName ?? a?.studentId ?? "—"}</List.Item>}
-        />
-      </Modal>
-
       <Modal title="Запити Face ID" open={checkModalOpen} onCancel={() => setCheckModalOpen(false)} footer={null} centered>
         {faceRequests.length ? (
           <List
@@ -301,6 +301,79 @@ const SessionDetails: React.FC = () => {
           />
         )}
       </Modal>
+
+      <Modal
+      title="Відвідуваність"
+      open={attendanceOpen}
+      onCancel={() => setAttendanceOpen(false)}
+      footer={null}
+      width="90%"
+    >
+      {attendanceLoading ? (
+        <Spin />
+      ) : matrix?.students.length ? (
+        <Table
+          columns={[
+            {
+              title: "ПІБ",
+              dataIndex: "fullName",
+              key: "fullName",
+              fixed: "left",
+            },
+            ...matrix.sessions.map(session => ({
+              title: dayjs(session.startTime).format("DD.MM.YYYY"),
+              dataIndex: session.id.toString(),
+              key: session.id.toString(),
+              align: "center" as const,
+              render: (_: any, student: any) => {
+                const record = matrix.attendances.find(
+                  a => a.sessionHistoryId === session.id && a.studentId === student.id
+                );
+
+                const value = record ? (record.isPresent ? "✓" : "н") : "н";
+
+                return (
+                  <button
+                    onClick={async () => {
+                      const originalSessionId = (session as any).originalSessionId;
+                      const timestamp = session.startTime;
+
+                      if (record?.id) {
+                        await dispatch(deleteAbsenceAction(record.id) as any);
+                      } else {
+                        await dispatch(addAbsenceAction(student.id, originalSessionId, timestamp) as any);
+                      }
+
+                      dispatch(fetchAttendanceMatrixAction(Number(mainSession.groupId)) as any);
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: value === "✓" ? "green" : "red",
+                      fontWeight: "bold",
+                      fontSize: "1rem",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {value}
+                  </button>
+                );
+              },
+            })),
+          ]}
+          dataSource={matrix.students.map((s: any) => ({
+            id: s.id,
+            fullName: s.fullName,
+          }))}
+          rowKey="id"
+          pagination={false}
+          scroll={{ x: "max-content" }}
+        />
+      ) : (
+        <p>Немає даних про відвідуваність</p>
+      )}
+    </Modal>
+
     </div>
   );
 };

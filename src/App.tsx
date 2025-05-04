@@ -33,8 +33,6 @@ const App: React.FC = () => {
 
     return (
         <div>
-          
-
             {token && (
                 role === "Admin" || role === "Moderator" ? <AdminNavbar /> :
                 role === "Lecturer" ? <TeacherNavbar /> :
