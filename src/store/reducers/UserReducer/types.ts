@@ -44,7 +44,7 @@ interface FinishRequestAction {
 }
 
 interface AddStudentGroupSuccessAction {
-  type: UserActionTypes.ADD_STUDENTGROUP_ERROR;
+  type: UserActionTypes.ADD_STUDENTGROUP_SUCCESS;
   payload: string;
 }
 

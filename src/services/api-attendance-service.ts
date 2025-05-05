@@ -11,9 +11,9 @@ const requests = {
 };
 
 const Attendance = {
-    getAttendanceBySession: (Id: number) => requests.get(`/attendance/session/${Id}`),
+    //getAttendanceBySession: (Id: number) => requests.get(`/attendance/session/${Id}`),
     markStudentsPresent: (attendanceData: any) => requests.post("/attendance/create", attendanceData),
-    getMatrixByGroupId: (groupId: number) => requests.get(`/attendance/matrix/group/${groupId}`),
+    getMatrixBySessionId: (sessionId: number) => requests.get(`/attendance/matrix/session/${sessionId}`),
     markAbsent: (attendanceData: any) => requests.post("/attendance/mark-absent", attendanceData),
     deleteAttendanceById: (id: number) => requests.delete(`/attendance/delete/${id}`),
     getTodayAttendance: (sessionId: number, studentId: string) =>
@@ -116,24 +116,24 @@ export async function deleteAttendance(id: number) {
   }
 }
 
-export async function getAttendanceMatrixByGroupId(groupId: number) {
+export async function getAttendanceMatrixBySessionId(sessionId: number) {
   try {
-      return await Attendance.getMatrixByGroupId(groupId);
+    return await Attendance.getMatrixBySessionId(sessionId);
   } catch (error) {
-      console.error("Error fetching attendance matrix:", error);
-      return { success: false, message: "Failed to fetch attendance matrix", error };
+    console.error("Error fetching attendance matrix by session:", error);
+    return { success: false, message: "Failed to fetch session matrix", error };
   }
 }
 
-export async function getAttendanceBySession(sessionId: number) {
-    try {
-      const response = await Attendance.getAttendanceBySession(sessionId);
-      return response;
-    } catch (error) {
-      console.error("Error fetching attendance:", error);
-      return { success: false, message: "Failed to fetch attendance" };
-    }
-  }
+// export async function getAttendanceBySession(sessionId: number) {
+//     try {
+//       const response = await Attendance.getAttendanceBySession(sessionId);
+//       return response;
+//     } catch (error) {
+//       console.error("Error fetching attendance:", error);
+//       return { success: false, message: "Failed to fetch attendance" };
+//     }
+//   }
   
   export async function markStudentsPresent(attendanceData: any) {
     try {

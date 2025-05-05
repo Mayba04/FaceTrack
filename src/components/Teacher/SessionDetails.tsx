@@ -23,7 +23,7 @@ import {
   rejectFaceRequestAction,
   GetSessionByIdAction,
 } from "../../store/action-creators/sessionAction";
-import { getAttendanceBySession } from "../../services/api-attendance-service";
+//import { getAttendanceBySession } from "../../services/api-attendance-service";
 import { startSession } from "../../services/api-session-service";
 import {
   EditOutlined,
@@ -35,7 +35,7 @@ import {
   EyeOutlined,
 } from "@ant-design/icons";
 import { APP_ENV } from "../../env";
-import { addAbsenceAction, deleteAbsenceAction, fetchAttendanceMatrixAction } from "../../store/action-creators/attendanceAction";
+import { addAbsenceAction, deleteAbsenceAction, fetchAttendanceMatrixBySessionAction } from "../../store/action-creators/attendanceAction";
 
 const { Title } = Typography;
 const keyOf = (item: any): React.Key =>
@@ -65,10 +65,10 @@ const SessionDetails: React.FC = () => {
   }, [sessionId, dispatch]);
 
   useEffect(() => {
-    if (mainSession?.groupId) {
-      dispatch(fetchAttendanceMatrixAction(Number(mainSession.groupId)) as any);
+    if (mainSession?.id  && sessionId !== mainSession.id) {
+      dispatch(fetchAttendanceMatrixBySessionAction(Number(mainSession.id)) as any);
     }
-  }, [mainSession?.groupId]);
+  }, [mainSession?.id]);
   
 
   const handleStart = async () => {
@@ -115,15 +115,15 @@ const SessionDetails: React.FC = () => {
   };
 
   const openAttendance = async () => {
-    const res = await getAttendanceBySession(Number(sessionId));
-    const { success, payload } = res as any;
+    // const res = await getAttendanceBySession(Number(sessionId));
+    // const { success, payload } = res as any;
   
-    if (success && Array.isArray(payload)) {
-      console.log("Attendance loaded:", payload);
+    // if (success && Array.isArray(payload)) {
+    //   console.log("Attendance loaded:", payload);
       setAttendanceOpen(true);
-    } else {
-      message.error("Не вдалося завантажити відвідуваність.");
-    }
+    // } else {
+    //   message.error("Не вдалося завантажити відвідуваність.");
+    // }
   };
   
 
@@ -341,10 +341,13 @@ const SessionDetails: React.FC = () => {
                       if (record?.id) {
                         await dispatch(deleteAbsenceAction(record.id) as any);
                       } else {
+                        console.log(student.id)
+                        console.log(originalSessionId)
+                        console.log(timestamp)
                         await dispatch(addAbsenceAction(student.id, originalSessionId, timestamp) as any);
                       }
 
-                      dispatch(fetchAttendanceMatrixAction(Number(mainSession.groupId)) as any);
+                      dispatch(fetchAttendanceMatrixBySessionAction(Number(mainSession.id)) as any);
                     }}
                     style={{
                       background: "none",

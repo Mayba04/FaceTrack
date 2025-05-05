@@ -1,5 +1,5 @@
 import { Dispatch } from "redux";
-import { deleteAttendance, getAttendanceMatrixByGroupId, getTodayAttendance, markAttendance, markStudentAbsent } from "../../../services/api-attendance-service";
+import { deleteAttendance, getAttendanceMatrixBySessionId, getTodayAttendance, markAttendance, markStudentAbsent } from "../../../services/api-attendance-service";
 import {
   AttendanceActionTypes,
   AttendanceActions,
@@ -45,12 +45,12 @@ export const deleteAbsenceAction = (attendanceId: number) => {
   };
 };
 
-export const fetchAttendanceMatrixAction = (groupId: number) => {
+export const fetchAttendanceMatrixBySessionAction = (sessionId: number) => {
   return async (dispatch: Dispatch<AttendanceActions>) => {
     dispatch({ type: AttendanceActionTypes.START_REQUEST });
 
     try {
-      const response = await getAttendanceMatrixByGroupId(groupId);
+      const response = await getAttendanceMatrixBySessionId(sessionId);
       const { payload, success, message } = response as any;
 
       if (success) {
@@ -61,14 +61,15 @@ export const fetchAttendanceMatrixAction = (groupId: number) => {
       } else {
         throw new Error(message);
       }
-    } catch  {
+    } catch {
       dispatch({
         type: AttendanceActionTypes.FETCH_MATRIX_ERROR,
-        payload: "Помилка при завантаженні матриці відвідуваності",
+        payload: "Помилка при завантаженні матриці відвідуваності по сесії",
       });
     }
   };
 };
+
 
 export const fetchTodayAttendanceAction = (sessionId: number, studentId: string) => {
   return async () => {

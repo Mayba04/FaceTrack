@@ -253,6 +253,10 @@ export const fetchStudentByGroupIdAction = (groupId: number) => {
                    dispatch({ type: UserActionTypes.FETCH_STUDENTS_ERROR, payload: "Error fetching students" });
                    message.error("Failed to load students");
                }
+               finally 
+               {
+                dispatch({ type: UserActionTypes.FINISH_REQUEST }); 
+                }
     };
 };
 

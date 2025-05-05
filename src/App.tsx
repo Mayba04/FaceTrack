@@ -27,6 +27,7 @@ import AttendanceMark from "./components/Student/AttendanceMark";
 import PrivacyPolicy from "./components/General/PrivacyPolicy";
 import StudentAttendanceHistory from "./components/Student/StudentAttendanceHistory";
 import SessionDetails from "./components/Teacher/SessionDetails";
+import AdminSessionDetails from "./components/Admin/AdminSessionDetails";
 const App: React.FC = () => {
     const token = useSelector((state: RootState) => state.UserReducer.token);
     const role = useSelector((state: RootState) => state.UserReducer.role);
@@ -65,6 +66,7 @@ const App: React.FC = () => {
                     <Route path="/admin" element={<AdminDashboard />} />
                     <Route path="/manage-users" element={<ManageUsers />} />
                     <Route path="/admin/groups" element={<ManageGroups />} />
+                    <Route path="/admin/session/:sessionId" element={<AdminSessionDetails />} />
                 </Route>
 
                 <Route element={<PrivateRoute allowedRoles={["Admin", "Moderator"]} />}>
