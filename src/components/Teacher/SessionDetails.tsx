@@ -335,16 +335,16 @@ const SessionDetails: React.FC = () => {
                 return (
                   <button
                     onClick={async () => {
-                      const originalSessionId = (session as any).originalSessionId;
+                      const sessionHistoryId = session.id; 
                       const timestamp = session.startTime;
 
                       if (record?.id) {
                         await dispatch(deleteAbsenceAction(record.id) as any);
                       } else {
-                        console.log(student.id)
-                        console.log(originalSessionId)
-                        console.log(timestamp)
-                        await dispatch(addAbsenceAction(student.id, originalSessionId, timestamp) as any);
+                        // console.log(student.id)
+                        // console.log(sessionHistoryId)
+                        // console.log(timestamp)
+                        await dispatch(addAbsenceAction(student.id, sessionHistoryId, timestamp) as any);
                       }
 
                       dispatch(fetchAttendanceMatrixBySessionAction(Number(mainSession.id)) as any);

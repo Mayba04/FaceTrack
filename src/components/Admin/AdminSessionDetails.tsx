@@ -40,8 +40,8 @@ const AdminSessionDetails: React.FC = () => {
   }, [session?.id, dispatch]);
 
   const handleAttendanceToggle = async (studentId: string, sessionEntry: any) => {
-    if (!session?.id) return; 
-    const originalSessionId = Number(session.id); 
+    if (!session?.id) return;  
+    const sessionHistoryId = sessionEntry.id;
     const timestamp = new Date(sessionEntry.startTime).toISOString();
   
     const record = matrix!.attendances.find(
@@ -52,10 +52,10 @@ const AdminSessionDetails: React.FC = () => {
         console.log(record?.id)
       await dispatch(deleteAbsenceAction(record.id) as any);
     } else {
-        console.log(studentId)
-        console.log(originalSessionId)
-        console.log(timestamp)
-      await dispatch(addAbsenceAction(studentId, originalSessionId, timestamp) as any);
+        // console.log(studentId)
+        // console.log(sessionHistoryId)
+        // console.log(timestamp)
+      await dispatch(addAbsenceAction(studentId, sessionHistoryId, timestamp) as any);
     }
   
     await dispatch(fetchAttendanceMatrixBySessionAction(Number(session!.id)) as any);
