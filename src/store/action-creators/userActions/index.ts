@@ -8,7 +8,7 @@ import { message } from "antd";
 
 export const addNewUserAction = (email: string, role: string) => {
     return async (dispatch: Dispatch<any>) => {
-      dispatch({ type: UserActionTypes.START_REQUEST });
+      dispatch({ type: UserActionTypes.USER_START_REQUEST  });
   
       try {
         const response = await addUserService(email, role);
@@ -41,7 +41,7 @@ export const addNewUserAction = (email: string, role: string) => {
 
 export const toggleBlockUserAction = (userId: string, comment?: string, blockUntil?: string) => {
     return async (dispatch: Dispatch<any>) => {
-      dispatch({ type: UserActionTypes.START_REQUEST });
+      dispatch({ type: UserActionTypes.USER_START_REQUEST  });
   
       try {
         const response = await toggleBlockUser(userId, comment, blockUntil);
@@ -65,7 +65,7 @@ export const toggleBlockUserAction = (userId: string, comment?: string, blockUnt
 
 export const changeUserRoleAction = (userId: string, newRole: string) => {
     return async (dispatch: Dispatch<any>) => {
-        dispatch({ type: UserActionTypes.START_REQUEST });
+        dispatch({ type: UserActionTypes.USER_START_REQUEST  });
         try {
             const response = await changeUserRole( userId, newRole);
             const { success, message: responseMessage } = response as any;
@@ -87,7 +87,7 @@ export const changeUserRoleAction = (userId: string, newRole: string) => {
 
 export const updateUserAction = (updatedUser: { id: string; fullName: string; email: string; }) => {
     return async (dispatch: Dispatch<any>) => {
-        dispatch({ type: UserActionTypes.START_REQUEST });
+        dispatch({ type: UserActionTypes.USER_START_REQUEST  });
 
         try {
             const response = await updateUser(updatedUser);
@@ -111,7 +111,7 @@ export const updateUserAction = (updatedUser: { id: string; fullName: string; em
 
 export const deleteUserAction = (userId: string) => {
     return async (dispatch: Dispatch<any>) => {
-        dispatch({ type: UserActionTypes.START_REQUEST });
+        dispatch({ type: UserActionTypes.USER_START_REQUEST  });
 
         try {
             const response = await deleteUser(userId);
@@ -133,7 +133,7 @@ export const deleteUserAction = (userId: string) => {
 
 export const fetchFilteredUsersAction = (filter: any) => {
     return async (dispatch: Dispatch<any>) => {
-        dispatch({ type: UserActionTypes.START_REQUEST });
+        dispatch({ type: UserActionTypes.USER_START_REQUEST  });
 
         try {
             const response = await fetchFilteredUsers(filter);
@@ -188,7 +188,7 @@ export const auditStudentAction = async (email: string) => {
 
 export const addStudentToGroupAction = (email: string, groupId: number) => {
     return async (dispatch: Dispatch<any>) => {
-        dispatch({ type: UserActionTypes.START_REQUEST });
+        dispatch({ type: UserActionTypes.USER_START_REQUEST  });
 
         try {
             const response = await addStudentToGroup(email, groupId);
@@ -228,7 +228,7 @@ export const addStudentToGroupAction = (email: string, groupId: number) => {
 
 export const fetchStudentByGroupIdAction = (groupId: number) => {
     return async (dispatch: Dispatch<any>) => {
-        dispatch({ type: UserActionTypes.START_REQUEST });
+        dispatch({ type: UserActionTypes.USER_START_REQUEST  });
 
        try {
                    const response = await fetchStudentByGroupId(groupId);
@@ -264,7 +264,7 @@ export const fetchStudentByGroupIdAction = (groupId: number) => {
 export const loginUserAction = (userData: any, navigate: (path: string) => void) => {
     return async (dispatch: Dispatch<any>): Promise<void> => {
         try {
-            dispatch({ type: UserActionTypes.START_REQUEST });
+            dispatch({ type: UserActionTypes.USER_START_REQUEST  });
 
             const response: any = await loginUser(userData);
 

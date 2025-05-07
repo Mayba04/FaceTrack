@@ -17,7 +17,7 @@ const initialState: UserState = {
 
 const UserReducer = (state = initialState, action: UserActions): UserState => {
     switch (action.type) {
-        case UserActionTypes.START_REQUEST:
+        case UserActionTypes.USER_START_REQUEST :
             return { ...state, loading: true, error: null };
         case UserActionTypes.LOGIN_USER_SUCCESS:
             return {

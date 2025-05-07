@@ -109,7 +109,7 @@ const SessionDetails: React.FC = () => {
       onOk: async () => {
         await dispatch(deleteSessionAction(mainSession.id) as any);
         message.success("Сесію видалено");
-        navigate("/teacher/groups");
+        navigate(`/group/${mainSession.groupId}`);
       },
     });
   };

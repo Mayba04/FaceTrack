@@ -85,7 +85,7 @@ const AdminSessionDetails: React.FC = () => {
       title: "Видалити сесію?",
       onOk: async () => {
         await dispatch(deleteSessionAction(session.id) as any);
-        navigate("/admin/groups");
+        navigate(`/admin/groups/${session?.groupId}`);
       },
     });
   };
@@ -176,7 +176,7 @@ const AdminSessionDetails: React.FC = () => {
                   ),
                 },
                 ...matrix.sessions.map((s) => ({
-                  title: dayjs(s.startTime).format("DD.MM"),
+                  title: dayjs(s.startTime).format("DD.MM.YY"),
                   dataIndex: s.id.toString(),
                   key: s.id.toString(),
                   align: "center" as const,

@@ -145,7 +145,7 @@ const ManageGroups: React.FC = () => {
     { title: "Group", dataIndex: "name", 
       key: "name",
       render: (_: string, record: Group) => (
-        <a onClick={() => navigate(`/groups/${record.id}`)}>{record.name}</a>
+        <a onClick={() => navigate(`/admin/groups/${record.id}`)}>{record.name}</a>
       ), },
     { title: "Teacher", dataIndex: "teacherName", key: "teacherName" },
     { title: "Students", dataIndex: "studentsCount", key: "studentsCount" },

@@ -144,7 +144,8 @@ export async function auditStudent(email: string) {
 export async function addStudentToGroup(email: string, groupId: number) {
     try {
         const response = await User.addStudentToGroup(email, groupId);
-        return response.data;
+        const data = response?.data ?? response;
+        return data;    
     } catch (error: unknown) {
         const err = error as AxiosError<{ message?: string }>;
         const msg = err.response?.data?.message || "Failed to addStudentToGroup";

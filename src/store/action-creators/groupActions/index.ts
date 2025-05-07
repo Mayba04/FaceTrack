@@ -213,3 +213,12 @@ export const changeGroupTeacherAction = (groupId: number, currentTeacherId: stri
     };
   };
   
+//   const newSession = {
+//     id: 0,
+//     groupId: Number(groupId),
+//     startTime: startTime.toISOString(),
+//     endTime: endTime.toISOString(),
+//     createdBy: `${group?.teacherName} ${group?.name}`,
+//     userId: group?.teacherId,
+//     name: sessionName,
+//   };

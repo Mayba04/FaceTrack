@@ -67,13 +67,7 @@ const App: React.FC = () => {
                     <Route path="/manage-users" element={<ManageUsers />} />
                     <Route path="/admin/groups" element={<ManageGroups />} />
                     <Route path="/admin/session/:sessionId" element={<AdminSessionDetails />} />
-                </Route>
-
-                <Route element={<PrivateRoute allowedRoles={["Admin", "Moderator"]} />}>
-                    <Route path="/admin" element={<AdminDashboard />} />
-                    <Route path="/manage-users" element={<ManageUsers />} />
-                    <Route path="/admin/groups" element={<ManageGroups />} />
-                    <Route path="/groups/:id" element={<GroupDetailsAdmin />} />
+                    <Route path="/admin/groups/:id" element={<GroupDetailsAdmin />} />
                 </Route>
 
                 <Route element={<PrivateRoute allowedRoles={["Lecturer"]} />}>

@@ -25,7 +25,7 @@ export interface UserState {
 }
 
 export enum UserActionTypes {
-  START_REQUEST = "START_REQUEST",
+  USER_START_REQUEST  = "USER_START_REQUEST ",
   LOGIN_USER_SUCCESS = "LOGIN_USER_SUCCESS",
   LOGIN_USER_ERROR = "LOGIN_USER_ERROR",
   LOGOUT_USER = "LOGOUT_USER",
@@ -72,7 +72,7 @@ interface FetchStudentsSuccessAction {
 
 
 interface StartRequestAction {
-  type: UserActionTypes.START_REQUEST;
+  type: UserActionTypes.USER_START_REQUEST ;
 }
 
 interface LoginUserSuccessAction {

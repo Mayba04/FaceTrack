@@ -1,88 +1,287 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Card, Button, Typography, Spin, List, Modal, message, Input, DatePicker } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store";
-import { fetchStudentByGroupIdAction } from "../../store/action-creators/userActions";
-import { fetchSessionsAction } from "../../store/action-creators/sessionAction";
-import { Typography, Card, List, Spin, Button } from "antd";
+import { RootState, AppDispatch } from "../../store";
+import { fetchGroupByIdAction } from "../../store/action-creators/groupActions";
+import { fetchStudentByGroupIdAction, addStudentToGroupAction } from "../../store/action-creators/userActions";
+import { createSessionAction, fetchSessionsAction } from "../../store/action-creators/sessionAction";
 import dayjs from "dayjs";
 
 const { Title } = Typography;
 
-const GroupDetails: React.FC = () => {
+const GroupDetailsAdmin: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const groupId = Number(id);
-  const dispatch = useDispatch<any>();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
 
-  const students = useSelector((state: RootState) => state.UserReducer.users);
-  const studentsLoading = useSelector((state: RootState) => state.UserReducer.loading);
+  const groupDetails = useSelector((state: RootState) => state.GroupReducer.group);
+  const loading = useSelector((state: RootState) => state.GroupReducer.loading);
   const sessions = useSelector((state: RootState) => state.SessionReducer.sessions);
   const sessionsLoading = useSelector((state: RootState) => state.SessionReducer.loading);
+  const studentsLoading = useSelector((state: RootState) => state.UserReducer.loading,);
+  const students = useSelector((state: RootState) => state.UserReducer.users || []);
+  const user = useSelector((state: RootState) => state.UserReducer.user);
+
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
+  const [endTime, setEndTime] = useState<dayjs.Dayjs | null>(null);
+  const [name, setName] = useState("");
 
   useEffect(() => {
-    if (groupId) {
-      dispatch(fetchStudentByGroupIdAction(groupId));
-      dispatch(fetchSessionsAction(String(groupId)));
-    }
+    if (!groupId) return;
+    dispatch(fetchGroupByIdAction(groupId));
+    dispatch(fetchSessionsAction(String(groupId)));
+    dispatch(fetchStudentByGroupIdAction(groupId));
   }, [groupId, dispatch]);
 
-  return (
-    <div style={{ padding: 24, maxWidth: 900, margin: "auto" }}>
-      <Title level={2}>Деталі групи</Title>
+  const handleCreateSession = async () => {
+    if (!groupId || !user?.fullName || !startTime || !endTime || !name) {
+      message.warning("Заповніть усі поля");
+      return;
+    }
 
-      <Card title="Список студентів" style={{ marginBottom: 32 }}>
-        {studentsLoading ? (
-          <Spin />
-        ) : students.length ? (
-          <List
-            bordered
-            dataSource={students}
-            renderItem={(s) => (
-              <List.Item>
-                {s.fullName} ({s.email})
-              </List.Item>
-            )}
-          />
-        ) : (
-          <p>У цій групі немає студентів</p>
-        )}
-      </Card>
+    const newSession = {
+      id: 0,
+      groupId,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      createdBy: `${user.fullName} ${groupDetails?.name}`,
+      userId: user.id,
+      name,
+    };
 
-      <Card title="Сесії">
-        {sessionsLoading ? (
-          <Spin />
-        ) : sessions.length ? (
-          <List
-            bordered
-            dataSource={sessions}
-            renderItem={(session) => (
-              <List.Item
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
+    await dispatch(createSessionAction(newSession) as any);
+    message.success("Сесію створено!");
+    await dispatch(fetchSessionsAction(groupId as any));
+    setIsModalOpen(false);
+    setStartTime(null);
+    setEndTime(null);
+    setName("");
+  };
+
+  const handleAddStudent = async () => {
+    if (!groupId || !email) return;
+    const res: any = await dispatch(addStudentToGroupAction(email, groupId));
+    if (res?.success) {
+      dispatch(fetchStudentByGroupIdAction(groupId));
+      message.success("Студента додано!");
+      setEmail("");
+      setIsEmailModalOpen(false);
+    } else {
+      message.error(res?.message || "Помилка додавання студента");
+    }
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setStartTime(null);
+    setEndTime(null);
+  };
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", marginTop: 64 }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!groupDetails)
+    return (
+      <Title level={3} style={{ textAlign: "center", marginTop: 32 }}>
+        Групу не знайдено
+      </Title>
+    );
+
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          padding: "48px 16px",
+          background: "linear-gradient(120deg,#e3f0ff 0%,#c6e6fb 100%)",
+        }}
+      >
+        <Card
+          style={{
+            maxWidth: 880,
+            margin: "0 auto",
+            borderRadius: 24,
+            padding: "32px 28px",
+            boxShadow: "0 8px 24px rgba(30,64,175,0.12)",
+          }}
+        >
+          {/* ── Заголовок групи ───────────────────────────────────── */}
+          <Title level={2} style={{ textAlign: "center", fontWeight: 800, marginBottom: 0 }}>
+            {groupDetails.name} — Деталі
+          </Title>
+          <p style={{ textAlign: "center", marginBottom: 32 }}>
+            Кількість студентів:&nbsp;
+            <b>{groupDetails.studentsCount}</b>
+          </p>
+    
+          {/* ── 2-колонковий layout ─────────────────────────────── */}
+          <div
+            style={{
+              display: "grid",
+              gap: 32,
+              gridTemplateColumns: "repeat(auto-fit,minmax(350px,1fr))",
+            }}
+          >
+            {/* █ Студенти █ */}
+            <div>
+              <Typography.Title level={4} style={{ marginBottom: 16, fontWeight: 700 }}>
+                🎓 Студенти
+              </Typography.Title>
+    
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setIsEmailModalOpen(true)}
+                block
+                style={{ marginBottom: 16 }}
               >
-                <span>
-                  <b>{session.name}</b> | Початок: {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} – 
-                  Кінець: {dayjs(session.endTime).format("HH:mm")}
-                </span>
-                <Button
-                  type="primary"
-                  onClick={() => navigate(`/admin/session/${session.id}`)}
-                >
-                  Перейти до сесії
-                </Button>
-              </List.Item>
-            )}
+                Додати
+              </Button>
+    
+              {studentsLoading ? (
+                <Spin />
+              ) : students.length ? (
+                <List
+                  split={false}
+                  dataSource={students}
+                  renderItem={(s) => (
+                    <List.Item
+                      style={{
+                        background: "#f6fafd",
+                        borderRadius: 12,
+                        marginBottom: 12,
+                        padding: "14px 18px",
+                      }}
+                    >
+                      <div>
+                        <b>{s.fullName}</b>
+                        <div style={{ fontSize: 13, color: "#64748b" }}>{s.email}</div>
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <p style={{ color: "#888" }}>У групі ще немає студентів</p>
+              )}
+            </div>
+    
+            {/* █ Сесії █ */}
+            <div>
+              <Typography.Title level={4} style={{ marginBottom: 16, fontWeight: 700 }}>
+                🗓️ Сесії
+              </Typography.Title>
+    
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setIsModalOpen(true)}
+                block
+                style={{ marginBottom: 16 }}
+              >
+                Створити
+              </Button>
+    
+              {sessionsLoading ? (
+                <Spin />
+              ) : sessions.length ? (
+                <List
+                  split={false}
+                  dataSource={sessions}
+                  renderItem={(session) => (
+                    <List.Item
+                      style={{
+                        background: "#f6fafd",
+                        borderRadius: 12,
+                        marginBottom: 12,
+                        padding: "14px 18px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div>
+                        <b>{session.name}</b>
+                        <div style={{ fontSize: 13, color: "#64748b" }}>
+                          {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} —
+                          &nbsp;{dayjs(session.endTime).format("HH:mm")}
+                        </div>
+                      </div>
+                      <Button
+                        type="default"
+                        onClick={() => navigate(`/admin/session/${session.id}`)}
+                      >
+                        Відкрити
+                      </Button>
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <p style={{ color: "#888" }}>Сесій ще не створено</p>
+              )}
+            </div>
+          </div>
+        </Card>
+    
+        {/* ── Модал «додати студента» ─────────────────────────── */}
+        <Modal
+          title="Додати студента"
+          open={isEmailModalOpen}
+          onCancel={() => setIsEmailModalOpen(false)}
+          onOk={handleAddStudent}
+          okText="Додати"
+          cancelText="Скасувати"
+          centered
+        >
+          <Input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email студента"
           />
-        ) : (
-          <p>Сесій ще не створено</p>
-        )}
-      </Card>
-    </div>
-  );
+        </Modal>
+    
+        {/* ── Модал «створити сесію» ──────────────────────────── */}
+        <Modal
+          title="Створити сесію"
+          open={isModalOpen}
+          onCancel={handleCancel}
+          onOk={handleCreateSession}
+          okText="Створити"
+          cancelText="Скасувати"
+          centered
+        >
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Назва сесії"
+            style={{ marginBottom: 12 }}
+          />
+          <DatePicker
+            showTime
+            placeholder="Початок"
+            value={startTime}
+            onChange={setStartTime}
+            style={{ width: "100%", marginBottom: 12 }}
+          />
+          <DatePicker
+            showTime
+            placeholder="Кінець"
+            value={endTime}
+            onChange={setEndTime}
+            style={{ width: "100%" }}
+          />
+        </Modal>
+      </div>
+    );
 };
 
-export default GroupDetails;
+export default GroupDetailsAdmin;
