@@ -1,5 +1,5 @@
 import { Dispatch } from "redux";
-import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup, fetchGroupDetails, fetchFilteredGroups, changeGroupTeacher } from "../../../services/api-group-service";
+import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup, fetchGroupDetails, fetchFilteredGroups, changeGroupTeacher, searchGroupsByName } from "../../../services/api-group-service";
 import { GroupActionTypes, GroupActions } from "../../reducers/GroupReducer/types";
 import { message } from "antd";
 
@@ -213,6 +213,32 @@ export const changeGroupTeacherAction = (groupId: number, currentTeacherId: stri
     };
   };
   
+  export const searchGroupsByNameAction = (name: string) => {
+    return async (dispatch: Dispatch<GroupActions>) => {
+      dispatch({ type: GroupActionTypes.START_REQUEST_GROUPS });
+  
+      try {
+        const res = await searchGroupsByName(name);
+        const { success, payload, message } = res as any;
+  
+        if (success) {
+          dispatch({
+            type: GroupActionTypes.SEARCH_GROUPS_BY_NAME_SUCCESS,
+            payload: payload, 
+          });
+        } else {
+          throw new Error(message);
+        }
+      } catch (error: any) {
+        console.error("Search groups failed:", error?.message || error);
+        dispatch({
+          type: GroupActionTypes.SEARCH_GROUPS_BY_NAME_ERROR,
+          payload: error?.message || "Search failed",
+        });
+      }
+    };
+  };
+
 //   const newSession = {
 //     id: 0,
 //     groupId: Number(groupId),

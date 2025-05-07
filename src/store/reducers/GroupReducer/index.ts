@@ -9,6 +9,7 @@ const initialState: GroupState = {
   totalPages: 0,
   pageSize: 10,
   totalCount: 0,
+  searchResults: [],
 };
 
 const GroupReducer = (state = initialState, action: GroupActions): GroupState => {
@@ -65,6 +66,22 @@ const GroupReducer = (state = initialState, action: GroupActions): GroupState =>
           loading: false,
       };
     }
+
+    case GroupActionTypes.SEARCH_GROUPS_BY_NAME_SUCCESS:
+      return {
+        ...state,
+        searchResults: action.payload,
+        loading: false,
+        error: null,
+      };
+
+    case GroupActionTypes.SEARCH_GROUPS_BY_NAME_ERROR:
+      return {
+        ...state,
+        searchResults: [],
+        loading: false,
+        error: action.payload,
+      };
 
     case GroupActionTypes.END_REQUEST:
       return { ...state, loading: false };

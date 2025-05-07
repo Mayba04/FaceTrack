@@ -15,6 +15,7 @@ export interface Group {
     totalPages: number;
     pageSize: number;
     totalCount: number;
+    searchResults?: Group[];
   }
   
   export enum GroupActionTypes {
@@ -31,7 +32,20 @@ export interface Group {
     FETCH_GROUP_BY_ID_ERROR = "FETCH_GROUP_BY_ID_ERROR",
     CHANGE_GROUP_TEACHER_SUCCESS = "CHANGE_GROUP_TEACHER_SUCCESS",
     END_REQUEST = "END_REQUEST",
+    SEARCH_GROUPS_BY_NAME_SUCCESS = "SEARCH_GROUPS_BY_NAME_SUCCESS",
+    SEARCH_GROUPS_BY_NAME_ERROR = "SEARCH_GROUPS_BY_NAME_ERROR",
   }
+
+  interface SearchGroupsByNameSuccessAction {
+    type: GroupActionTypes.SEARCH_GROUPS_BY_NAME_SUCCESS;
+    payload: Group[];
+  }
+  
+  interface SearchGroupsByNameErrorAction {
+    type: GroupActionTypes.SEARCH_GROUPS_BY_NAME_ERROR;
+    payload: string;
+  }
+  
   
   interface ChangeGroupTeacherSuccessAction {
     type: GroupActionTypes.CHANGE_GROUP_TEACHER_SUCCESS;
@@ -116,5 +130,7 @@ interface EndRequestAction {
     | FetchGroupByIdSuccessAction
     | FetchGroupByIdErrorAction   
     | ChangeGroupTeacherSuccessAction   
-    | EndRequestAction;   
+    | EndRequestAction
+    | SearchGroupsByNameSuccessAction
+    | SearchGroupsByNameErrorAction;   
   

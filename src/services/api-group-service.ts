@@ -19,8 +19,19 @@ const Group = {
     hasGroups: (userId: string) => requests.get(`/group/has-groups/${userId}`),
     filterGroups: (body: any) => requests.post("/group/filter", body),
     changeGroupTeacher: (groupId: number, currentTeacherId: string, futureTeacherId: string) => requests.put("/group/change-teacher", {
-        groupId, currentTeacherId, futureTeacherId, })
+        groupId, currentTeacherId, futureTeacherId, }),
+    searchGroupsByName: (name: string, pageNumber: number, pageSize: number) =>
+        requests.get("/group/search", { name, pageNumber, pageSize }),
 };
+
+export async function searchGroupsByName(name: string, pageNumber = 1, pageSize = 10) {
+    try {
+      return await Group.searchGroupsByName(name, pageNumber, pageSize);
+    } catch (error) {
+      console.error("Error searching groups:", error);
+      return { success: false, message: "Failed to search groups", error };
+    }
+  }
 
 export async function changeGroupTeacher(groupId: number, currentTeacherId: string, futureTeacherId: string) {
     try {
