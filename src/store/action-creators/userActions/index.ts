@@ -1,10 +1,52 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser, changeUserRole, toggleBlockUser, addUserService } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser, changeUserRole, toggleBlockUser, addUserService, fetchLecturers } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
 
+export const fetchLecturersAction = (fullName: string, pageNumber = 1, pageSize = 10) => {
+    return async (dispatch: Dispatch<any>) => {
+      dispatch({ type: UserActionTypes.USER_START_REQUEST });
+  
+      try {
+        const response = await fetchLecturers(fullName, pageNumber, pageSize);
+  
+        const {
+          payload,
+          success,
+          message: responseMessage,
+          totalCount,
+          pageSize: returnedPageSize,
+          pageNumber: returnedPageNumber,
+        } = response as any;
+  
+        if (success) {
+          dispatch({
+            type: UserActionTypes.FETCH_STUDENTS_SUCCESS,
+            payload: {
+              users: payload,
+              totalCount,
+              pageSize: returnedPageSize,
+              currentPage: returnedPageNumber,
+              totalPages: Math.ceil(totalCount / returnedPageSize),
+            },
+          });
+          return { success: true, payload };
+        } else {
+          throw new Error(responseMessage || "Не вдалося завантажити викладачів");
+        }
+      } catch (error: any) {
+        console.error("Помилка при завантаженні викладачів:", error);
+        dispatch({ type: UserActionTypes.FETCH_STUDENTS_ERROR, payload: "Error fetching lecturers" });
+        message.error(error?.message || "Не вдалося завантажити викладачів");
+        return { success: false, message: error?.message || "Unknown error" };
+      } finally {
+        dispatch({ type: UserActionTypes.FINISH_REQUEST });
+      }
+    };
+  };
+  
 
 export const addNewUserAction = (email: string, role: string) => {
     return async (dispatch: Dispatch<any>) => {

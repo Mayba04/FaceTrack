@@ -33,7 +33,21 @@ const User = {
         confirmPassword,
         role,
       }),
+
+    getLecturers: (fullName: string, pageNumber = 1, pageSize = 10) =>
+        requests.get("/user/lecturers", { fullName, pageNumber, pageSize }),
 };
+
+export async function fetchLecturers(fullName: string, pageNumber = 1, pageSize = 10) {
+    try {
+      const response = await User.getLecturers(fullName, pageNumber, pageSize);
+      return response;
+    } catch (error) {
+      console.error("Error fetchLecturers:", error);
+      return { success: false, message: "Failed to fetch lecturers", error };
+    }
+  }
+  
 
 export async function registerUserWithRole(email: string, password: string, confirmPassword: string, role: string) {
     try {
