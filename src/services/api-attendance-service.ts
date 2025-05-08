@@ -27,9 +27,33 @@ const Attendance = {
     getAbsencesByStudentAndSessionId: (studentId: string, sessionId: number) =>
       requests.get(`/attendance/by-session/${sessionId}/student/${studentId}`),
     getTotalAttendanceStats: (studentId: string) => requests.get(`/attendance/total-stats/${studentId}`),    
-    getTeacherStats: (teacherId: string) =>
-      requests.get(`/attendance/stats/${teacherId}`),
+    getTeacherStats: (teacherId: string) => requests.get(`/attendance/stats/${teacherId}`),
+    getSystemStats: () => requests.get("/attendance/system-statistics"),
+    getTopBottomSessions: () => requests.get("/attendance/top-bottom-sessions"),
 };
+
+export async function fetchTopBottomSessions() {
+  try {
+    const response = await Attendance.getTopBottomSessions();
+    return response;
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ message?: string }>;
+    const msg = err.response?.data?.message || "Не вдалося отримати топ сесії";
+    return { success: false, message: msg };
+  }
+}
+
+
+export async function fetchSystemStatistics() {
+  try {
+    const response = await Attendance.getSystemStats();
+    return response;
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ message?: string }>;
+    const msg = err.response?.data?.message || "Не вдалося отримати статистику системи";
+    return { success: false, message: msg };
+  }
+}
 
 export async function fetchTeacherStatsAction(teacherId: string) {
   try {

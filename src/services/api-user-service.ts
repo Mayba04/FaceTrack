@@ -36,7 +36,22 @@ const User = {
 
     getLecturers: (fullName: string, pageNumber = 1, pageSize = 10) =>
         requests.get("/user/lecturers", { fullName, pageNumber, pageSize }),
+    getUserStatistics: () => requests.get("/user/user-statistics"),
 };
+
+export async function fetchUserStatistics() {
+    try {
+      const response = await User.getUserStatistics();
+      return response;
+    } catch (error: any) {
+      console.error("Error fetchUserStatistics:", error);
+      return {
+        success: false,
+        message: "Не вдалося отримати статистику користувачів",
+        error,
+      };
+    }
+  }  
 
 export async function fetchLecturers(fullName: string, pageNumber = 1, pageSize = 10) {
     try {
