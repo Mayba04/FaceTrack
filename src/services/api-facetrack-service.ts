@@ -18,7 +18,16 @@ const FaceTrack = {
         return requests.post("/FaceTrack/process-frame", formData, {
             headers: { "Content-Type": "multipart/form-data" },
         });
-    },    
+    },
+    testBatchRecognition: (files: File[], userId: string) => {
+        const formData = new FormData();
+        files.forEach((file) => formData.append("files", file));
+        formData.append("userId", userId);
+    
+        return requests.post("/FaceTrack/test-batch", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      },    
 };
 
 export async function detectBase64Video(file: File, sessionId: number) {
@@ -31,3 +40,13 @@ export async function detectBase64Video(file: File, sessionId: number) {
         return { message: "Failed to fetch detectBase64Video", error };
     }
 }
+
+export async function testBatchRecognition(files: File[], userId: string) {
+    try {
+      const response = await FaceTrack.testBatchRecognition(files, userId);
+      return response;
+    } catch (error) {
+      console.error("Error testing recognition batch:", error);
+      return { success: false, message: "Failed to test batch", error };
+    }
+  }

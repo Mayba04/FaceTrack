@@ -28,6 +28,7 @@ import PrivacyPolicy from "./components/General/PrivacyPolicy";
 import StudentAttendanceHistory from "./components/Student/StudentAttendanceHistory";
 import SessionDetails from "./components/Teacher/SessionDetails";
 import AdminSessionDetails from "./components/Admin/AdminSessionDetails";
+import BatchRecognitionPage from "./components/Test/BatchRecognitionPage";
 const App: React.FC = () => {
     const token = useSelector((state: RootState) => state.UserReducer.token);
     const role = useSelector((state: RootState) => state.UserReducer.role);
@@ -83,6 +84,8 @@ const App: React.FC = () => {
                     <Route path="/student/sessions/today" element={<TodaySessions />} />
                     <Route path="/student/attendance/history" element={<StudentAttendanceHistory />} />
                     <Route path="/student/session/:sessionId/mark" element={<AttendanceMark />} />
+                    <Route path="/face-test" element={<BatchRecognitionPage />} />
+
                 </Route>
 
                 <Route path="*" element={<NotFound />} />
