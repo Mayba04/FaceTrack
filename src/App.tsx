@@ -54,7 +54,19 @@ const App: React.FC = () => {
                 } />
 
                 <Route path="/" element={token ? <HomePage /> : <Login />} />
-                <Route path="/login" element={<Login />} />
+                <Route
+                path="/login"
+                element={
+                    token ? (
+                    role === "Admin" || role === "Moderator" ? <Navigate to="/admin" /> :
+                    role === "Lecturer" ? <Navigate to="/teacher" /> :
+                    <Navigate to="/student" />
+                    ) : (
+                    <Login />
+                    )
+                }
+                />
+
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Button } from "react-bootstrap";
+
 import { detectBase64Video } from "../../services/api-facetrack-service";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store";
@@ -8,7 +8,7 @@ import { fetchSessionByIdAction } from "../../store/action-creators/sessionActio
 import { fetchStudentByGroupIdAction } from "../../store/action-creators/userActions";
 import type { AppDispatch } from "../../store";
 import { addedVectorsToStudents, deleteVector } from "../../services/api-faceVectors-service";
-import { Modal, message } from "antd";
+import {  Modal, message } from "antd";
 import { markStudentsPresent } from "../../services/api-attendance-service";
 
 interface IFace {
@@ -202,11 +202,11 @@ const SessionPage: React.FC = () => {
             setRecognizedFaces((prev) => prev.filter((face) => face.vectorId !== vectorId));
         } else {
             console.error("Server error while deleting vector:", message);
-            alert("Failed to delete vector. Try again.");
+            message.error("Failed to delete vector. Try again.")
         }
     } catch (error) {
         console.error("Unexpected error deleting vector:", error);
-        alert("Unexpected error occurred. Try again.");
+        message.error("Unexpected error occurred. Try again.");
     }
 };
 
@@ -221,7 +221,7 @@ const SessionPage: React.FC = () => {
         }));
 
       if (assignmentData.length === 0) {
-        alert("Немає вибраних невідомих облич для збереження.");
+        message.error("Немає вибраних невідомих облич для збереження.")
         return;
       }
 
@@ -239,102 +239,156 @@ const SessionPage: React.FC = () => {
         })
       );
 
-      alert("Vectors saved successfully!");
+      message.success("Vectors saved successfully!");
     } catch (error) {
       console.error("Error saving vectors:", error);
-      alert("Error saving vectors!");
+      message.error("Error saving vectors!");
     }
   };
 
   return (
-    <div className="container py-3">
-      <h2 className="text-center mb-4">Session {sessionId} - Face Recognition</h2>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(120deg, #e3f0ff 0%, #c6e6fb 100%)",
+        padding: "32px 16px",
+      }}
+    >
+      <div style={{ maxWidth: 1000, margin: "auto" }}>
+        <div
+          className="bg-white p-4 rounded shadow-sm"
+          style={{
+            borderRadius: 20,
+            boxShadow: "0 6px 24px rgba(0,0,0,0.05)",
+          }}
+        >
+          <h3 className="text-center mb-4" style={{ color: "#003366", fontWeight: 700 }}>
+            📸 Face Recognition — Session #{sessionId}
+          </h3>
   
-      <div className="row">
-        {/* Блок відео */}
-        <div className="col-lg-8 mb-4">
-          <div className="card shadow-sm p-3">
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              className="w-100 rounded"
-              style={{ maxHeight: "450px", objectFit: "cover" }}
-            />
-            <div className="d-flex justify-content-center gap-3 mt-3 flex-wrap">
-              <Button variant={isCapturing ? "danger" : "success"} onClick={toggleCapture}>
-                {isCapturing ? "Stop Capturing" : "Start Capturing"}
-              </Button>
-              <Button variant="success" onClick={markAttendance}>Mark Attendance</Button>
-              {!isCapturing && <Button variant="primary" onClick={saveVectors}>Save Vectors</Button>}
+          <div className="row gy-4">
+            {/* Блок відео */}
+            <div className="col-12 col-lg-8">
+              <div
+                className="p-3 rounded"
+                style={{
+                  borderLeft: "5px solid #1890ff",
+                  background: "#fff",
+                }}
+              >
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  muted
+                  className="w-100 rounded"
+                  style={{
+                    maxHeight: "460px",
+                    objectFit: "cover",
+                    border: "1px solid #ccc",
+                  }}
+                />
+                <div className="d-flex justify-content-center flex-wrap gap-3 mt-3">
+                  <button
+                    className={`btn ${isCapturing ? "btn-danger" : "btn-success"}`}
+                    onClick={toggleCapture}
+                  >
+                    {isCapturing ? "⏹️ Stop Capturing" : "▶️ Start Capturing"}
+                  </button>
+                  <button className="btn btn-primary" onClick={markAttendance}>
+                    ✅ Mark Attendance
+                  </button>
+                  {!isCapturing && (
+                    <button className="btn btn-outline-primary" onClick={saveVectors}>
+                      💾 Save Vectors
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
   
-        {/* Блок розпізнаних облич */}
-        <div className="col-lg-4">
-          <div className="card shadow-sm p-3">
-            <h5 className="text-center">Recognized Faces</h5>
-            {loading && recognizedFaces.length === 0 ? (
-              <div className="text-center my-4">
-                <div className="spinner-border text-primary" />
-              </div>
-            ) : recognizedFaces.length > 0 ? (
-              <div className="d-flex flex-wrap gap-3">
-                {recognizedFaces.map((face) => {
-                  const isUnknown = face.name === "Unknown";
-                  return (
-                    <div
-                      key={face.vectorId}
-                      className="card p-2 shadow-sm"
-                      style={{ width: "220px" }}
-                    >
-                      <img
-                        src={`data:image/jpeg;base64,${face.faceImageBase64}`}
-                        alt={face.name}
-                        className="rounded mb-2"
-                        style={{ width: "100%", height: "200px", objectFit: "cover" }}
-                      />
-                      <div className="text-center fw-bold">{face.name}</div>
-
-                      {isUnknown && !isCapturing && (
-                        <select
-                          className="form-select mt-2"
-                          value={face.userId || ""}
-                          onChange={(e) =>
-                            handleAssignStudent(face.vectorId, e.target.value)
-                          }
+            {/* Блок розпізнаних облич */}
+            <div className="col-12 col-lg-4">
+              <div
+                className="p-3 rounded bg-white"
+                style={{
+                  maxHeight: "75vh",
+                  overflowY: "auto",
+                  border: "1px solid #eee",
+                }}
+              >
+                <h5 className="text-center mb-3" style={{ color: "#003366" }}>
+                  🧑‍💻 Recognized Faces
+                </h5>
+  
+                {loading && recognizedFaces.length === 0 ? (
+                  <div className="text-center my-4">
+                    <div className="spinner-border text-primary" />
+                  </div>
+                ) : recognizedFaces.length > 0 ? (
+                  <div className="d-flex flex-wrap gap-3 justify-content-center">
+                    {recognizedFaces.map((face) => {
+                      const isUnknown = face.name === "Unknown";
+                      return (
+                        <div
+                          key={face.vectorId}
+                          className="card border-0 shadow-sm"
+                          style={{
+                            width: "220px",
+                            borderRadius: "12px",
+                            overflow: "hidden",
+                          }}
                         >
-                          <option value="">Select student...</option>
-                          {studentsFromStore.map((st) => (
-                            <option key={st.id} value={st.id}>
-                              {st.fullName}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        className="mt-2 w-100"
-                        onClick={() => handleRemoveFace(face.vectorId)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  );
-                })}
+                          <img
+                            src={`data:image/jpeg;base64,${face.faceImageBase64}`}
+                            alt={face.name}
+                            className="card-img-top"
+                            style={{ height: "200px", objectFit: "cover" }}
+                          />
+                          <div className="card-body text-center">
+                            <strong style={{ color: "#333" }}>{face.name}</strong>
+  
+                            {isUnknown && !isCapturing && (
+                              <select
+                                className="form-select mt-2"
+                                value={face.userId || ""}
+                                onChange={(e) =>
+                                  handleAssignStudent(face.vectorId, e.target.value)
+                                }
+                              >
+                                <option value="">Select student...</option>
+                                {studentsFromStore.map((st) => (
+                                  <option key={st.id} value={st.id}>
+                                    {st.fullName}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
+  
+                            <button
+                              className="btn btn-outline-danger btn-sm mt-2 w-100"
+                              onClick={() => handleRemoveFace(face.vectorId)}
+                            >
+                              🗑 Remove
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted mt-3">
+                    No faces recognized yet.
+                  </p>
+                )}
               </div>
-
-            ) : (
-              <p className="text-center text-muted mt-3">No faces recognized yet.</p>
-            )}
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
+  
+  
   
 };
 
