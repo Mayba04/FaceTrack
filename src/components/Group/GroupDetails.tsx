@@ -10,7 +10,7 @@ import { createSessionAction, fetchSessionsAction } from "../../store/action-cre
 import dayjs from "dayjs";    
 import { useNavigate } from "react-router-dom";
 const { Title } = Typography;
-
+import "./GroupDetails.css";
 
 const GroupDetails: React.FC = () => {
     const { groupId } = useParams<{ groupId: string }>();
@@ -110,41 +110,24 @@ const GroupDetails: React.FC = () => {
       );
   
       return (
-        <div
-          style={{
-            minHeight: "100vh",
-            padding: "48px 16px",
-            background: "linear-gradient(120deg,#e3f0ff 0%,#c6e6fb 100%)",
-          }}
-        >
-          <Card
-            style={{
-              maxWidth: 860,
-              margin: "0 auto",
-              borderRadius: 24,
-              padding: "32px 28px",
-              boxShadow: "0 8px 24px rgba(30,64,175,0.1)",
-            }}
-          >
+        <div className="group-page">
+          <Card className="group-card">
             <Title level={2} style={{ textAlign: "center", fontWeight: 800 }}>
-             Деталі групи: {groupDetails.name}
+              Деталі групи: {groupDetails.name}
             </Title>
             <p style={{ textAlign: "center", marginBottom: 32 }}>
-              Кількість студентів:&nbsp;<b>{groupDetails.studentsCount}</b>
+              Кількість студентів:&nbsp;
+              <b>{groupDetails.studentsCount}</b>
             </p>
-      
-            <div
-              style={{
-                display: "grid",
-                gap: 32,
-                gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))",
-              }}
-            >
-              <div>
+    
+            {/* ───────── GRID ───────── */}
+            <div className="group-grid">
+              {/* Студенти */}
+              <section className="grid-col">
                 <Divider orientation="left" style={{ fontWeight: 700 }}>
                   🎓 Студенти
                 </Divider>
-      
+
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}
@@ -154,7 +137,7 @@ const GroupDetails: React.FC = () => {
                 >
                   Додати
                 </Button>
-      
+
                 {studentsLoading ? (
                   <Spin />
                 ) : students.length ? (
@@ -162,17 +145,10 @@ const GroupDetails: React.FC = () => {
                     dataSource={students}
                     split={false}
                     renderItem={(s) => (
-                      <List.Item
-                        style={{
-                          background: "#f6fafd",
-                          borderRadius: 12,
-                          marginBottom: 12,
-                          padding: "14px 18px",
-                        }}
-                      >
-                        <div>
+                      <List.Item className="group-list-item" >
+                        <div  style={{ marginInline: 12 }}>
                           <b>{s.fullName}</b>
-                          <div style={{ fontSize: 13, color: "#64748b" }}>{s.email}</div>
+                          <div className="item-sub">{s.email}</div>
                         </div>
                       </List.Item>
                     )}
@@ -180,23 +156,24 @@ const GroupDetails: React.FC = () => {
                 ) : (
                   <p style={{ color: "#888" }}>У групі ще немає студентів</p>
                 )}
-              </div>
-      
-              <div>
+              </section>
+    
+              {/* Сесії */}
+              <section className="grid-col" >
                 <Divider orientation="left" style={{ fontWeight: 700 }}>
                   🗓️ Сесії
                 </Divider>
-      
+
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}
-                  onClick={() => showModal()}
+                  onClick={showModal}
                   style={{ marginBottom: 16 }}
                   block
                 >
                   Створити
                 </Button>
-      
+
                 {sessionsLoading ? (
                   <Spin size="small" />
                 ) : sessions.length ? (
@@ -204,28 +181,15 @@ const GroupDetails: React.FC = () => {
                     dataSource={sessions}
                     split={false}
                     renderItem={(session) => (
-                      <List.Item
-                        style={{
-                          background: "#f6fafd",
-                          borderRadius: 12,
-                          marginBottom: 12,
-                          padding: "14px 18px",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <div>
+                      <List.Item className="group-list-item space-between" >
+                        <div  style={{ marginInline: 12 }}  >
                           <b>{session.name}</b>
-                          <div style={{ fontSize: 13, color: "#64748b" }}>
+                          <div className="item-sub">
                             {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} —{" "}
                             {dayjs(session.endTime).format("HH:mm")}
                           </div>
                         </div>
-                        <Button
-                          type="default"
-                          onClick={() => navigate(`/teacher/session/${session.id}`)}
-                        >
+                        <Button style={{ marginInline: 12 }}   onClick={() => navigate(`/teacher/session/${session.id}`)}>
                           Відкрити
                         </Button>
                       </List.Item>
@@ -234,10 +198,11 @@ const GroupDetails: React.FC = () => {
                 ) : (
                   <p style={{ color: "#888" }}>Сесій ще не створено</p>
                 )}
-              </div>
+              </section>
             </div>
           </Card>
-      
+    
+          {/* ───── Модальні вікна ───── */}
           <Modal
             title="Додати студента"
             open={isEmailModalOpen}
@@ -253,7 +218,7 @@ const GroupDetails: React.FC = () => {
               placeholder="Email студента"
             />
           </Modal>
-      
+    
           <Modal
             title="Створити сесію"
             open={isModalOpen}
@@ -286,7 +251,6 @@ const GroupDetails: React.FC = () => {
           </Modal>
         </div>
       );
-      
-  };
-  
-  export default GroupDetails;
+    };
+    
+    export default GroupDetails;
