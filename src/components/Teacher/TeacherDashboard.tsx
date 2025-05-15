@@ -83,7 +83,7 @@ const TeacherDashboard: React.FC = () => {
   return (
       <div
         style={{
-          minHeight: "100vh",
+          minHeight: "100dvh",
           background: "linear-gradient(120deg, #e3f0ff 0%, #c6e6fb 100%)",
           padding: "32px 16px",
         }}

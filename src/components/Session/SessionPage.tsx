@@ -194,22 +194,24 @@ const SessionPage: React.FC = () => {
 
   const handleRemoveFace = async (vectorId: number) => {
     if (!vectorId) return;
-
+  
     try {
-        const response = await deleteVector(vectorId);
-        const { success, message } = response as any; 
-        if (success) {
-            setRecognizedFaces((prev) => prev.filter((face) => face.vectorId !== vectorId));
-        } else {
-            console.error("Server error while deleting vector:", message);
-            message.error("Failed to delete vector. Try again.")
-        }
-    } catch (error) {
-        console.error("Unexpected error deleting vector:", error);
-        message.error("Unexpected error occurred. Try again.");
+      const response = await deleteVector(vectorId);
+      const { success } = response as any;
+      setRecognizedFaces((prev) =>
+        prev.filter((face) => face.vectorId !== vectorId)
+      );
+  
+      if (!success) {
+        console.warn("Сервер не видалив вектор, але інтерфейс оновлено.");
+      }
+    } catch  {
+      console.warn("Помилка при видаленні з сервера, вектор прибрано локально.");
+      setRecognizedFaces((prev) =>
+        prev.filter((face) => face.vectorId !== vectorId)
+      );
     }
-};
-
+  };
 
   const saveVectors = async () => {
     try {
@@ -249,7 +251,8 @@ const SessionPage: React.FC = () => {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        position: "relative",
+        minHeight: "92.5dvh",
         background: "linear-gradient(120deg, #e3f0ff 0%, #c6e6fb 100%)",
         padding: "32px 16px",
       }}
