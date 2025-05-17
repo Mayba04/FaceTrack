@@ -33,13 +33,20 @@ const App: React.FC = () => {
     const token = useSelector((state: RootState) => state.UserReducer.token);
     const role = useSelector((state: RootState) => state.UserReducer.role);
 
+    const hideNavbarPrefixes = ["/register", "/login",];
+
+    const shouldHideNavbar = hideNavbarPrefixes.some((prefix) =>
+    location.pathname.startsWith(prefix)
+    );
+
     return (
         <div>
-            {token && (
+            {token && !shouldHideNavbar && (
                 role === "Admin" || role === "Moderator" ? <AdminNavbar /> :
                 role === "Lecturer" ? <TeacherNavbar /> :
                 <StudentNavbar />
             )}
+
 
             <Routes>
 

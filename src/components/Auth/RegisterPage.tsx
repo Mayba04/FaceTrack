@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { Input, Button, message, Form, Card, Typography, Spin } from "antd";
+import { Input, Button, message, Form, Typography, Spin } from "antd";
 import { jwtDecode } from "jwt-decode";
 import { auditStudentAction, logout, registerUserAction } from "../../store/action-creators/userActions";
 import { useDispatch } from "react-redux";
 import { registerUserWithRole } from "../../services/api-user-service";
+import { LockOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
 
 const { Title } = Typography;
 
@@ -121,45 +122,113 @@ const RegisterPage: React.FC = () => {
         navigate("/invalidlink");
     }
 
-    return (
-        <div style={{ maxWidth: "400px", margin: "auto", padding: "20px" }}>
-            <Card style={{ padding: "20px", boxShadow: "0 4px 10px rgba(0,0,0,0.1)", borderRadius: "12px" }}>
-                <Title level={2} style={{ textAlign: "center" }}>Register</Title>
-                {error && <div style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
-                <Form onFinish={handleRegister}>
-                    <Form.Item label="Email" required>
-                        <Input value={email || ""} disabled />
-                    </Form.Item>
-                    <Form.Item label="Password" required>
-                        <Input.Password
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter password"
-                        />
-                    </Form.Item>
-                    <Form.Item label="Confirm Password" required>
-                        <Input.Password
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Confirm password"
-                        />
-                    </Form.Item>
-                    <Form.Item>
-                        <Button
-                            type="primary"
-                            htmlType="submit"
-                            block
-                            loading={loading}
-                            disabled={loading || !isTokenValid}
-                        >
-                            {loading ? <Spin size="small" /> : "Register"}
-                        </Button>
-                    </Form.Item>
-                </Form>
-            </Card>
+      const validatePassword = (_: any, value: string) => {
+    const allowedSpecials = "!@#$%^&*()_-+=.,:;?";
+    if (!value) return Promise.reject("Пароль обов’язковий");
+    if (value.length < 6) return Promise.reject("Мінімум 6 символів");
+    if (!/[A-Z]/.test(value)) return Promise.reject("Має бути велика літера");
+    if (!/[a-z]/.test(value)) return Promise.reject("Має бути мала літера");
+    if (!/[0-9]/.test(value)) return Promise.reject("Має бути цифра");
+    if (!new RegExp(`[${allowedSpecials.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}]`).test(value))
+      return Promise.reject(`Має бути спецсимвол із дозволених: ${allowedSpecials}`);
+    return Promise.resolve();
+  };
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(to bottom right, #001529, #1890ff)",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "400px",
+          width: "100%",
+          padding: "24px",
+          background: "rgba(255, 255, 255, 0.9)",
+          borderRadius: "8px",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            marginBottom: "24px",
+          }}
+        >
+          <SafetyCertificateOutlined style={{ fontSize: "48px", color: "#1890ff" }} />
+          <Title level={2} style={{ textAlign: "center", color: "#001529", marginTop: "16px" }}>
+            Register
+          </Title>
         </div>
-    );
+
+        {error && <div style={{ color: "red", marginBottom: "10px", textAlign: "center" }}>{error}</div>}
+
+        <Form layout="vertical" onFinish={handleRegister}>
+          <Form.Item label="Email">
+            <Input value={email || ""} disabled />
+          </Form.Item>
+
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ validator: validatePassword }]}
+            hasFeedback
+          >
+            <Input.Password
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              prefix={<LockOutlined style={{ color: "#1890ff" }} />}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Confirm Password"
+            name="confirmPassword"
+            dependencies={["password"]}
+            hasFeedback
+            rules={[
+              { required: true, message: "Підтвердження паролю обов’язкове" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("password") === value) return Promise.resolve();
+                  return Promise.reject("Паролі не збігаються");
+                },
+              }),
+            ]}
+          >
+            <Input.Password
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm password"
+              prefix={<LockOutlined style={{ color: "#1890ff" }} />}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              block
+              loading={loading}
+              disabled={!isTokenValid}
+              style={{ background: "#1890ff", borderColor: "#1890ff" }}
+            >
+              {loading ? <Spin size="small" /> : "Register"}
+            </Button>
+          </Form.Item>
+        </Form>
+      </div>
+    </div>
+  );
 };
 
 export default RegisterPage;
-
