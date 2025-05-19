@@ -29,11 +29,13 @@ import StudentAttendanceHistory from "./components/Student/StudentAttendanceHist
 import SessionDetails from "./components/Teacher/SessionDetails";
 import AdminSessionDetails from "./components/Admin/AdminSessionDetails";
 import BatchRecognitionPage from "./components/Test/BatchRecognitionPage";
+import ForgotPassword from "./components/Auth/ForgotPassword";
+import ResetPassword from "./components/Auth/ResetPassword";
 const App: React.FC = () => {
     const token = useSelector((state: RootState) => state.UserReducer.token);
     const role = useSelector((state: RootState) => state.UserReducer.role);
 
-    const hideNavbarPrefixes = ["/register", "/login",];
+    const hideNavbarPrefixes = ["/register", "/login", "/reset-password", "/forgot-password"];
 
     const shouldHideNavbar = hideNavbarPrefixes.some((prefix) =>
     location.pathname.startsWith(prefix)
@@ -76,7 +78,20 @@ const App: React.FC = () => {
 
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route
+                path="/forgot-password"
+                element={
+                    token ? (
+                    role === "Admin" || role === "Moderator" ? <Navigate to="/admin" /> :
+                    role === "Lecturer" ? <Navigate to="/teacher" /> :
+                    <Navigate to="/student" />
+                    ) : (
+                    <ForgotPassword />
+                    )
+                }
+                />
 
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route element={<PrivateRoute />}>
                     <Route path="/FaceUpload" element={<FaceUpload />} />
                     <Route path="/real-time" element={<RealTimeFaceRecognition />} />

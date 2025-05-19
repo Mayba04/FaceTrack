@@ -38,7 +38,62 @@ const User = {
         requests.get("/user/lecturers", { fullName, pageNumber, pageSize }),
     getUserStatistics: () => requests.get("/user/user-statistics"),
     updateUserAgreedToImageProcessing: (payload: { id: string; agreedToImageProcessing: boolean;}) => requests.post("/user/agree-processing", payload),
-    getUserById: (id: string) => requests.get(`/user/get-by-id/${id}`)
+    getUserById: (id: string) => requests.get(`/user/get-by-id/${id}`),
+    sendResetPasswordEmail: (email: string) => requests.post(`/user/forgot-password/${encodeURIComponent(email)}`),
+
+    resetPassword: (data: {
+      email: string;
+      token: string;
+      newPassword: string;
+      confirmPassword: string;
+    }) => requests.post("/user/reset-password", data),
+    validateResetToken: (email: string, token: string) => requests.get(`/user/validate-reset-token?email=${email}&token=${encodeURIComponent(token)}`)
+
+};
+
+export const validateResetToken = async (email: string, token: string) => {
+  try {
+    const response = await User.validateResetToken(email, token);
+    return response;
+  } catch (error: any) {
+    console.error("Помилка при перевірці токена скидання паролю:", error);
+    return {
+      success: false,
+      message: "Посилання на зміну пароля недійсне або прострочене",
+    };
+  }
+};
+
+
+export const sendResetPasswordEmail = async (email: string) => {
+  try {
+    const response = await User.sendResetPasswordEmail(email);
+    return response;
+  } catch (error: any) {
+    console.error("Помилка при надсиланні листа на скидання пароля:", error);
+    return {
+      success: false,
+      message: "Не вдалося надіслати листа на скидання пароля",
+    };
+  }
+};
+
+export const resetPassword = async (data: {
+  email: string;
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+}) => {
+  try {
+    const response = await User.resetPassword(data);
+    return response;
+  } catch (error: any) {
+    console.error("Помилка при зміні пароля:", error);
+    return {
+      success: false,
+      message: "Не вдалося змінити пароль",
+    };
+  }
 };
 
 export const getUserById = async (id: string) => {

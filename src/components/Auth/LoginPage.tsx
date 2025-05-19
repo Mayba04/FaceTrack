@@ -4,20 +4,20 @@ import { LockOutlined, UserOutlined, SafetyCertificateOutlined } from '@ant-desi
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUserAction } from '../../store/action-creators/userActions';
 import { RootState } from '../../store/reducers';
-import { useNavigate } from 'react-router-dom'; // ✅ Додаємо useNavigate
+import { useNavigate } from 'react-router-dom'; 
 
 const { Title, Text } = Typography;
 
 const Login: React.FC = () => {
   const dispatch = useDispatch();
   const loading = useSelector((state: RootState) => state.UserReducer.loading);
-  const navigate = useNavigate(); // ✅ Використовуємо хук ТУТ
+  const navigate = useNavigate(); 
 
   const onFinish = async (values: any) => {
     console.log('Logging in with:', values);
 
     try {
-      await dispatch<any>(loginUserAction(values, navigate)); // ✅ Передаємо navigate у екшен
+      await dispatch<any>(loginUserAction(values, navigate)); 
     } catch (error) {
       message.error('Login failed. Please check your credentials.' + error);
     }
@@ -102,13 +102,14 @@ const Login: React.FC = () => {
         </Form>
 
         <div style={{ textAlign: 'center' }}>
-          <Text type="secondary">
-            Don’t have an account?{' '}
-            <a href="/InDevelopment" style={{ color: '#1890ff' }}>
-              Sign Up
-            </a>
-          </Text>
-        </div>
+        <Text type="secondary">
+          Forgot your password?{' '}
+          <a href="/forgot-password" style={{ color: '#1890ff' }}>
+            Recover here
+          </a>
+        </Text>
+      </div>
+
       </div>
     </div>
   );
