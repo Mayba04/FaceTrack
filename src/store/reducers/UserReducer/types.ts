@@ -7,6 +7,7 @@ export interface User {
   lockoutEnabled: boolean;
   role: string;
   mainPhotoFileName : string;
+  agreedToImageProcessing: boolean;
 }
 
 export interface UserState {
@@ -37,7 +38,24 @@ export enum UserActionTypes {
   ADD_STUDENTGROUP_SUCCESS = "ADD_STUDENTGROUP_SUCCESS",
   ADD_STUDENTGROUP_ERROR = "ADD_STUDENTGROUP_ERROR",
   FINISH_REQUEST = "FINISH_REQUEST",
+  UPDATE_USER_CONSENT_SUCCESS = "UPDATE_USER_CONSENT_SUCCESS",
+  FETCH_USER_BY_ID_SUCCESS = "FETCH_USER_BY_ID_SUCCESS",
 }
+
+interface FetchUserByIdSuccessAction {
+  type: UserActionTypes.FETCH_USER_BY_ID_SUCCESS;
+  payload: User;
+}
+
+
+interface UpdateUserConsentSuccessAction {
+  type: UserActionTypes.UPDATE_USER_CONSENT_SUCCESS;
+  payload: {
+    id: string;
+    agreedToImageProcessing: boolean;
+  };
+}
+
 
 interface FinishRequestAction {
   type: UserActionTypes.FINISH_REQUEST;
@@ -113,4 +131,6 @@ export type UserActions =
   | ServerErrorAction
   | AddStudentGroupSuccessAction
   | AddStudentGroupErrorAction
-  | FinishRequestAction;
+  | FinishRequestAction
+  | UpdateUserConsentSuccessAction
+  | FetchUserByIdSuccessAction;

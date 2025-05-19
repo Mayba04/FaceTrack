@@ -37,7 +37,41 @@ const User = {
     getLecturers: (fullName: string, pageNumber = 1, pageSize = 10) =>
         requests.get("/user/lecturers", { fullName, pageNumber, pageSize }),
     getUserStatistics: () => requests.get("/user/user-statistics"),
+    updateUserAgreedToImageProcessing: (payload: { id: string; agreedToImageProcessing: boolean;}) => requests.post("/user/agree-processing", payload),
+    getUserById: (id: string) => requests.get(`/user/get-by-id/${id}`)
 };
+
+export const getUserById = async (id: string) => {
+  try {
+    const res = await User.getUserById(id)
+    return res;
+  } catch (error: any) {
+    console.error("Помилка при отриманні користувача:", error);
+    return {
+      success: false,
+      message: "Не вдалося отримати користувача",
+    };
+  }
+};
+
+
+export async function updateUserConsent(payload: {
+  id: string;
+  agreedToImageProcessing: boolean;
+}) {
+  try {
+    const response = await User.updateUserAgreedToImageProcessing(payload);
+    return response;
+  } catch (error: any) {
+    console.error("Error updating consent:", error);
+    return {
+      success: false,
+      message: "Не вдалося оновити згоду користувача",
+      error: error?.message || "Невідома помилка",
+    };
+  }
+}
+
 
 export async function fetchUserStatistics() {
     try {

@@ -39,6 +39,22 @@ const UserReducer = (state = initialState, action: UserActions): UserState => {
                 totalCount: action.payload.totalCount,
                 loading: false,
             };
+        case UserActionTypes.UPDATE_USER_CONSENT_SUCCESS:
+            if (state.loggedInUser?.id === action.payload.id) {
+                return {
+                ...state,
+                loggedInUser: {
+                    ...state.loggedInUser,
+                    agreedToImageProcessing: action.payload.agreedToImageProcessing,
+                },
+                };
+            }
+            return state;
+        case UserActionTypes.FETCH_USER_BY_ID_SUCCESS:
+        return {
+            ...state,
+            loggedInUser: action.payload,
+        };
         case UserActionTypes.LOGIN_USER_ERROR:
         case UserActionTypes.FETCH_STUDENTS_ERROR:
         case UserActionTypes.SERVER_ERROR:

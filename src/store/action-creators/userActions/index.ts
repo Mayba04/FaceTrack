@@ -1,9 +1,30 @@
 import { Dispatch } from "redux";
-import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser, changeUserRole, toggleBlockUser, addUserService, fetchLecturers, fetchUserStatistics } from "../../../services/api-user-service";
+import { loginUser, refreshUserToken, fetchStudentByGroupId, addStudentToGroup, auditStudent, registerUser, fetchFilteredUsers, updateUser, deleteUser, changeUserRole, toggleBlockUser, addUserService, fetchLecturers, fetchUserStatistics, updateUserConsent, getUserById } from "../../../services/api-user-service";
 import { User, UserActionTypes } from "../../reducers/UserReducer/types";
 import { setAccessToken, setRefreshToken, removeTokens, getRefreshToken } from "../../../services/api-instance";
 import { jwtDecode } from "jwt-decode";
 import { message } from "antd";
+
+export const fetchUserByIdAction = (id: string) => {
+  return async (dispatch: Dispatch<any>) => {
+    dispatch({ type: UserActionTypes.USER_START_REQUEST });
+    try {
+      const response = await getUserById(id);
+      const { success, payload } = response as any;
+      if (success) {
+        dispatch({ type: UserActionTypes.FETCH_USER_BY_ID_SUCCESS, payload });
+      } else {
+        throw new Error("Користувача не знайдено");
+      }
+    } catch (error: any) {
+      console.error("Помилка при отриманні користувача:", error);
+      dispatch({ type: UserActionTypes.SERVER_ERROR, payload: "Не вдалося отримати користувача" });
+    } finally {
+      dispatch({ type: UserActionTypes.FINISH_REQUEST });
+    }
+  };
+};
+
 
 export const fetchUserStatisticsAction = () => {
     return async (dispatch: Dispatch<any>) => {
@@ -171,6 +192,35 @@ export const updateUserAction = (updatedUser: { id: string; fullName: string; em
         }
     };
 };
+
+export const updateUserAgreedToImageProcessingAction = (updatedUser: {
+  id: string;
+  agreedToImageProcessing: boolean;
+}) => {
+  return async (dispatch: Dispatch<any>) => {
+    dispatch({ type: UserActionTypes.USER_START_REQUEST });
+
+    try {
+      const response = await updateUserConsent(updatedUser);
+      console.log("response ", response);
+      const { success } = response as any;
+    
+      if (success) {
+        dispatch({ type: UserActionTypes.UPDATE_USER_CONSENT_SUCCESS, payload: updatedUser });
+        message.success("Згоду успішно збережено");
+      } else {
+        throw new Error("Оновлення не вдалося");
+      }
+    } catch (error: any) {
+      console.error("Помилка при оновленні згоди:", error);
+      dispatch({ type: UserActionTypes.SERVER_ERROR, payload: "Update failed" });
+      message.error(error?.message || "Помилка при оновленні користувача");
+    } finally {
+      dispatch({ type: UserActionTypes.FINISH_REQUEST });
+    }
+  };
+};
+
 
 
 export const deleteUserAction = (userId: string) => {
@@ -432,7 +482,8 @@ const authUser = async (token: string, dispatch: Dispatch<any>): Promise<boolean
             lockoutEnd: null, 
             lockoutEnabled: decodedToken.LockoutEnabled, 
             role: decodedToken.role,
-            mainPhotoFileName : decodedToken.mainPhotoFileName
+            mainPhotoFileName : decodedToken.mainPhotoFileName,
+            agreedToImageProcessing: decodedToken.AgreedToImageProcessing
         };
         
 
@@ -475,4 +526,6 @@ export const logout = () => {
         message.success("Logged out successfully!");
     };
 };
+
+
 
