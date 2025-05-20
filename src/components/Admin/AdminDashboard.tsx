@@ -8,6 +8,11 @@ import {
   Button,
   Space,
   Divider,
+  Modal,
+  Form,
+  Input,
+  Select,
+  message,
 } from "antd";
 import {
   UserOutlined,
@@ -24,12 +29,22 @@ import {
   fetchSystemStatistics,
   fetchTopBottomSessions,
 } from "../../services/api-attendance-service";
+import { useSelector } from "react-redux";
+import { createGroupAction } from "../../store/action-creators/groupActions";
+import { fetchLecturersAction } from "../../store/action-creators/userActions";
+import { RootState } from "../../store";
+import { User } from "../../store/reducers/UserReducer/types";
+import { DatePicker } from "antd";
+import { createSessionAction } from "../../store/action-creators/sessionAction";// змінити на твій шлях
+import { fetchFilteredGroupsAction } from "../../store/action-creators/groupActions";
+import { addNewUserAction } from "../../store/action-creators/userActions";
 
 const { Title, Paragraph } = Typography;
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<any>();
+
 
   /* ---------------- state ---------------- */
   const [stats, setStats] = useState({
@@ -46,6 +61,15 @@ const AdminDashboard: React.FC = () => {
     bestSession: { subject: "—", group: "—", rate: 0 },
     worstSession: { subject: "—", group: "—", rate: 0 },
   });
+  const [isAddVisible, setIsAddVisible] = useState(false);
+  const [addForm] = Form.useForm();
+  const { loading: userLoading } = useSelector((state: RootState) => state.UserReducer);
+  const [teacherOptions, setTeacherOptions] = useState<User[]>([]);
+  const [isSessionVisible, setIsSessionVisible] = useState(false);
+  const [sessionForm] = Form.useForm();
+  const { groups } = useSelector((state: RootState) => state.GroupReducer);
+  const [isAddStudentVisible, setIsAddStudentVisible] = useState(false);
+  const [addStudentForm] = Form.useForm();
 
   /* -------------- effects -------------- */
   useEffect(() => {
@@ -82,13 +106,83 @@ const AdminDashboard: React.FC = () => {
     });
   }, [dispatch]);
 
+  useEffect(() => {
+    if (isAddVisible) searchTeachers("");
+  }, [isAddVisible]);
+
+useEffect(() => {
+  if (isSessionVisible) {
+    dispatch(fetchFilteredGroupsAction({ name: "", pageNumber: 1, pageSize: 10 }));
+  }
+}, [isSessionVisible]);
+
+
+  const searchTeachers = async (name: string) => {
+    const res: any = await dispatch(fetchLecturersAction(name));
+    if (res?.success) setTeacherOptions(res.payload);
+  };
+
+
+
+
+const handleCreateSession = async () => {
+  try {
+    const values = await sessionForm.validateFields();
+
+    const selectedGroup = groups.find(g => g.id === values.groupId);
+
+    if (!selectedGroup) {
+      message.error("Не вдалося знайти вибрану групу");
+      return;
+    }
+
+    const payload = {
+      groupId: values.groupId,
+      name: values.name,
+      startTime: values.startTime.toISOString(),
+      endTime: values.endTime.toISOString(),
+      userId: selectedGroup.teacherId,
+      createdBy: `${selectedGroup.teacherName} ${selectedGroup.name}`
+    };
+
+    const res = await dispatch(createSessionAction(payload as any));
+    if (res?.success !== false) {
+      message.success("Сесію створено");
+      setIsSessionVisible(false);
+      sessionForm.resetFields();
+      navigate(`/admin/groups/${values.groupId}`);
+    } else {
+      message.error("Помилка при створенні сесії");
+    }
+  } catch {
+    message.error("Не вдалося створити сесію");
+  }
+};
+
+
+
+
+  const handleCreateGroup = async () => {
+    try {
+      const values = await addForm.validateFields();
+      const res = await dispatch(createGroupAction(values.name, values.teacherId));
+      if (res?.success !== false) {
+        message.success("Групу створено");
+        setIsAddVisible(false);
+        addForm.resetFields();
+        navigate("/admin/groups"); // редірект після створення
+      }
+    } catch {
+      message.error("Не вдалося створити групу");
+    }
+  };
   /* ---------------- UI ---------------- */
   return (
-    /** ░░ Контейнер, який і малює фон, і дає прокрутку ░░ */
+   
     <div
       style={{
-        height: "100vh",                     // рівно висота екрану
-        overflowY: "auto",                   // ← зʼявляється scroll-bar
+        height: "100vh",                  
+        overflowY: "auto",                   
         padding: "48px 16px 64px",
         background: "linear-gradient(120deg,#e3f0ff 0%,#c6e6fb 100%)",
         boxSizing: "border-box",
@@ -171,14 +265,128 @@ const AdminDashboard: React.FC = () => {
           <Button type="primary" onClick={() => navigate("/manage-users")}>
             🔍 Керування користувачами
           </Button>
-          <Button onClick={() => navigate("/admin/group/create")}>👥 Створити групу</Button>
-          <Button onClick={() => navigate("/admin/session/create")}>🗓️ Створити сесію</Button>
-          <Button type="dashed" onClick={() => navigate("/admin/add-user")}>
-            📩 Додати користувача
-          </Button>
+          <Button onClick={() => setIsAddVisible(true)}>👥 Створити групу</Button>
+          <Button onClick={() => setIsSessionVisible(true)}>🗓️ Створити сесію</Button>
+          <Button onClick={() => setIsAddStudentVisible(true)}>➕ Додати користувача</Button>
         </Space>
       </Card>
+      <Modal title="Створити групу" open={isAddVisible} onCancel={() => setIsAddVisible(false)} onOk={handleCreateGroup} okText="Створити">
+        <Form form={addForm} layout="vertical">
+          <Form.Item name="name" label="Назва групи" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="teacherId" label="Викладач" rules={[{ required: true }]}>
+            <Select
+              showSearch
+              placeholder="Пошук за ПІБ"
+              filterOption={false}
+              onSearch={searchTeachers}
+              loading={userLoading}
+              notFoundContent={userLoading ? "Завантаження..." : "Немає результатів"}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              {teacherOptions.map((t) => (
+                <Select.Option key={t.id} value={t.id} label={t.fullName}>
+                  {t.fullName}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Створити сесію"
+        open={isSessionVisible}
+        onCancel={() => setIsSessionVisible(false)}
+        onOk={handleCreateSession}
+        okText="Створити"
+      >
+        <Form form={sessionForm} layout="vertical">
+          <Form.Item name="groupId" label="Група" rules={[{ required: true }]}>
+            <Select
+              showSearch
+              placeholder="Пошук групи"
+              filterOption={(input, option) =>
+                (option?.label as string).toLowerCase().includes(input.toLowerCase())
+              }
+              options={groups.map((g) => ({
+                label: g.name,
+                value: g.id,
+              }))}
+            />
+          </Form.Item>
+
+
+          <Form.Item name="name" label="Назва сесії" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+
+          <Form.Item name="startTime" label="Час початку" rules={[{ required: true }]}>
+            <DatePicker showTime style={{ width: "100%" }} format="YYYY-MM-DD HH:mm" />
+          </Form.Item>
+
+          <Form.Item name="endTime" label="Час завершення" rules={[{ required: true }]}>
+            <DatePicker showTime style={{ width: "100%" }} format="YYYY-MM-DD HH:mm" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal
+      title="Додати нового користувача"
+      open={isAddStudentVisible}
+      onCancel={() => setIsAddStudentVisible(false)}
+      onOk={async () => {
+        try {
+          const values = await addStudentForm.validateFields();
+          const res = await dispatch(addNewUserAction(values.email, values.role));
+          if (res.success) {
+            message.success(res.message);
+            setIsAddStudentVisible(false);
+            addStudentForm.resetFields();
+          } else {
+            message.error(res.message || "Помилка при додаванні");
+          }
+        } catch {
+          message.error("Не вдалося додати користувача");
+        }
+      }}
+      okText="Додати"
+      cancelText="Скасувати"
+      centered
+    >
+      <Form form={addStudentForm} layout="vertical">
+        <Form.Item
+          name="email"
+          label="Email"
+          rules={[
+            { required: true, message: "Введіть email" },
+            { type: "email", message: "Невірний формат email" },
+          ]}
+        >
+          <Input placeholder="example@email.com" />
+        </Form.Item>
+
+        <Form.Item
+          name="role"
+          label="Роль"
+          rules={[{ required: true, message: "Оберіть роль" }]}
+        >
+          <Select placeholder="Оберіть роль">
+            <Select.Option value="Student">Student</Select.Option>
+            <Select.Option value="Lecturer">Lecturer</Select.Option>
+            <Select.Option value="Moderator">Moderator</Select.Option>
+            {useSelector((state: RootState) => state.UserReducer.loggedInUser?.role) === "Admin" && (
+              <Select.Option value="Admin">Admin</Select.Option>
+            )}
+          </Select>
+        </Form.Item>
+      </Form>
+    </Modal>
+
+      
     </div>
+    
   );
 };
 
