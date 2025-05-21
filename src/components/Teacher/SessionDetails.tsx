@@ -33,15 +33,35 @@ import {
   PlayCircleOutlined,
   TeamOutlined,
   EyeOutlined,
+  CalendarOutlined,
 } from "@ant-design/icons";
 import { APP_ENV } from "../../env";
 import { addAbsenceAction, deleteAbsenceAction, fetchAttendanceMatrixBySessionAction } from "../../store/action-creators/attendanceAction";
+import { addPlannedSessionAction, deletePlannedSessionAction, fetchPlannedSessionsBySessionIdAction, updatePlannedSessionAction } from "../../store/action-creators/plannedSessionAction";
+import { Calendar as BigCalendar, dateFnsLocalizer } from "react-big-calendar";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { uk } from "date-fns/locale";
+
+const locales = {
+    uk: uk,
+  };
+
+  const localizer = dateFnsLocalizer({
+    format,
+    parse,
+    startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
+    getDay,
+    locales,
+  });
+
 
 const { Title } = Typography;
 const keyOf = (item: any): React.Key =>
   item?.id ?? item?.studentId ?? item?.requestId ?? JSON.stringify(item);
 
 const SessionDetails: React.FC = () => {
+  
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -59,6 +79,14 @@ const SessionDetails: React.FC = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [name, setName] = useState("");
   const { matrix, loading: attendanceLoading } = useSelector((state: RootState) => state.AttendanceReducer);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [planDate, setPlanDate] = useState<Dayjs | null>(null);
+  const [planStart, setPlanStart] = useState<Dayjs | null>(null);
+  const [planEnd, setPlanEnd] = useState<Dayjs | null>(null);
+  const plannedSessions = useSelector((state: RootState) => state.PlannedSessionReducer.sessions); 
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+
+
 
   useEffect(() => {
     if (sessionId) dispatch(GetSessionByIdAction(Number(sessionId)) as any);
@@ -70,7 +98,35 @@ const SessionDetails: React.FC = () => {
     }
   }, [mainSession?.id]);
   
+  useEffect(() => {
+  if (mainSession?.id) {
+    dispatch(fetchPlannedSessionsBySessionIdAction(Number(mainSession.id)) as any);
+  }
+ }, [mainSession?.id]);
 
+
+const events = plannedSessions.map((ps: any) => {
+  const date = new Date(ps.plannedDate); 
+
+  const [startHours, startMinutes, startSeconds] = ps.startTime.split(":").map(Number);
+  const [endHours, endMinutes, endSeconds] = ps.endTime.split(":").map(Number);
+
+  const start = new Date(date);
+  start.setHours(startHours, startMinutes, startSeconds ?? 0);
+
+  const end = new Date(date);
+  end.setHours(endHours, endMinutes, endSeconds ?? 0);
+
+  return {
+    id: ps.id,
+    title: `${ps.sessionName}  🕓 ${ps.startTime}–${ps.endTime}`,
+    start,
+    end,
+  };
+});
+
+
+  
   const handleStart = async () => {
     if (!user?.id || !mainSession?.id) return;
     await startSession(Number(mainSession.id), user.id);
@@ -126,6 +182,64 @@ const SessionDetails: React.FC = () => {
     // }
   };
   
+ const handlePlanSession = async () => {
+    if (!planDate || !planStart || !planEnd || !mainSession?.id) return;
+
+    const res = await dispatch(
+      addPlannedSessionAction({
+        sessionId:   Number(mainSession.id),
+        plannedDate: planDate.startOf("day").toISOString(),  
+        startTime:   planStart.format("HH:mm:ss"),            
+        endTime:     planEnd.format("HH:mm:ss"),
+      }) as any
+    );
+
+    if (res.success) {
+      message.success("Заплановано нову сесію");
+      dispatch(fetchPlannedSessionsBySessionIdAction(Number(mainSession.id)) as any);
+      setIsPlanModalOpen(false);
+    } else {
+      message.error(res.message);
+    }
+  };
+
+  const handleUpdatePlannedSession = async () => {
+  if (!selectedEvent || !mainSession) return;
+
+  const plannedDate = dayjs(selectedEvent.start).startOf("day").toISOString();
+  const startTime = dayjs(selectedEvent.start).format("HH:mm:ss");
+  const endTime = dayjs(selectedEvent.end).format("HH:mm:ss");
+
+  const payload = {
+    id: selectedEvent.id,
+    plannedDate,
+    startTime,
+    endTime,
+    sessionId: mainSession.id,
+  };
+
+  const res = await dispatch(updatePlannedSessionAction(payload) as any);
+  if (!res.success) return message.error(res.message);
+  message.success("Сесію оновлено");
+  setSelectedEvent(null);
+
+  if (mainSession?.id) {
+    await dispatch(fetchPlannedSessionsBySessionIdAction(Number(mainSession.id)) as any);
+  }
+  setSelectedEvent(null);
+  message.success("Сесію оновлено");
+};
+
+const handleDeletePlannedSession = async () => {
+  if (!selectedEvent) return;
+
+  await dispatch(deletePlannedSessionAction(selectedEvent.id) as any);
+  if (mainSession?.id) {
+    await dispatch(fetchPlannedSessionsBySessionIdAction(Number(mainSession.id)) as any);
+  }
+  setSelectedEvent(null);
+  message.success("Сесію видалено");
+};
 
 
   const openFaceReq = async () => {
@@ -226,11 +340,42 @@ const SessionDetails: React.FC = () => {
             onClick={openFaceReq}
             />
         </Tooltip>
+        <Tooltip title="Запланувати сесію">
+          <Button
+            shape="circle"
+            icon={<CalendarOutlined />}
+            onClick={() => setIsPlanModalOpen(true)}
+          />
+        </Tooltip>
+
         </div>
-
-
-
       </div>
+
+      <div style={{ maxWidth: 1000, margin: "32px auto", background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 0 12px rgba(0,0,0,0.1)" }}>
+        <Title level={4} style={{ marginBottom: 12 }}>Заплановані сесії</Title>
+        <BigCalendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          style={{ height: 500 }}
+          onSelectEvent={(event) => setSelectedEvent(event)}
+          messages={{
+            today: "Сьогодні",
+            next: "→",
+            previous: "←",
+            month: "Місяць",
+            week: "Тиждень",
+            day: "День",
+            agenda: "Список",
+            date: "Дата",
+            time: "Час",
+            event: "Подія",
+            noEventsInRange: "Немає запланованих сесій",
+          }}
+        />
+      </div>
+
 
       <Modal title="Редагування сесії" open={editOpen} onCancel={() => setEditOpen(false)} onOk={handleSave}>
         <Input
@@ -376,6 +521,127 @@ const SessionDetails: React.FC = () => {
         <p>Немає даних про відвідуваність</p>
       )}
     </Modal>
+    <Modal
+        title="Запланувати сесію"
+        open={isPlanModalOpen}
+        onCancel={() => setIsPlanModalOpen(false)}
+        onOk={handlePlanSession}
+        okText="Запланувати"
+      >
+        <DatePicker
+          style={{ width: "100%", marginBottom: 12 }}
+          value={planDate}
+          onChange={setPlanDate}
+          placeholder="Дата сесії"
+        />
+        <DatePicker
+          showTime
+          format="HH:mm"
+          style={{ width: "100%", marginBottom: 12 }}
+          value={planStart}
+          onChange={setPlanStart}
+          placeholder="Час початку"
+          picker="time"
+        />
+        <DatePicker
+          showTime
+          format="HH:mm"
+          style={{ width: "100%" }}
+          value={planEnd}
+          onChange={setPlanEnd}
+          placeholder="Час завершення"
+          picker="time"
+        />
+    </Modal>
+
+    <Modal
+      title="Редагувати сесію"
+      open={!!selectedEvent}
+      onCancel={() => setSelectedEvent(null)}
+      footer={[
+        <Button key="delete" danger onClick={handleDeletePlannedSession}>
+          Видалити
+        </Button>,
+        <Button key="cancel" onClick={() => setSelectedEvent(null)}>
+          Скасувати
+        </Button>,
+        <Button key="save" type="primary" onClick={handleUpdatePlannedSession}>
+          Зберегти
+        </Button>,
+      ]}
+    >
+      <p>Сесія: <b>{selectedEvent?.title}</b></p>
+
+      {/* Дата */}
+      <DatePicker
+        style={{ width: "100%", marginBottom: 12 }}
+        value={selectedEvent ? dayjs(selectedEvent.start) : null}
+        onChange={(value) =>
+          setSelectedEvent((prev: any) => ({
+            ...prev,
+            start: value
+              ? dayjs(value)
+                  .hour(dayjs(prev.start).hour())
+                  .minute(dayjs(prev.start).minute())
+                  .second(dayjs(prev.start).second())
+                  .toDate()
+              : prev.start,
+            end: value
+              ? dayjs(value)
+                  .hour(dayjs(prev.end).hour())
+                  .minute(dayjs(prev.end).minute())
+                  .second(dayjs(prev.end).second())
+                  .toDate()
+              : prev.end,
+          }))
+        }
+        placeholder="Дата"
+      />
+
+      {/* Час початку */}
+      <DatePicker
+        picker="time"
+        format="HH:mm"
+        style={{ width: "100%", marginBottom: 12 }}
+        value={selectedEvent ? dayjs(selectedEvent.start) : null}
+        onChange={(value) =>
+          setSelectedEvent((prev: any) => ({
+            ...prev,
+            start: value
+              ? dayjs(prev.start)
+                  .hour(dayjs(value).hour())
+                  .minute(dayjs(value).minute())
+                  .second(0)
+                  .toDate()
+              : prev.start,
+          }))
+        }
+        placeholder="Час початку"
+      />
+
+      {/* Час завершення */}
+      <DatePicker
+        picker="time"
+        format="HH:mm"
+        style={{ width: "100%" }}
+        value={selectedEvent ? dayjs(selectedEvent.end) : null}
+        onChange={(value) =>
+          setSelectedEvent((prev: any) => ({
+            ...prev,
+            end: value
+              ? dayjs(prev.end)
+                  .hour(dayjs(value).hour())
+                  .minute(dayjs(value).minute())
+                  .second(0)
+                  .toDate()
+              : prev.end,
+          }))
+        }
+        placeholder="Час завершення"
+      />
+    </Modal>
+
+
 
     </div>
   );
