@@ -6,6 +6,23 @@ import { fetchTodaysSessionsAction } from "../../store/action-creators/sessionAc
 import { RootState } from "../../store";
 import { getTotalAttendanceStats } from "../../services/api-attendance-service";
 import { AimOutlined, BarChartOutlined, CalendarOutlined, CheckSquareOutlined } from "@ant-design/icons";
+import { fetchUpcomingSessionsByStudentAction } from "../../store/action-creators/plannedSessionAction";
+
+import { Calendar as BigCalendar, dateFnsLocalizer } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { uk } from "date-fns/locale";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+
+const locales = { uk: uk };
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
+  getDay,
+  locales,
+});
+
 
 const { Title, Paragraph } = Typography;
 const StudentDashboard: React.FC = () => {
@@ -21,12 +38,19 @@ const StudentDashboard: React.FC = () => {
   const attendancePercent = totalSessions
     ? Math.round(((totalSessions - missedCount) / totalSessions) * 100)
     : 0;
+  const upcoming = useSelector((state: RootState) => state.PlannedSessionReducer.upcoming);
 
   useEffect(() => {
     if (user?.id) {
       fetchStudentStats();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchUpcomingSessionsByStudentAction(user.id) as any);
+    }
+  }, [user?.id]);
 
   const fetchStudentStats = async () => {
     try {
@@ -52,6 +76,8 @@ const StudentDashboard: React.FC = () => {
       setLoading(false);
     }
   };
+
+
 
   return (
     <div
@@ -120,9 +146,61 @@ const StudentDashboard: React.FC = () => {
               <CalendarOutlined style={{ marginRight: 8 }} />
               Майбутні сесії
             </Divider>
+           {upcoming.length > 0 ? (
+            <div style={{ height: 500, marginBottom: 24 }}>
+              <BigCalendar
+                localizer={localizer}
+                events={upcoming.map((s) => {
+                  const date = new Date(s.plannedDate);
+                  const [sh, sm] = s.startTime.split(":").map(Number);
+                  const [eh, em] = s.endTime.split(":").map(Number);
+                  const start = new Date(date);
+                  start.setHours(sh, sm);
+                  const end = new Date(date);
+                  end.setHours(eh, em);
+                  return {
+                    id: s.id,
+                    title: `${s.sessionName || "Сесія"}`,
+                    start,
+                    end,
+                    sessionId: s.sessionId,
+                  };
+                })}
+                startAccessor="start"
+                endAccessor="end"
+                views={["week", "day", "agenda"]}
+                defaultView="week"
+                min={new Date(0, 0, 0, 6, 0)}
+                max={new Date(0, 0, 0, 22, 0)}
+                messages={{
+                  today: "Сьогодні",
+                  next: "→",
+                  previous: "←",
+                  month: "Місяць",
+                  week: "Тиждень",
+                  day: "День",
+                  agenda: "Список",
+                  date: "Дата",
+                  time: "Час",
+                  event: "Подія",
+                  noEventsInRange: "Немає майбутніх сесій",
+                }}
+                formats={{
+                  timeGutterFormat: (date, culture, localizer) =>
+                    localizer!.format(date, "HH:mm", culture),
+                  eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
+                    `${localizer!.format(start, "HH:mm", culture)} – ${localizer!.format(end, "HH:mm", culture)}`,
+                  agendaTimeFormat: (date, culture, localizer) =>
+                    localizer!.format(date, "HH:mm", culture),
+                }}
+              />
+            </div>
+          ) : (
             <Paragraph style={{ color: "#888", marginBottom: 20 }}>
-              В розробці…
+              Немає майбутніх сесій
             </Paragraph>
+          )}
+
 
             {/* Статистика */}
             <Divider orientation="left">

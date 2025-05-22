@@ -27,7 +27,13 @@ export enum PlannedSessionActionTypes {
   DELETE_SUCCESS = "DELETE_SUCCESS",
   DELETE_ERROR = "DELETE_ERROR",
   FETCH_UPCOMING_BY_TEACHER_SUCCESS = "PLANNED_SESSION_FETCH_UPCOMING_BY_TEACHER_SUCCESS",
+  FETCH_UPCOMING_BY_STUDENT_SUCCESS = "PLANNED_SESSION_FETCH_UPCOMING_BY_STUDENT_SUCCESS",
+}
 
+
+interface FetchUpcomingByStudentSuccessAction {
+  type: PlannedSessionActionTypes.FETCH_UPCOMING_BY_STUDENT_SUCCESS;
+  payload: PlannedSession[];
 }
 
 interface FetchUpcomingByTeacherSuccessAction {
@@ -91,4 +97,5 @@ export type PlannedSessionActions =
   | UpdateErrorAction
   | DeleteSuccessAction
   | DeleteErrorAction
-  | FetchUpcomingByTeacherSuccessAction;
+  | FetchUpcomingByTeacherSuccessAction
+  | FetchUpcomingByStudentSuccessAction;

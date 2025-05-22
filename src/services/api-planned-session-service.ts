@@ -16,8 +16,22 @@ const PlannedSession = {
   update: (d: any) => requests.put("/PlannedSession/update", d),        
   delete: (id: number) => requests.delete(`/PlannedSession/${id}`),
   getUpcomingByTeacher: (teacherId: string) =>requests.get(`/PlannedSession/upcoming/${teacherId}`),
-    
+  getUpcomingByStudent: (studentId: string) => requests.get(`/PlannedSession/upcoming/student/${studentId}`),
 };
+
+export async function fetchUpcomingSessionsByStudent(studentId: string) {
+  try {
+    const response = await PlannedSession.getUpcomingByStudent(studentId);
+    return { success: true, payload: response.payload };
+  } catch (e) {
+    const err = e as AxiosError<{ message?: string }>;
+    return {
+      success: false,
+      message: err.response?.data?.message ?? "Не вдалося отримати майбутні сесії студента",
+    };
+  }
+}
+
 
 export async function fetchUpcomingSessions(teacherId: string) {
   try {

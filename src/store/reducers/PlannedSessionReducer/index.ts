@@ -23,6 +23,12 @@ const PlannedSessionReducer = (
     case PlannedSessionActionTypes.START_REQUEST:
       return { ...state, loading: true, error: null, successMessage: null };
 
+    case PlannedSessionActionTypes.FETCH_UPCOMING_BY_STUDENT_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        upcoming: action.payload,
+      };
     case PlannedSessionActionTypes.FETCH_UPCOMING_BY_TEACHER_SUCCESS:
       return { ...state, loading: false, upcoming: action.payload };
     case PlannedSessionActionTypes.UPDATE_SUCCESS:

@@ -1,6 +1,28 @@
 import { Dispatch } from "redux";
 import { PlannedSessionActionTypes, PlannedSessionActions } from "../../reducers/PlannedSessionReducer/type";
-import { createPlannedSession, deletePlannedSession, fetchPlannedSessions, fetchUpcomingSessions, updatePlannedSession } from "../../../services/api-planned-session-service"; 
+import { createPlannedSession, deletePlannedSession, fetchPlannedSessions, fetchUpcomingSessions, fetchUpcomingSessionsByStudent, updatePlannedSession } from "../../../services/api-planned-session-service"; 
+
+
+export const fetchUpcomingSessionsByStudentAction =
+  (studentId: string) =>
+  async (dispatch: Dispatch<PlannedSessionActions>) => {
+    dispatch({ type: PlannedSessionActionTypes.START_REQUEST });
+
+    const response = await fetchUpcomingSessionsByStudent(studentId);
+    const { success, payload, message } = response as any;
+
+    if (success) {
+      dispatch({
+        type: PlannedSessionActionTypes.FETCH_UPCOMING_BY_STUDENT_SUCCESS,
+        payload,
+      });
+    } else {
+      dispatch({
+        type: PlannedSessionActionTypes.FETCH_ERROR,
+        payload: message,
+      });
+    }
+  };
 
 
 export const fetchUpcomingSessionsByTeacherAction = (teacherId: string) => {
