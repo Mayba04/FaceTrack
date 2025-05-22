@@ -98,6 +98,11 @@ const TodaySessions: React.FC = () => {
           </div>
         ) : sessions.length ? (
           sessions.map((session) => {
+            const now = moment();
+            const startTime = moment(session.startTime);
+
+
+            const isUpcoming = now.isBefore(startTime);
             const isActive = moment().isBetween(session.startTime, session.endTime);
             const alreadyMarked = marked[session.sessionId] || false;
             const manualCheckPending = pendingManualChecks[session.sessionId] || false;
@@ -196,7 +201,9 @@ const TodaySessions: React.FC = () => {
                     ? "Вже відмічено"
                     : isActive
                     ? "Перейти до заняття"
-                    : "Час заняття ще не настав"}
+                    : isUpcoming
+                    ? "Час заняття ще не настав"
+                    : "Ви пропустили заняття"}
                 </Button>
               </div>
             );
