@@ -12,6 +12,7 @@ const initialState: PlannedSessionState = {
   error: null,
   successMessage: null,
   sessions: [],
+  upcoming: [],
 };
 
 const PlannedSessionReducer = (
@@ -22,6 +23,8 @@ const PlannedSessionReducer = (
     case PlannedSessionActionTypes.START_REQUEST:
       return { ...state, loading: true, error: null, successMessage: null };
 
+    case PlannedSessionActionTypes.FETCH_UPCOMING_BY_TEACHER_SUCCESS:
+      return { ...state, loading: false, upcoming: action.payload };
     case PlannedSessionActionTypes.UPDATE_SUCCESS:
     case PlannedSessionActionTypes.DELETE_SUCCESS:
       return {

@@ -10,7 +10,6 @@ import {
   Col,
   message,
   List,
-  Alert,
 } from "antd";
 import {
   BookOutlined,
@@ -26,8 +25,25 @@ import { RootState } from "../../store";
 import { fetchTodaySessionsByTeacherAction } from "../../store/action-creators/sessionAction";
 import { fetchTeacherStatsAction } from "../../services/api-attendance-service";
 import { fetchGroupsAction } from "../../store/action-creators/groupActions";
-
+import { fetchUpcomingSessionsByTeacherAction } from "../../store/action-creators/plannedSessionAction";
+import { Calendar as BigCalendar, dateFnsLocalizer } from "react-big-calendar";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { uk } from "date-fns/locale";
 const { Title, Paragraph } = Typography;
+
+
+const locales = {
+  uk: uk,
+};
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
+  getDay,
+  locales,
+});
 
 // вибираємо поле-ідентифікатор, яке реально приходить із бекенда
 const getSessionId = (s: any) =>
@@ -42,9 +58,9 @@ const TeacherDashboard: React.FC = () => {
   );
 
   const { groups } = useSelector((state: RootState) => state.GroupReducer);
-  const sessions = useSelector(
-    (state: RootState) => state.SessionReducer.sessions
-  ) ?? [];
+  const sessions = useSelector((state: RootState) => state.SessionReducer.sessions) ?? [];
+  const upcomingSessions = useSelector((state: RootState) => state.PlannedSessionReducer.upcoming);
+
 
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
@@ -59,6 +75,13 @@ const TeacherDashboard: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(fetchUpcomingSessionsByTeacherAction(user.id) as any);
+    }
+  }, [user?.id, dispatch]);
+
+    
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -79,6 +102,26 @@ const TeacherDashboard: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const upcomingEvents = upcomingSessions.map((ps: any) => {
+  const start = new Date(ps.plannedDate);
+  const end = new Date(ps.plannedDate);
+
+  const [sh, sm, ss] = ps.startTime.split(":").map(Number);
+  const [eh, em, es] = ps.endTime.split(":").map(Number);
+
+  start.setHours(sh, sm, ss ?? 0);
+  end.setHours(eh, em, es ?? 0);
+
+  return {
+    id: ps.id,
+    title: `${ps.sessionName} 🕓 ${ps.startTime}–${ps.endTime}`,
+    start,
+    end,
+    sessionId: ps.sessionId
+  };
+});
+
 
   return (
       <div
@@ -157,7 +200,64 @@ const TeacherDashboard: React.FC = () => {
               <ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
               Найближчі сесії
             </Divider>
-            <Alert message="В розробці..." type="info" showIcon />
+        <div
+          style={{
+            maxWidth: 1000,
+            margin: "32px auto",
+            background: "#fff",
+            borderRadius: 12,
+            padding: 24,
+            boxShadow: "0 0 12px rgba(0,0,0,0.1)",
+          }}
+        >
+          <Title level={4} style={{ marginBottom: 12 }}>
+            Календар найближчих сесій
+          </Title>
+
+          <BigCalendar
+            localizer={localizer}
+            events={upcomingEvents}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: 500 }}
+            views={["day", "agenda", "week"]}
+            defaultView="week"
+            min={new Date(0, 0, 0, 6, 0)}
+            max={new Date(0, 0, 0, 22, 0)}
+            onSelectEvent={(event) => navigate(`/teacher/session/${event.sessionId}`)}
+            messages={{
+              today: "Сьогодні",
+              next: "→",
+              previous: "←",
+              month: "Місяць",
+              week: "Тиждень",
+              day: "День",
+              agenda: "Список",
+              date: "Дата",
+              time: "Час",
+              event: "Подія",
+              noEventsInRange: "Немає запланованих сесій",
+            }}
+           formats={{
+            timeGutterFormat: (date, culture, localizer) =>
+              localizer ? localizer.format(date, "HH:mm", culture) : "",
+
+            agendaTimeFormat: (date, culture, localizer) =>
+              localizer ? localizer.format(date, "HH:mm", culture) : "",
+
+            eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
+              localizer
+                ? `${localizer.format(start, "HH:mm", culture)} – ${localizer.format(end, "HH:mm", culture)}`
+                : "",
+          }}
+
+          />
+
+
+        </div>
+
+
+
           </Card>
         </div>
     

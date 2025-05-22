@@ -4,11 +4,13 @@ export interface PlannedSession {
   plannedDate: string;
   startTime: string;
   endTime: string;
+  sessionName?: string;
 }
 
 export interface PlannedSessionState {
   plannedSession: PlannedSession;
-  sessions: PlannedSession[]
+  sessions: PlannedSession[];
+  upcoming: PlannedSession[];
   loading: boolean;
   error: string | null;
   successMessage: string | null;
@@ -24,7 +26,15 @@ export enum PlannedSessionActionTypes {
   UPDATE_ERROR = "UPDATE_ERROR",
   DELETE_SUCCESS = "DELETE_SUCCESS",
   DELETE_ERROR = "DELETE_ERROR",
+  FETCH_UPCOMING_BY_TEACHER_SUCCESS = "PLANNED_SESSION_FETCH_UPCOMING_BY_TEACHER_SUCCESS",
+
 }
+
+interface FetchUpcomingByTeacherSuccessAction {
+  type: PlannedSessionActionTypes.FETCH_UPCOMING_BY_TEACHER_SUCCESS;
+  payload: PlannedSession[];
+}
+
 
 interface UpdateSuccessAction {
   type: PlannedSessionActionTypes.UPDATE_SUCCESS;
@@ -63,12 +73,12 @@ interface StartRequestAction {
 
 interface CreateSuccessAction {
   type: PlannedSessionActionTypes.CREATE_SUCCESS;
-  payload: string; // success message
+  payload: string; 
 }
 
 interface CreateErrorAction {
   type: PlannedSessionActionTypes.CREATE_ERROR;
-  payload: string; // error message
+  payload: string; 
 }
 
 export type PlannedSessionActions =
@@ -80,4 +90,5 @@ export type PlannedSessionActions =
   | UpdateSuccessAction
   | UpdateErrorAction
   | DeleteSuccessAction
-  | DeleteErrorAction;
+  | DeleteErrorAction
+  | FetchUpcomingByTeacherSuccessAction;
