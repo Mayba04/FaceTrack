@@ -42,6 +42,7 @@ import { Calendar as BigCalendar, dateFnsLocalizer } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { uk } from "date-fns/locale";
+import { deleteSessionHistory, updateSessionHistoryDate } from "../../services/api-attendance-service";
 
 const locales = {
     uk: uk,
@@ -85,6 +86,9 @@ const SessionDetails: React.FC = () => {
   const [planEnd, setPlanEnd] = useState<Dayjs | null>(null);
   const plannedSessions = useSelector((state: RootState) => state.PlannedSessionReducer.sessions); 
   const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+  const [editSessionHistoryId, setEditSessionHistoryId] = useState<number | null>(null);
+  const [editDate, setEditDate] = useState<Dayjs | null>(null);
+  const [isEditDateModalOpen, setIsEditDateModalOpen] = useState(false);
 
 
 
@@ -466,7 +470,31 @@ const handleDeletePlannedSession = async () => {
               fixed: "left",
             },
             ...matrix.sessions.map(session => ({
-              title: dayjs(session.startTime).format("DD.MM.YYYY"),
+               title: (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Tooltip title="Редагувати дату">
+                    <span
+                      style={{ cursor: "pointer", textDecoration: "underline" }}
+                      onClick={() => {
+                        setEditSessionHistoryId(session.id);
+                        setEditDate(dayjs(session.startTime));
+                        setIsEditDateModalOpen(true);
+                      }}
+                    >
+                      {dayjs(session.startTime).format("DD.MM.YYYY")}
+                    </span>
+                  </Tooltip>
+                  <Tooltip title="Видалити дату">
+                    <DeleteOutlined
+                      style={{ color: "red", cursor: "pointer" }}
+                      onClick={async () => {
+                        await deleteSessionHistory(session.id);
+                        await dispatch(fetchAttendanceMatrixBySessionAction(Number(mainSession.id)) as any);
+                      }}
+                    />
+                  </Tooltip>
+                </div>
+              ),
               dataIndex: session.id.toString(),
               key: session.id.toString(),
               align: "center" as const,
@@ -638,6 +666,47 @@ const handleDeletePlannedSession = async () => {
           }))
         }
         placeholder="Час завершення"
+      />
+    </Modal>
+
+    <Modal
+      title="Редагувати дату сесії"
+      open={isEditDateModalOpen}
+      onCancel={() => setIsEditDateModalOpen(false)}
+      onOk={async () => {
+        if (editSessionHistoryId && editDate && matrix?.sessions) {
+          const isDuplicate = matrix.sessions.some(
+            (s) =>
+              s.id !== editSessionHistoryId &&
+              dayjs(s.startTime).isSame(editDate, "day")
+          );
+
+          if (isDuplicate) {
+            message.error("Сесія з такою датою вже існує.");
+            return;
+          }
+
+          const response = await updateSessionHistoryDate(
+            editSessionHistoryId,
+            editDate.toISOString()
+          );
+          const { success, message: msg } = response as any;
+
+          if (success) {
+            message.success("Дату оновлено");
+            await dispatch(fetchAttendanceMatrixBySessionAction(Number(mainSession.id)) as any);
+            setIsEditDateModalOpen(false);
+          } else {
+            message.error(msg);
+          }
+        }
+      }}
+      okText="Зберегти"
+    >
+      <DatePicker
+        value={editDate}
+        onChange={setEditDate}
+        style={{ width: "100%" }}
       />
     </Modal>
 

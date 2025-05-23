@@ -30,7 +30,35 @@ const Attendance = {
     getTeacherStats: (teacherId: string) => requests.get(`/attendance/stats/${teacherId}`),
     getSystemStats: () => requests.get("/attendance/system-statistics"),
     getTopBottomSessions: () => requests.get("/attendance/top-bottom-sessions"),
+    updateDateSessionHistory: (data: { sessionHistoryId: number; newDate: string }) =>requests.put("/attendance/update-date", data),
+
+    deleteSessionHistory: (id: number) =>requests.delete(`/attendance/${id}`),
 };
+
+export async function updateSessionHistoryDate(sessionHistoryId: number, newDate: string) {
+  try {
+    return await Attendance.updateDateSessionHistory({ sessionHistoryId, newDate });
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ message?: string }>;
+    return {
+      success: false,
+      message: err.response?.data?.message || "Не вдалося оновити дату сесії",
+    };
+  }
+}
+
+
+export async function deleteSessionHistory(id: number) {
+  try {
+    return await Attendance.deleteSessionHistory(id);
+  } catch (error: unknown) {
+    const err = error as AxiosError<{ message?: string }>;
+    return {
+      success: false,
+      message: err.response?.data?.message || "Не вдалося видалити сесію",
+    };
+  }
+}
 
 export async function fetchTopBottomSessions() {
   try {
