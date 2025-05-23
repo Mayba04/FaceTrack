@@ -1,7 +1,33 @@
 import { Dispatch } from "redux";
-import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup, fetchGroupDetails, fetchFilteredGroups, changeGroupTeacher, searchGroupsByName } from "../../../services/api-group-service";
+import { createGroup, fetchTeacherGroups, deleteGroup, updateGroup, fetchGroupDetails, fetchFilteredGroups, changeGroupTeacher, searchGroupsByName, fetchGroupsByIds } from "../../../services/api-group-service";
 import { GroupActionTypes, GroupActions } from "../../reducers/GroupReducer/types";
 import { message } from "antd";
+
+export const fetchGroupsByIdsAction = (groupIds: number[]) => {
+  return async (dispatch: Dispatch<GroupActions>) => {
+    dispatch({ type: GroupActionTypes.START_REQUEST_GROUPS });
+
+    try {
+      const response = await fetchGroupsByIds(groupIds);
+      const { success, payload, message } = response as any;
+
+      if (success) {
+        dispatch({
+          type: GroupActionTypes.FETCH_GROUPS_BY_IDS_SUCCESS,
+          payload, 
+        });
+      } else {
+        throw new Error(message);
+      }
+    } catch (error) {
+      console.error("Error fetching groups by IDs:", error);
+      dispatch({
+        type: GroupActionTypes.FETCH_GROUPS_ERROR,
+        payload: "Failed to fetch groups by IDs",
+      });
+    }
+  };
+};
 
 export const fetchFilteredGroupsAction = (filter: any) => {
     return async (dispatch: Dispatch<GroupActions>) => {

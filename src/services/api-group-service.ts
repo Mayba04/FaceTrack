@@ -22,7 +22,18 @@ const Group = {
         groupId, currentTeacherId, futureTeacherId, }),
     searchGroupsByName: (name: string, pageNumber: number, pageSize: number) =>
         requests.get("/group/search", { name, pageNumber, pageSize }),
+    getGroupsByIds: (ids: number[]) => requests.post("/group/by-ids", ids),
 };
+
+export async function fetchGroupsByIds(ids: number[]) {
+  try {
+    return await Group.getGroupsByIds(ids);
+  } catch (error) {
+    console.error("Error fetching groups by ids:", error);
+    return { success: false, message: "Failed to fetch groups by ids", error };
+  }
+}
+
 
 export async function searchGroupsByName(name: string, pageNumber = 1, pageSize = 10) {
     try {

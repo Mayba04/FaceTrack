@@ -34,7 +34,14 @@ export interface Group {
     END_REQUEST = "END_REQUEST",
     SEARCH_GROUPS_BY_NAME_SUCCESS = "SEARCH_GROUPS_BY_NAME_SUCCESS",
     SEARCH_GROUPS_BY_NAME_ERROR = "SEARCH_GROUPS_BY_NAME_ERROR",
+    FETCH_GROUPS_BY_IDS_SUCCESS = "FETCH_GROUPS_BY_IDS_SUCCESS",
   }
+
+  interface FetchGroupsByIdsSuccessAction {
+    type: GroupActionTypes.FETCH_GROUPS_BY_IDS_SUCCESS;
+    payload: Group[];
+  }
+
 
   interface SearchGroupsByNameSuccessAction {
     type: GroupActionTypes.SEARCH_GROUPS_BY_NAME_SUCCESS;
@@ -114,7 +121,7 @@ interface FetchGroupByIdErrorAction {
 }
 
 interface EndRequestAction {
-  type: GroupActionTypes.END_REQUEST;  // Додано для кінця запиту
+  type: GroupActionTypes.END_REQUEST;  
 }
   
   export type GroupActions =
@@ -132,5 +139,6 @@ interface EndRequestAction {
     | ChangeGroupTeacherSuccessAction   
     | EndRequestAction
     | SearchGroupsByNameSuccessAction
-    | SearchGroupsByNameErrorAction;   
+    | SearchGroupsByNameErrorAction
+    | FetchGroupsByIdsSuccessAction;   
   

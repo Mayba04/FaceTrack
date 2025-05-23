@@ -17,6 +17,26 @@ const GroupReducer = (state = initialState, action: GroupActions): GroupState =>
     case GroupActionTypes.START_REQUEST_GROUPS:
       return { ...state, loading: true, error: null };
 
+    
+    case GroupActionTypes.FETCH_GROUPS_BY_IDS_SUCCESS: {
+      const updatedGroups = [...state.groups];
+      action.payload.forEach((group) => {
+        const index = updatedGroups.findIndex((g) => g.id === group.id);
+        if (index === -1) {
+          updatedGroups.push(group);
+        } else {
+          updatedGroups[index] = group;
+        }
+      });
+      return {
+        ...state,
+        groups: updatedGroups,
+        loading: false,
+      };
+    }
+
+
+
     case GroupActionTypes.FETCH_GROUPS_SUCCESS:
       return {
         ...state,

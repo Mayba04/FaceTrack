@@ -16,6 +16,7 @@ import {
   CalendarOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import { fetchGroupsByIdsAction } from "../../store/action-creators/groupActions";
 
 const { Title } = Typography;
 
@@ -27,6 +28,18 @@ const StudentAttendanceHistory: React.FC = () => {
   const [stats, setStats] = useState<Record<number, { missed: number; percent: number }>>({});
   const [modalVisible, setModalVisible] = useState(false);
   const [absences, setAbsences] = useState<any[]>([]);
+
+  useEffect(() => {
+  if (!sessions.length) return;
+
+  const groupIdsInSessions = sessions.map((s) => Number(s.groupId));
+  const groupIdsInStore = groups.map((g) => g.id);
+  const missingGroupIds = groupIdsInSessions.filter(id => !groupIdsInStore.includes(id));
+
+  if (missingGroupIds.length > 0) {
+    dispatch(fetchGroupsByIdsAction(missingGroupIds) as any);
+  }
+}, [sessions, groups]);
 
   useEffect(() => {
     if (user?.id) {
