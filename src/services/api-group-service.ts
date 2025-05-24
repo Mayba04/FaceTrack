@@ -7,6 +7,7 @@ const requests = {
     post: (url: string, body?: any) => instance.post(url, body).then(responseBody),
     put: (url: string, body?: any) => instance.put(url, body).then(responseBody),
     delete: (url: string) => instance.delete(url).then(responseBody),
+    
 };
 
 const Group = {
@@ -23,7 +24,18 @@ const Group = {
     searchGroupsByName: (name: string, pageNumber: number, pageSize: number) =>
         requests.get("/group/search", { name, pageNumber, pageSize }),
     getGroupsByIds: (ids: number[]) => requests.post("/group/by-ids", ids),
+   removeStudentFromGroup: (studentId: string, groupId: number) =>
+  requests.delete(`/group/remove?studentId=${studentId}&groupId=${groupId}`),
+
 };
+
+export async function deleteStudentFromGroup(studentId: string, groupId: number) {
+  try {
+    return await Group.removeStudentFromGroup(studentId, groupId);
+  } catch (error) {
+     return { success: false, message: "Не вдалося видалити студента з групи", error };
+  }
+}
 
 export async function fetchGroupsByIds(ids: number[]) {
   try {

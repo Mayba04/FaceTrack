@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, Button, Typography, Spin, List, Modal, message, Input, DatePicker, Divider } from "antd";
-import { PlusOutlined} from "@ant-design/icons";
+import { CloseOutlined, PlusOutlined} from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { fetchGroupByIdAction } from "../../store/action-creators/groupActions";
@@ -11,6 +11,7 @@ import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 const { Title } = Typography;
 import "./GroupDetails.css";
+import { deleteStudentFromGroup } from "../../services/api-group-service";
 
 const GroupDetails: React.FC = () => {
     const { groupId } = useParams<{ groupId: string }>();
@@ -78,6 +79,18 @@ const GroupDetails: React.FC = () => {
       await dispatch(fetchSessionsAction(Number(groupId) as any));
     };
     
+    const handleRemoveStudent = async (studentId: string) => {
+      if (!groupId) return;
+      const response = await deleteStudentFromGroup(studentId, +groupId);
+      const { success, message: msg } = response as any;
+
+      if (success) {
+        message.success("Студента видалено!");
+        await dispatch(fetchStudentByGroupIdAction(groupId as any));
+      } else {
+        message.error(msg || "Помилка видалення студента");
+      }
+    };
 
     const handleAddStudent = async () => {
       if (!groupId || !email) return;
@@ -140,22 +153,33 @@ const GroupDetails: React.FC = () => {
 
                 {studentsLoading ? (
                   <Spin />
-                ) : students.length ? (
-                  <List
-                    dataSource={students}
-                    split={false}
-                    renderItem={(s) => (
-                      <List.Item className="group-list-item" >
-                        <div  style={{ marginInline: 12 }}>
-                          <b>{s.fullName}</b>
-                          <div className="item-sub">{s.email}</div>
-                        </div>
-                      </List.Item>
-                    )}
-                  />
+                  ) : students.length ? (
+                     <div className="scrollable-list">
+                      <List
+                        dataSource={students}
+                        split={false}
+                        renderItem={(s) => (
+                          <List.Item className="group-list-item">
+                            <div style={{ marginInline: 12 }}>
+                              <b>{s.fullName}</b>
+                              <div className="item-sub">{s.email}</div>
+                            </div>
+                           <Button
+                            danger
+                            type="text"
+                            shape="circle"
+                            icon={<CloseOutlined />}
+                            onClick={() => handleRemoveStudent(s.id)}
+                            style={{ marginLeft: "auto" }}
+                          />
+                          </List.Item>
+                        )}
+                      />
+                    </div>
                 ) : (
                   <p style={{ color: "#888" }}>У групі ще немає студентів</p>
                 )}
+
               </section>
     
               {/* Сесії */}
@@ -177,24 +201,29 @@ const GroupDetails: React.FC = () => {
                 {sessionsLoading ? (
                   <Spin size="small" />
                 ) : sessions.length ? (
-                  <List
-                    dataSource={sessions}
-                    split={false}
-                    renderItem={(session) => (
-                      <List.Item className="group-list-item space-between" >
-                        <div  style={{ marginInline: 12 }}  >
-                          <b>{session.name}</b>
-                          <div className="item-sub">
-                            {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} —{" "}
-                            {dayjs(session.endTime).format("HH:mm")}
+                   <div className="scrollable-sessions">
+                    <List
+                      dataSource={sessions}
+                      split={false}
+                      renderItem={(session) => (
+                        <List.Item className="group-list-item space-between">
+                          <div style={{ marginInline: 12 }}>
+                            <b>{session.name}</b>
+                            <div className="item-sub">
+                              {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} —{" "}
+                              {dayjs(session.endTime).format("HH:mm")}
+                            </div>
                           </div>
-                        </div>
-                        <Button style={{ marginInline: 12 }}   onClick={() => navigate(`/teacher/session/${session.id}`)}>
-                          Відкрити
-                        </Button>
-                      </List.Item>
-                    )}
-                  />
+                          <Button
+                            style={{ marginInline: 12 }}
+                            onClick={() => navigate(`/teacher/session/${session.id}`)}
+                          >
+                            Відкрити
+                          </Button>
+                        </List.Item>
+                      )}
+                    />
+                  </div>
                 ) : (
                   <p style={{ color: "#888" }}>Сесій ще не створено</p>
                 )}

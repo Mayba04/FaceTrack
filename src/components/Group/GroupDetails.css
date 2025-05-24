@@ -1,3 +1,16 @@
+.scrollable-list {
+  max-height: 440px; 
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.scrollable-sessions {
+  max-height: 440px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+
 /* фон сторінки */
 .group-page {
   min-height: 100vh;
