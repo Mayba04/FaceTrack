@@ -23,6 +23,7 @@ const RegisterPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
     const [groupId, setGroupId] = useState<number>(0);
+    const [fullName, setFullName] = useState<string>("");
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const emailFromUrl = params.get("email");
@@ -96,9 +97,9 @@ const RegisterPage: React.FC = () => {
         setLoading(true);
         try {
           if (groupId) {
-            await registerUserAction(email, password, confirmPassword, groupId);
+            await registerUserAction(email, password, confirmPassword, groupId, fullName);
           } else if (role) {
-            await registerUserWithRole(email, password, confirmPassword, role); 
+            await registerUserWithRole(email, password, confirmPassword, role, fullName); 
           } else {
             setError("Token is missing both group and role info.");
             return;
@@ -174,6 +175,40 @@ const RegisterPage: React.FC = () => {
           <Form.Item label="Email">
             <Input value={email || ""} disabled />
           </Form.Item>
+
+          <Form.Item
+            label="ПІБ"
+            name="fullName"
+            rules={[
+              { required: true, message: "Вкажіть ваше прізвище, ім’я та по батькові" },
+              {
+                validator: (_, value) => {
+                  if (!value) return Promise.resolve();
+                  const parts: string[] = value.trim().split(/\s+/);
+                  if (value.length > 60) {
+                    return Promise.reject("Занадто довге ПІБ (максимум 60 символів)");
+                  }
+                  if (parts.length < 2) {
+                    return Promise.reject("Вкажіть щонайменше прізвище та ім’я");
+                  }
+                  if (parts.some((part: string) => part.length < 2)) {
+                    return Promise.reject("Кожна частина має містити щонайменше 2 символи");
+                  }
+                  return Promise.resolve();
+                }
+              }
+            ]}
+          >
+            <Input
+              maxLength={60}
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Іваненко Іван Іванович"
+            />
+          </Form.Item>
+
+
+
 
           <Form.Item
             label="Password"

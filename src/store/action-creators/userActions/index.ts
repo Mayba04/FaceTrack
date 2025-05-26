@@ -281,9 +281,9 @@ export const fetchFilteredUsersAction = (filter: any) => {
     };
 };
 
-export const registerUserAction = async (email: string, password: string, confirmPassword: string, groupId: number) => {
+export const registerUserAction = async (email: string, password: string, confirmPassword: string, groupId: number, fullName: string) => {
     try {
-        const data = { email, password, confirmPassword, groupId}
+        const data = { email, password, confirmPassword, groupId, fullName}
         const response = await registerUser(data);
         return response;
     } catch {

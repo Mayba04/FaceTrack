@@ -16,7 +16,7 @@ const User = {
     getStudentByGroupId: (groupId: number) => requests.get(`user/group/${groupId}`),
     addStudentToGroup: (email: string, groupId: number) => requests.post("/user/addStudent", { email,groupId }),
     auditStudent: (email: string) => requests.get("/user/auditStudent", { email }),
-    registerUser: (data: { email: string; password: string; confirmPassword: string, groupId: number }) => requests.post("/user/registerStudent", data),
+    registerUser: (data: { email: string; password: string; confirmPassword: string, groupId: number, fullName: string }) => requests.post("/user/registerStudent", data),
     filterUsers: (filter: any) => requests.post("/user/filter", filter),
     updateUser: (updatedUser: { id: string; fullName: string; email: string; }) => requests.put("/User/update", updatedUser),
     deleteUser: (id: string) =>  requests.delete(`/User/delete/${id}`),
@@ -153,13 +153,14 @@ export async function fetchLecturers(fullName: string, pageNumber = 1, pageSize 
   }
   
 
-export async function registerUserWithRole(email: string, password: string, confirmPassword: string, role: string) {
+export async function registerUserWithRole(email: string, password: string, confirmPassword: string, role: string, fullName: string) {
     try {
       const response = await requests.post("/user/register-by-role", {
         email,
         password,
         confirmPassword,
         role,
+        fullName
       });
       return response;
     } catch (error: any) {
@@ -236,7 +237,7 @@ export async function fetchFilteredUsers(filter: any) {
     }
 }
 
-export async function registerUser (data: { email: string; password: string; confirmPassword: string, groupId: number}) {
+export async function registerUser (data: { email: string; password: string; confirmPassword: string, groupId: number, fullName: string}) {
     try {
         const response = await User.registerUser(data);
         return response;
