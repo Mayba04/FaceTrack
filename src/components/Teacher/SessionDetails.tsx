@@ -267,102 +267,87 @@ const handleDeletePlannedSession = async () => {
   if (!mainSession) return <Spin style={{ marginTop: 64 }} size="large" />;
 
   return (
+  <div
+    style={{
+      minHeight: "100vh",
+      background: "linear-gradient(120deg, #e3f0ff 0%, #c6e6fb 100%)",
+      paddingTop: 48,
+      paddingBottom: 64,
+    }}
+  >
     <div
       style={{
-        minHeight: "100vh",
-        background: "linear-gradient(120deg, #e3f0ff 0%, #c6e6fb 100%)",
-        paddingTop: 48,
-        paddingBottom: 64,
+        maxWidth: 800, // ← було 700
+        margin: "0 auto",
+        background: "#fff",
+        borderRadius: 24,
+        padding: 32,
+        boxShadow: "0 6px 32px 0 rgba(30,64,175,0.12)",
       }}
     >
+      <Title level={3} style={{ color: "#1976d2", fontWeight: 800 }}>
+        Сесія: {mainSession.name}
+      </Title>
+      <p>
+        <UserOutlined style={{ marginRight: 8, color: "#1976d2" }} />
+        Група: <b>{groupName}</b>
+      </p>
+      <p>
+        <ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
+        {dayjs(mainSession.startTime).format("DD.MM.YYYY HH:mm")} –{" "}
+        {dayjs(mainSession.endTime).format("HH:mm")}
+      </p>
+      <p>
+        Створив: <b>{mainSession.createdBy}</b>
+      </p>
+
       <div
         style={{
-          maxWidth: 700,
-          margin: "0 auto",
-          background: "#fff",
-          borderRadius: 24,
-          padding: 32,
-          boxShadow: "0 6px 32px 0 rgba(30,64,175,0.12)",
+          display: "flex",
+          gap: 16,
+          marginTop: 20,
+          justifyContent: "center",
+          flexWrap: "wrap",
         }}
       >
-        <Title level={3} style={{ color: "#1976d2", fontWeight: 800 }}>
-          Сесія: {mainSession.name}
-        </Title>
-        <p><UserOutlined style={{ marginRight: 8, color: "#1976d2" }} />Група: <b>{groupName}</b></p>
-        <p><ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
-          {dayjs(mainSession.startTime).format("DD.MM.YYYY HH:mm")} – {dayjs(mainSession.endTime).format("HH:mm")}</p>
-        <p>Створив: <b>{mainSession.createdBy}</b></p>
-
-        
-        <div
-        style={{
-            display: "flex",
-            gap: 16,
-            marginTop: 20,
-            justifyContent: "center",
-            flexWrap: "wrap",
-        }}
-        >
         <Tooltip title="Запустити сесію">
-            <Button
-            shape="circle"
-            type="primary"
-            icon={<PlayCircleOutlined />}
-            onClick={handleStart}
-            />
+          <Button shape="circle" type="primary" icon={<PlayCircleOutlined />} onClick={handleStart} />
         </Tooltip>
-
         <Tooltip title="Редагувати сесію">
-            <Button
-            shape="circle"
-            icon={<EditOutlined />}
-            onClick={handleEdit}
-            />
+          <Button shape="circle" icon={<EditOutlined />} onClick={handleEdit} />
         </Tooltip>
-
         <Tooltip title="Видалити сесію">
-            <Button
-            shape="circle"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={handleDelete}
-            />
+          <Button shape="circle" danger icon={<DeleteOutlined />} onClick={handleDelete} />
         </Tooltip>
-
         <Tooltip title="Переглянути відвідуваність">
-            <Button
-            shape="circle"
-            icon={<TeamOutlined />}
-            onClick={openAttendance}
-            />
+          <Button shape="circle" icon={<TeamOutlined />} onClick={openAttendance} />
         </Tooltip>
-
         <Tooltip title="Перевірити Face ID-запити">
-            <Button
-            shape="circle"
-            icon={<EyeOutlined />}
-            onClick={openFaceReq}
-            />
+          <Button shape="circle" icon={<EyeOutlined />} onClick={openFaceReq} />
         </Tooltip>
         <Tooltip title="Запланувати сесію">
-          <Button
-            shape="circle"
-            icon={<CalendarOutlined />}
-            onClick={() => setIsPlanModalOpen(true)}
-          />
+          <Button shape="circle" icon={<CalendarOutlined />} onClick={() => setIsPlanModalOpen(true)} />
         </Tooltip>
-
-        </div>
       </div>
 
-      <div style={{ maxWidth: 1000, margin: "32px auto", background: "#fff", borderRadius: 12, padding: 24, boxShadow: "0 0 12px rgba(0,0,0,0.1)" }}>
-        <Title level={4} style={{ marginBottom: 12 }}>Заплановані сесії</Title>
+      {/* Календар */}
+      <div
+        style={{
+          marginTop: 40,
+          background: "#f9f9f9",
+          borderRadius: 16,
+          padding: 24,
+          boxShadow: "0 0 12px rgba(0,0,0,0.06)",
+        }}
+      >
+        <Title level={4} style={{ marginBottom: 16 }}>Заплановані сесії</Title>
         <BigCalendar
           localizer={localizer}
           events={events}
           startAccessor="start"
           endAccessor="end"
-          style={{ height: 500 }}
+          defaultView="month"
+          style={{ height: 500, width: "100%" }} // ← тут додаємо ширину
           onSelectEvent={(event) => setSelectedEvent(event)}
           messages={{
             today: "Сьогодні",
@@ -379,6 +364,10 @@ const handleDeletePlannedSession = async () => {
           }}
         />
       </div>
+    </div>
+
+
+      
 
 
       <Modal title="Редагування сесії" open={editOpen} onCancel={() => setEditOpen(false)} onOk={handleSave}>

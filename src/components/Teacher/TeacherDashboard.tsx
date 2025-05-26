@@ -220,8 +220,7 @@ const TeacherDashboard: React.FC = () => {
             startAccessor="start"
             endAccessor="end"
             style={{ height: 500 }}
-            views={["day", "agenda", "week"]}
-            defaultView="week"
+            defaultView="month"
             min={new Date(0, 0, 0, 6, 0)}
             max={new Date(0, 0, 0, 22, 0)}
             onSelectEvent={(event) => navigate(`/teacher/session/${event.sessionId}`)}

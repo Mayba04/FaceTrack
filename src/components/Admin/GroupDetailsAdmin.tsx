@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Button, Typography, Spin, List, Modal, message, Input, DatePicker } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { fetchGroupByIdAction } from "../../store/action-creators/groupActions";
 import { fetchStudentByGroupIdAction, addStudentToGroupAction } from "../../store/action-creators/userActions";
 import { createSessionAction, fetchSessionsAction } from "../../store/action-creators/sessionAction";
 import dayjs from "dayjs";
+import { deleteStudentFromGroup } from "../../services/api-group-service";
 
 const { Title } = Typography;
 
@@ -76,6 +77,19 @@ const GroupDetailsAdmin: React.FC = () => {
       message.error(res?.message || "Помилка додавання студента");
     }
   };
+
+   const handleRemoveStudent = async (studentId: string) => {
+        if (!groupId) return;
+        const response = await deleteStudentFromGroup(studentId, +groupId);
+        const { success, message: msg } = response as any;
+  
+        if (success) {
+          message.success("Студента видалено!");
+          await dispatch(fetchStudentByGroupIdAction(groupId as any));
+        } else {
+          message.error(msg || "Помилка видалення студента");
+        }
+      };
 
   const handleCancel = () => {
     setIsModalOpen(false);
@@ -151,28 +165,45 @@ const GroupDetailsAdmin: React.FC = () => {
               {studentsLoading ? (
                 <Spin />
               ) : students.length ? (
-                <List
-                  split={false}
-                  dataSource={students}
-                  renderItem={(s) => (
-                    <List.Item
-                      style={{
-                        background: "#f6fafd",
-                        borderRadius: 12,
-                        marginBottom: 12,
-                        padding: "14px 18px",
-                      }}
-                    >
-                      <div>
-                        <b>{s.fullName}</b>
-                        <div style={{ fontSize: 13, color: "#64748b" }}>{s.email}</div>
-                      </div>
-                    </List.Item>
-                  )}
-                />
+                <div
+                  style={{
+                    maxHeight: 400, // або будь-яка інша висота
+                    overflowY: "auto",
+                    paddingRight: 4,
+                  }}
+                >
+                  <List
+                    split={false}
+                    dataSource={students}
+                    renderItem={(s) => (
+                      <List.Item
+                        style={{
+                          background: "#f6fafd",
+                          borderRadius: 12,
+                          marginBottom: 12,
+                          padding: "14px 18px",
+                        }}
+                      >
+                        <div>
+                          <b>{s.fullName}</b>
+                          <div style={{ fontSize: 13, color: "#64748b" }}>{s.email}</div>
+                        </div>
+                        <Button
+                            danger
+                            type="text"
+                            shape="circle"
+                            icon={<CloseOutlined />}
+                            onClick={() => handleRemoveStudent(s.id)}
+                            style={{ marginLeft: "auto" }}
+                          />
+                      </List.Item>
+                    )}
+                  />
+                </div>
               ) : (
                 <p style={{ color: "#888" }}>У групі ще немає студентів</p>
               )}
+
             </div>
     
             {/* █ Сесії █ */}
@@ -194,40 +225,49 @@ const GroupDetailsAdmin: React.FC = () => {
               {sessionsLoading ? (
                 <Spin />
               ) : sessions.length ? (
-                <List
-                  split={false}
-                  dataSource={sessions}
-                  renderItem={(session) => (
-                    <List.Item
-                      style={{
-                        background: "#f6fafd",
-                        borderRadius: 12,
-                        marginBottom: 12,
-                        padding: "14px 18px",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div>
-                        <b>{session.name}</b>
-                        <div style={{ fontSize: 13, color: "#64748b" }}>
-                          {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} —
-                          &nbsp;{dayjs(session.endTime).format("HH:mm")}
-                        </div>
-                      </div>
-                      <Button
-                        type="default"
-                        onClick={() => navigate(`/admin/session/${session.id}`)}
+                <div
+                  style={{
+                    maxHeight: 400, // можна змінити під потребу
+                    overflowY: "auto",
+                    paddingRight: 4,
+                  }}
+                >
+                  <List
+                    split={false}
+                    dataSource={sessions}
+                    renderItem={(session) => (
+                      <List.Item
+                        style={{
+                          background: "#f6fafd",
+                          borderRadius: 12,
+                          marginBottom: 12,
+                          padding: "14px 18px",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
                       >
-                        Відкрити
-                      </Button>
-                    </List.Item>
-                  )}
-                />
+                        <div>
+                          <b>{session.name}</b>
+                          <div style={{ fontSize: 13, color: "#64748b" }}>
+                            {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} —{" "}
+                            {dayjs(session.endTime).format("HH:mm")}
+                          </div>
+                        </div>
+                        <Button
+                          type="default"
+                          onClick={() => navigate(`/admin/session/${session.id}`)}
+                        >
+                          Відкрити
+                        </Button>
+                      </List.Item>
+                    )}
+                  />
+                </div>
               ) : (
                 <p style={{ color: "#888" }}>Сесій ще не створено</p>
               )}
+
             </div>
           </div>
         </Card>

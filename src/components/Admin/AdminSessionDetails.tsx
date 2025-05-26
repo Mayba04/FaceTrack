@@ -25,7 +25,22 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Modal, Input, DatePicker, Button, Tooltip } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { fetchPlannedSessionsBySessionIdAction } from "../../store/action-creators/plannedSessionAction";
+import { Calendar as BigCalendar, dateFnsLocalizer } from "react-big-calendar";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { uk } from "date-fns/locale";
 const { Title } = Typography;
+
+const locales = { uk };
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek: () => startOfWeek(new Date(), { weekStartsOn: 1 }),
+  getDay,
+  locales,
+});
+
 
 const AdminSessionDetails: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -33,12 +48,20 @@ const AdminSessionDetails: React.FC = () => {
   const session = useSelector((state: RootState) => state.SessionReducer.session);
   const { matrix, loading } = useSelector((state: RootState) => state.AttendanceReducer);
   const groups = useSelector((state: RootState) => state.GroupReducer.groups);
+  const plannedSessions = useSelector((state: RootState) => state.PlannedSessionReducer.sessions);
   const groupName = groups.find((g) => g.id === Number(session?.groupId))?.name ?? "—";
   const navigate = useNavigate();
   const [editOpen, setEditOpen] = useState(false);
   const [name, setName] = useState("");
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
+
+  useEffect(() => {
+  if (session?.id) {
+    dispatch(fetchPlannedSessionsBySessionIdAction(Number(session.id)) as any);
+  }
+}, [session?.id]);
+
 
   useEffect(() => {
     if (sessionId) {
@@ -77,6 +100,26 @@ const AdminSessionDetails: React.FC = () => {
     await dispatch(GetSessionByIdAction(Number(session.id)) as any);
     setEditOpen(false);
   };
+
+  const events = plannedSessions.map((ps: any) => {
+    const date = new Date(ps.plannedDate);
+    const [startHours, startMinutes, startSeconds] = ps.startTime.split(":").map(Number);
+    const [endHours, endMinutes, endSeconds] = ps.endTime.split(":").map(Number);
+
+    const start = new Date(date);
+    start.setHours(startHours, startMinutes, startSeconds ?? 0);
+
+    const end = new Date(date);
+    end.setHours(endHours, endMinutes, endSeconds ?? 0);
+
+    return {
+      id: ps.id,
+      title: `${ps.sessionName} 🕓 ${ps.startTime}–${ps.endTime}`,
+      start,
+      end,
+    };
+  });
+
 
   const handleDelete = () => {
     if (!session) return;
@@ -160,10 +203,17 @@ const AdminSessionDetails: React.FC = () => {
         </p>
         <p><b>Створив:</b> {session.createdBy}</p>
   
-        <div style={{ marginTop: 32 }}>
-          {loading ? (
-            <Spin />
-          ) : matrix?.students?.length ? (
+      <div style={{ marginTop: 32 }}>
+        {loading ? (
+          <Spin />
+        ) : matrix?.students?.length ? (
+          <div
+            style={{
+              maxHeight: 500,
+              overflowY: matrix.students.length > 10 ? "auto" : "visible",
+              overflowX: matrix.sessions.length > 4 ? "auto" : "visible",
+            }}
+          >
             <Table
               columns={[
                 {
@@ -182,10 +232,11 @@ const AdminSessionDetails: React.FC = () => {
                   align: "center" as const,
                   render: (_: any, student: any) => {
                     const record = matrix.attendances.find(
-                      (a) => a.sessionHistoryId === s.id && a.studentId === student.id
+                      (a) =>
+                        a.sessionHistoryId === s.id && a.studentId === student.id
                     );
                     const value = record ? "✓" : "н";
-  
+
                     return (
                       <button
                         onClick={() => handleAttendanceToggle(student.id, s)}
@@ -210,13 +261,43 @@ const AdminSessionDetails: React.FC = () => {
               }))}
               rowKey="id"
               pagination={false}
-              scroll={{ x: "max-content" }}
+              scroll={{
+                x: matrix.sessions.length > 4 ? "max-content" : undefined,
+              }}
             />
-          ) : (
-            <p>Немає даних про відвідуваність</p>
-          )}
+          </div>
+        ) : (
+          <p>Немає даних про відвідуваність</p>
+        )}
+      </div>
+
+          
+        <div style={{ marginTop: 48 }}>
+          <Title level={4} style={{ marginBottom: 16 }}>Заплановані сесії</Title>
+          <BigCalendar
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            defaultView="month"
+            style={{ height: 500 }}
+            messages={{
+              today: "Сьогодні",
+              next: "→",
+              previous: "←",
+              month: "Місяць",
+              week: "Тиждень",
+              day: "День",
+              agenda: "Список",
+              date: "Дата",
+              time: "Час",
+              event: "Подія",
+              noEventsInRange: "Немає запланованих сесій",
+            }}
+          />
         </div>
-  
+
+
         <Modal
           title="Редагування сесії"
           open={editOpen}
@@ -243,6 +324,7 @@ const AdminSessionDetails: React.FC = () => {
           />
         </Modal>
       </div>
+      
     </div>
   );
   
