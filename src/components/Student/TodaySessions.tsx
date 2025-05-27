@@ -151,9 +151,11 @@ const TodaySessions: React.FC = () => {
                 </div>
 
 
-                <div style={{ fontSize: 16, color: "#4b5563" }}>
-                  <ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
-                  Час: {moment(session.startTime).format("HH:mm")} – {moment(session.endTime).format("HH:mm")}
+                <div style={{ fontSize: 16, color: '#4b5563' }}>
+                  <ClockCircleOutlined style={{ marginRight: 8, color: '#1976d2' }} />
+                  Час:&nbsp;
+                  {moment.utc(session.startTime).format('HH:mm')} –{' '}
+                  {moment.utc(session.endTime).format('HH:mm')}
                 </div>
 
                 {manualCheckPending && (

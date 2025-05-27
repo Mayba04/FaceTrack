@@ -43,6 +43,8 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { uk } from "date-fns/locale";
 import { deleteSessionHistory, updateSessionHistoryDate } from "../../services/api-attendance-service";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 const locales = {
     uk: uk,
@@ -56,6 +58,12 @@ const locales = {
     locales,
   });
 
+export const isoToDayjs = (src?: string | Date | null): Dayjs | null => {
+  if (!src) return null;
+  return typeof src === 'string'
+    ? dayjs.utc(src).local()   // "2025-05-27T09:40:00Z"
+    : dayjs(src);              // new Date()
+};
 
 const { Title } = Typography;
 const keyOf = (item: any): React.Key =>
@@ -70,9 +78,8 @@ const SessionDetails: React.FC = () => {
   const user = useSelector((state: RootState) => state.UserReducer.user);
   const groups = useSelector((state: RootState) => state.GroupReducer.groups);
   const groupName = groups.find((g) => g.id === Number(mainSession?.groupId))?.name ?? "—";
-
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
-  const [endTime, setEndTime] = useState<Dayjs | null>(null);
+  const [endTime,   setEndTime]   = useState<Dayjs | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [attendanceOpen, setAttendanceOpen] = useState(false);
   const [checkModalOpen, setCheckModalOpen] = useState(false);
@@ -137,13 +144,30 @@ const events = plannedSessions.map((ps: any) => {
     navigate(`/session/${mainSession.id}`);
   };
 
-  const handleEdit = () => {
-    if (!mainSession) return;
-    setName(mainSession.name || "");
-    setStartTime(dayjs(mainSession.startTime));
-    setEndTime(dayjs(mainSession.endTime));
-    setEditOpen(true);
+const handleEdit = () => {
+  if (!mainSession) return;
+
+  // назва
+  setName(mainSession.name ?? '');
+  const asLocal = (iso?: string | Date | null): Dayjs | null => {
+    if (!iso) return null;
+
+    // рядок → забираємо Z → парсимо як локальний
+    if (typeof iso === 'string') return dayjs(iso.replace(/Z$/, ''));
+
+    // Date → просто dayjs(date)
+    return dayjs(iso);
   };
+
+  // часи
+ setStartTime(asLocal(mainSession.startTime));
+  setEndTime  (asLocal(mainSession.endTime));
+  // setStartTime(dayjs.utc(mainSession.startTime).format('DD.MM.YYYY HH:mm'));
+  // setEndTime  ((mainSession.endTime));
+
+  setEditOpen(true);
+};
+
 
   const handleSave = async () => {
     if (!startTime || !endTime || !mainSession) return;
@@ -187,30 +211,31 @@ const events = plannedSessions.map((ps: any) => {
   };
   
  const handlePlanSession = async () => {
-    if (!planDate || !planStart || !planEnd || !mainSession?.id) return;
+  if (!planDate || !planStart || !planEnd || !mainSession?.id) return;
 
-    const res = await dispatch(
-      addPlannedSessionAction({
-        sessionId:   Number(mainSession.id),
-        plannedDate: planDate.startOf("day").toISOString(),  
-        startTime:   planStart.format("HH:mm:ss"),            
-        endTime:     planEnd.format("HH:mm:ss"),
-      }) as any
-    );
-
-    if (res.success) {
-      message.success("Заплановано нову сесію");
-      dispatch(fetchPlannedSessionsBySessionIdAction(Number(mainSession.id)) as any);
-      setIsPlanModalOpen(false);
-    } else {
-      message.error(res.message);
-    }
+  const payload = {
+    sessionId:   Number(mainSession.id),
+    plannedDate: planDate.format("YYYY-MM-DD"),   
+    startTime:   planStart.format("HH:mm:ss"),
+    endTime:     planEnd.format("HH:mm:ss"),
   };
+
+  const res = await dispatch(addPlannedSessionAction(payload) as any);
+
+  if (res.success) {
+    message.success("Заплановано нову сесію");
+    dispatch(fetchPlannedSessionsBySessionIdAction(Number(mainSession.id)) as any);
+    setIsPlanModalOpen(false);
+  } else {
+    message.error(res.message);
+  }
+};
+
 
   const handleUpdatePlannedSession = async () => {
   if (!selectedEvent || !mainSession) return;
 
-  const plannedDate = dayjs(selectedEvent.start).startOf("day").toISOString();
+  const plannedDate = dayjs(selectedEvent.start).format("YYYY-MM-DD");
   const startTime = dayjs(selectedEvent.start).format("HH:mm:ss");
   const endTime = dayjs(selectedEvent.end).format("HH:mm:ss");
 
@@ -277,7 +302,7 @@ const handleDeletePlannedSession = async () => {
   >
     <div
       style={{
-        maxWidth: 800, // ← було 700
+        maxWidth: 800, 
         margin: "0 auto",
         background: "#fff",
         borderRadius: 24,
@@ -294,8 +319,8 @@ const handleDeletePlannedSession = async () => {
       </p>
       <p>
         <ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
-        {dayjs(mainSession.startTime).format("DD.MM.YYYY HH:mm")} –{" "}
-        {dayjs(mainSession.endTime).format("HH:mm")}
+        {dayjs.utc(mainSession.startTime).format('DD.MM.YYYY HH:mm')} –{' '}
+        {dayjs.utc(mainSession.endTime).format('HH:mm')}
       </p>
       <p>
         Створив: <b>{mainSession.createdBy}</b>

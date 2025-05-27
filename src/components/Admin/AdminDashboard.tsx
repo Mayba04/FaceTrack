@@ -72,39 +72,89 @@ const AdminDashboard: React.FC = () => {
   const [addStudentForm] = Form.useForm();
 
   /* -------------- effects -------------- */
+
   useEffect(() => {
-    (dispatch as any)(fetchUserStatisticsAction()).then((r: any) => {
-      if (r?.success) {
+  const fetchAllStats = async () => {
+    try {
+      const [userRes, systemRes, topBottomRes] = await Promise.all([
+        dispatch(fetchUserStatisticsAction()),
+        fetchSystemStatistics(),
+        fetchTopBottomSessions(),
+      ]);
+
+      // 1. Статистика користувачів
+      if ("success" in userRes && userRes.success) {
         setStats((p) => ({
           ...p,
-          students: r.payload.students,
-          lecturers: r.payload.lecturers,
-          moderators: r.payload.moderators,
-          blockedUsers: r.payload.blockedUsers,
+          students: userRes.payload.students,
+          lecturers: userRes.payload.lecturers,
+          moderators: userRes.payload.moderators,
+          blockedUsers: userRes.payload.blockedUsers,
         }));
       }
-    });
 
-    fetchSystemStatistics().then((r: any) => {
-      if (r?.success) {
+      // 2. Статистика системи
+      const { success1, payload1 } = systemRes as any;
+      if (success1) {
         setStats((p) => ({
           ...p,
-          groups: r.payload.groups,
-          sessions: r.payload.sessions,
-          avgAttendance: r.payload.avgAttendance,
+          groups: payload1.groups,
+          sessions: payload1.sessions,
+          avgAttendance: payload1.avgAttendance,
         }));
       }
-    });
 
-    fetchTopBottomSessions().then((r: any) => {
-      if (r?.success) {
-        setAttendanceAnalytics({
-          bestSession: r.payload.best,
-          worstSession: r.payload.worst,
-        });
+      // 3. Краща/гірша сесія
+      const { success2, payload2 } = topBottomRes as any;
+        if (success2) {
+          setAttendanceAnalytics({
+            bestSession: payload2.best,
+            worstSession: payload2.worst,
+          });
       }
-    });
-  }, [dispatch]);
+    } catch (err) {
+      console.error(err);
+      message.error("Не вдалося завантажити статистику");
+    }
+  };
+
+  fetchAllStats();
+}, [dispatch]);
+
+
+  // useEffect(() => {
+  //   (dispatch as any)(fetchUserStatisticsAction()).then((r: any) => {
+  //     if (r?.success) {
+  //       setStats((p) => ({
+  //         ...p,
+  //         students: r.payload.students,
+  //         lecturers: r.payload.lecturers,
+  //         moderators: r.payload.moderators,
+  //         blockedUsers: r.payload.blockedUsers,
+  //       }));
+  //     }
+  //   });
+
+  //   fetchSystemStatistics().then((r: any) => {
+  //     if (r?.success) {
+  //       setStats((p) => ({
+  //         ...p,
+  //         groups: r.payload.groups,
+  //         sessions: r.payload.sessions,
+  //         avgAttendance: r.payload.avgAttendance,
+  //       }));
+  //     }
+  //   });
+
+  //   fetchTopBottomSessions().then((r: any) => {
+  //     if (r?.success) {
+  //       setAttendanceAnalytics({
+  //         bestSession: r.payload.best,
+  //         worstSession: r.payload.worst,
+  //       });
+  //     }
+  //   });
+  // }, [dispatch]);
 
   useEffect(() => {
     if (isAddVisible) searchTeachers("");

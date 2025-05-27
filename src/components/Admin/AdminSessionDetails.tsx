@@ -78,8 +78,17 @@ const AdminSessionDetails: React.FC = () => {
   const handleEdit = () => {
     if (!session) return;
     setName(session.name || "");
-    setStartTime(dayjs(session.startTime));
-    setEndTime(dayjs(session.endTime));
+      const asLocal = (iso?: string | Date | null): Dayjs | null => {
+        if (!iso) return null;
+    
+        // рядок → забираємо Z → парсимо як локальний
+        if (typeof iso === 'string') return dayjs(iso.replace(/Z$/, ''));
+    
+        // Date → просто dayjs(date)
+        return dayjs(iso);
+      };
+    setStartTime(asLocal(session.startTime));
+    setEndTime  (asLocal(session.endTime));
     setEditOpen(true);
   };
   
@@ -198,8 +207,8 @@ const AdminSessionDetails: React.FC = () => {
         <p><b>Група:</b> {groupName}</p>
         <p>
           <b>Дата:</b>{" "}
-          {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} –{" "}
-          {dayjs(session.endTime).format("HH:mm")}
+          {dayjs.utc(session.startTime).format('DD.MM.YYYY HH:mm')} –{' '}
+          {dayjs.utc(session.endTime).format('HH:mm')}
         </p>
         <p><b>Створив:</b> {session.createdBy}</p>
   

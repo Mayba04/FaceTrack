@@ -89,7 +89,7 @@ const StudentDashboard: React.FC = () => {
     >
       <Card
         style={{
-          maxWidth: 680,
+          maxWidth: 800,
           margin: "0 auto",
           borderRadius: 24,
           padding: "32px 28px",
@@ -168,8 +168,7 @@ const StudentDashboard: React.FC = () => {
                 })}
                 startAccessor="start"
                 endAccessor="end"
-                views={["week", "day", "agenda"]}
-                defaultView="week"
+               defaultView="month"
                 min={new Date(0, 0, 0, 6, 0)}
                 max={new Date(0, 0, 0, 22, 0)}
                 messages={{
