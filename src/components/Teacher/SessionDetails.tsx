@@ -279,6 +279,9 @@ const handleDeletePlannedSession = async () => {
 
   const handleApprove = async (id: number) => {
     const res = await dispatch(approveFaceRequestAction(id) as any);
+    if (mainSession?.id) {
+      await dispatch(fetchPlannedSessionsBySessionIdAction(Number(mainSession.id)) as any);
+    }
     if (res.success) setFaceRequests((p) => p.filter((f) => f.id !== id));
   };
 
@@ -358,36 +361,39 @@ const handleDeletePlannedSession = async () => {
       {/* Календар */}
       <div
         style={{
-          marginTop: 40,
-          background: "#f9f9f9",
-          borderRadius: 16,
-          padding: 24,
-          boxShadow: "0 0 12px rgba(0,0,0,0.06)",
-        }}
+                maxWidth: 1000,
+                margin: "32px auto",
+                background: "#fff",
+                borderRadius: 12,
+                padding: 24,
+                boxShadow: "0 0 12px rgba(0,0,0,0.1)",
+              }}
       >
         <Title level={4} style={{ marginBottom: 16 }}>Заплановані сесії</Title>
-        <BigCalendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          defaultView="month"
-          style={{ height: 500, width: "100%" }} // ← тут додаємо ширину
-          onSelectEvent={(event) => setSelectedEvent(event)}
-          messages={{
-            today: "Сьогодні",
-            next: "→",
-            previous: "←",
-            month: "Місяць",
-            week: "Тиждень",
-            day: "День",
-            agenda: "Список",
-            date: "Дата",
-            time: "Час",
-            event: "Подія",
-            noEventsInRange: "Немає запланованих сесій",
-          }}
-        />
+        <div style={{ width: "100%", overflowX: "auto" }}>
+          <BigCalendar
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            defaultView="month"
+            style={{ height: 500, width: "100%" }} // ← тут додаємо ширину
+            onSelectEvent={(event) => setSelectedEvent(event)}
+            messages={{
+              today: "Сьогодні",
+              next: "→",
+              previous: "←",
+              month: "Місяць",
+              week: "Тиждень",
+              day: "День",
+              agenda: "Список",
+              date: "Дата",
+              time: "Час",
+              event: "Подія",
+              noEventsInRange: "Немає запланованих сесій",
+            }}
+          />
+        </div>
       </div>
     </div>
 
@@ -430,27 +436,49 @@ const handleDeletePlannedSession = async () => {
             dataSource={faceRequests}
             rowKey={keyOf}
             renderItem={(item: any) => (
-              <List.Item
-                style={{ alignItems: "center" }}
-                actions={[
-                  <Button key="ok" type="primary" onClick={() => handleApprove(item.id)}>
-                    Підтвердити
-                  </Button>,
-                  <Button key="no" danger onClick={() => handleReject(item.id)}>
-                    Відхилити
-                  </Button>,
-                ]}
-              >
-                <img
-                  src={`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`}
-                  alt="Face"
-                  style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 6, marginRight: 14, cursor: "pointer" }}
-                  onClick={() => handleImageClick(`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`)}
-                />
-                <span>{item.name || item.studentId}</span>
+              <List.Item>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    width: "100%",
+                    gap: 12,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", flex: 1, minWidth: 200 }}>
+                    <img
+                      src={`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`}
+                      alt="Face"
+                      style={{
+                        width: 60,
+                        height: 60,
+                        objectFit: "cover",
+                        borderRadius: 6,
+                        marginRight: 12,
+                        cursor: "pointer",
+                      }}
+                      onClick={() => handleImageClick(`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`)}
+                    />
+                    <span style={{ wordBreak: "break-all" }}>
+                      {item.name || item.studentId}
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    <Button type="primary" onClick={() => handleApprove(item.id)}>
+                      Підтвердити
+                    </Button>
+                    <Button danger onClick={() => handleReject(item.id)}>
+                      Відхилити
+                    </Button>
+                  </div>
+                </div>
               </List.Item>
             )}
           />
+
         ) : (
           <p style={{ textAlign: "center", margin: 0 }}>Немає запитів.</p>
         )}
@@ -548,7 +576,7 @@ const handleDeletePlannedSession = async () => {
                         await dispatch(addAbsenceAction(student.id, sessionHistoryId, timestamp) as any);
                       }
 
-                      dispatch(fetchAttendanceMatrixBySessionAction(Number(mainSession.id)) as any);
+                      await dispatch(fetchAttendanceMatrixBySessionAction(Number(mainSession.id)) as any);
                     }}
                     style={{
                       background: "none",

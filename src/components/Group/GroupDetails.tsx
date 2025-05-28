@@ -210,8 +210,8 @@ const GroupDetails: React.FC = () => {
                           <div style={{ marginInline: 12 }}>
                             <b>{session.name}</b>
                             <div className="item-sub">
-                              {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} —{" "}
-                              {dayjs(session.endTime).format("HH:mm")}
+                              {dayjs.utc(session.startTime).format('DD.MM.YYYY HH:mm')} – {' '}
+                              {dayjs.utc(session.endTime).format('HH:mm')}
                             </div>
                           </div>
                           <Button

@@ -2,6 +2,7 @@ import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { RootState } from "./store/reducers";
+import { useLocation } from "react-router-dom";
 import FaceUpload from "./components/Test/FaceUpload";
 import RealTimeFaceRecognition from "./components/Test/RealTimeFaceRecognition";
 import Login from "./components/Auth/LoginPage";
@@ -32,14 +33,14 @@ import BatchRecognitionPage from "./components/Test/BatchRecognitionPage";
 import ForgotPassword from "./components/Auth/ForgotPassword";
 import ResetPassword from "./components/Auth/ResetPassword";
 const App: React.FC = () => {
+    const location = useLocation(); 
     const token = useSelector((state: RootState) => state.UserReducer.token);
     const role = useSelector((state: RootState) => state.UserReducer.role);
 
     const hideNavbarPrefixes = ["/register", "/login", "/reset-password", "/forgot-password"];
 
     const shouldHideNavbar = hideNavbarPrefixes.some((prefix) =>
-    location.pathname.startsWith(prefix)
-    );
+    location.pathname.startsWith(prefix));
 
     return (
         <div>

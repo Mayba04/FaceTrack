@@ -32,7 +32,6 @@ import { format, parse, startOfWeek, getDay } from "date-fns";
 import { uk } from "date-fns/locale";
 const { Title, Paragraph } = Typography;
 
-
 const locales = {
   uk: uk,
 };
@@ -104,23 +103,24 @@ const TeacherDashboard: React.FC = () => {
   };
 
   const upcomingEvents = upcomingSessions.map((ps: any) => {
-  const start = new Date(ps.plannedDate);
-  const end = new Date(ps.plannedDate);
+    const start = new Date(ps.plannedDate);
+    const end = new Date(ps.plannedDate);
 
-  const [sh, sm, ss] = ps.startTime.split(":").map(Number);
-  const [eh, em, es] = ps.endTime.split(":").map(Number);
+    const [sh, sm, ss] = ps.startTime.split(":").map(Number);
+    const [eh, em, es] = ps.endTime.split(":").map(Number);
 
-  start.setHours(sh, sm, ss ?? 0);
-  end.setHours(eh, em, es ?? 0);
+    start.setHours(sh, sm, ss ?? 0);
+    end.setHours(eh, em, es ?? 0);
 
-  return {
-    id: ps.id,
-    title: `${ps.sessionName} 🕓 ${ps.startTime}–${ps.endTime}`,
-    start,
-    end,
-    sessionId: ps.sessionId
-  };
-});
+    return {
+      id: ps.id,
+      title: `${ps.sessionName} 🕓 ${ps.startTime}–${ps.endTime}`,
+      start,
+      end,
+      sessionId: ps.sessionId
+    };
+  });
+
 
 
   return (
@@ -200,60 +200,64 @@ const TeacherDashboard: React.FC = () => {
               <ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
               Найближчі сесії
             </Divider>
-        <div
-          style={{
-            maxWidth: 1000,
-            margin: "32px auto",
-            background: "#fff",
-            borderRadius: 12,
-            padding: 24,
-            boxShadow: "0 0 12px rgba(0,0,0,0.1)",
-          }}
-        >
-          <Title level={4} style={{ marginBottom: 12 }}>
-            Календар найближчих сесій
-          </Title>
+            <div
+              style={{
+                maxWidth: 1000,
+                margin: "32px auto",
+                background: "#fff",
+                borderRadius: 12,
+                padding: 24,
+                boxShadow: "0 0 12px rgba(0,0,0,0.1)",
+              }}
+            >
+              <Title level={4} style={{ marginBottom: 12 }}>
+                Календар найближчих сесій
+              </Title>
 
-          <BigCalendar
-            localizer={localizer}
-            events={upcomingEvents}
-            startAccessor="start"
-            endAccessor="end"
-            style={{ height: 500 }}
-            defaultView="month"
-            min={new Date(0, 0, 0, 6, 0)}
-            max={new Date(0, 0, 0, 22, 0)}
-            onSelectEvent={(event) => navigate(`/teacher/session/${event.sessionId}`)}
-            messages={{
-              today: "Сьогодні",
-              next: "→",
-              previous: "←",
-              month: "Місяць",
-              week: "Тиждень",
-              day: "День",
-              agenda: "Список",
-              date: "Дата",
-              time: "Час",
-              event: "Подія",
-              noEventsInRange: "Немає запланованих сесій",
-            }}
-           formats={{
-            timeGutterFormat: (date, culture, localizer) =>
-              localizer ? localizer.format(date, "HH:mm", culture) : "",
-
-            agendaTimeFormat: (date, culture, localizer) =>
-              localizer ? localizer.format(date, "HH:mm", culture) : "",
-
-            eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
-              localizer
-                ? `${localizer.format(start, "HH:mm", culture)} – ${localizer.format(end, "HH:mm", culture)}`
-                : "",
-          }}
-
-          />
-
-
-        </div>
+            
+              <div style={{ width: "100%", overflowX: "auto" }}>
+                <BigCalendar
+                  localizer={localizer}
+                  events={upcomingEvents}
+                  startAccessor="start"
+                  endAccessor="end"
+                  style={{ height: 500 /* або 100 %, якщо ти керуєш висотою контейнера */ }}
+                  defaultView="month"
+                  min={new Date(0, 0, 0, 6, 0)}
+                  max={new Date(0, 0, 0, 22, 0)}
+                  onSelectEvent={(event) =>
+                    navigate(`/teacher/session/${(event as any).sessionId}`)
+                  }
+                  messages={{
+                    today: "Сьогодні",
+                    next: "→",
+                    previous: "←",
+                    month: "Місяць",
+                    week: "Тиждень",
+                    day: "День",
+                    agenda: "Список",
+                    date: "Дата",
+                    time: "Час",
+                    event: "Подія",
+                    noEventsInRange: "Немає запланованих сесій",
+                  }}
+                  formats={{
+                    timeGutterFormat: (date, culture, loc) =>
+                      loc ? loc.format(date, "HH:mm", culture) : "",
+                    agendaTimeFormat: (date, culture, loc) =>
+                      loc ? loc.format(date, "HH:mm", culture) : "",
+                    eventTimeRangeFormat: ({ start, end }, culture, loc) =>
+                      loc
+                        ? `${loc.format(start, "HH:mm", culture)} – ${loc.format(
+                            end,
+                            "HH:mm",
+                            culture
+                          )}`
+                        : "",
+                  }}
+                />
+              </div>
+            </div>
 
 
 
