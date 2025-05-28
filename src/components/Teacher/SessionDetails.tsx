@@ -416,22 +416,35 @@ const handleDeletePlannedSession = async () => {
         />
       </Modal>
 
-      <Modal title="Запити Face ID" open={checkModalOpen} onCancel={() => setCheckModalOpen(false)} footer={null} centered>
+      <Modal
+        title="Запити Face ID"
+        open={checkModalOpen}
+        onCancel={() => setCheckModalOpen(false)}
+        footer={null}
+        centered
+        width={600}
+        bodyStyle={{ maxHeight: "70vh", overflowY: "auto", paddingRight: 16 }}
+      >
         {faceRequests.length ? (
           <List
             dataSource={faceRequests}
             rowKey={keyOf}
             renderItem={(item: any) => (
               <List.Item
+                style={{ alignItems: "center" }}
                 actions={[
-                  <Button key="ok" type="primary" onClick={() => handleApprove(item.id)}>Підтвердити</Button>,
-                  <Button key="no" danger onClick={() => handleReject(item.id)}>Відхилити</Button>,
+                  <Button key="ok" type="primary" onClick={() => handleApprove(item.id)}>
+                    Підтвердити
+                  </Button>,
+                  <Button key="no" danger onClick={() => handleReject(item.id)}>
+                    Відхилити
+                  </Button>,
                 ]}
               >
                 <img
                   src={`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`}
                   alt="Face"
-                  style={{ width: 60, borderRadius: 6, marginRight: 14, cursor: "pointer" }}
+                  style={{ width: 60, height: 60, objectFit: "cover", borderRadius: 6, marginRight: 14, cursor: "pointer" }}
                   onClick={() => handleImageClick(`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`)}
                 />
                 <span>{item.name || item.studentId}</span>
@@ -442,6 +455,7 @@ const handleDeletePlannedSession = async () => {
           <p style={{ textAlign: "center", margin: 0 }}>Немає запитів.</p>
         )}
       </Modal>
+
 
       <Modal
         open={!!previewImage}
