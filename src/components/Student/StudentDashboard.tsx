@@ -146,11 +146,22 @@ const StudentDashboard: React.FC = () => {
               <CalendarOutlined style={{ marginRight: 8 }} />
               Майбутні сесії
             </Divider>
+            
            {upcoming.length > 0 ? (
-            <div style={{ height: 500, marginBottom: 24 }}>
-              <BigCalendar
-                localizer={localizer}
-                events={upcoming.map((s) => {
+            <div
+              style={{
+                maxWidth: 1000,
+                margin: "32px auto",
+                background: "#fff",
+                borderRadius: 12,
+                padding: 24,
+                boxShadow: "0 0 12px rgba(0,0,0,0.1)",
+              }}
+            >
+              <div style={{ width: "100%", overflowX: "auto" }}>
+                <BigCalendar
+                  localizer={localizer}
+                  events= { upcoming.map((s) => {
                   const date = new Date(s.plannedDate);
                   const [sh, sm] = s.startTime.split(":").map(Number);
                   const [eh, em] = s.endTime.split(":").map(Number);
@@ -166,33 +177,41 @@ const StudentDashboard: React.FC = () => {
                     sessionId: s.sessionId,
                   };
                 })}
-                startAccessor="start"
-                endAccessor="end"
-               defaultView="month"
-                min={new Date(0, 0, 0, 6, 0)}
-                max={new Date(0, 0, 0, 22, 0)}
-                messages={{
-                  today: "Сьогодні",
-                  next: "→",
-                  previous: "←",
-                  month: "Місяць",
-                  week: "Тиждень",
-                  day: "День",
-                  agenda: "Список",
-                  date: "Дата",
-                  time: "Час",
-                  event: "Подія",
-                  noEventsInRange: "Немає майбутніх сесій",
-                }}
-                formats={{
-                  timeGutterFormat: (date, culture, localizer) =>
-                    localizer!.format(date, "HH:mm", culture),
-                  eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
-                    `${localizer!.format(start, "HH:mm", culture)} – ${localizer!.format(end, "HH:mm", culture)}`,
-                  agendaTimeFormat: (date, culture, localizer) =>
-                    localizer!.format(date, "HH:mm", culture),
-                }}
-              />
+                  startAccessor="start"
+                  endAccessor="end"
+                  style={{ height: 500 /* або 100 %, якщо ти керуєш висотою контейнера */ }}
+                  defaultView="month"
+                  min={new Date(0, 0, 0, 6, 0)}
+                  max={new Date(0, 0, 0, 22, 0)}
+                  messages={{
+                    today: "Сьогодні",
+                    next: "→",
+                    previous: "←",
+                    month: "Місяць",
+                    week: "Тиждень",
+                    day: "День",
+                    agenda: "Список",
+                    date: "Дата",
+                    time: "Час",
+                    event: "Подія",
+                     noEventsInRange: "Немає майбутніх сесій",
+                  }}
+                  formats={{
+                    timeGutterFormat: (date, culture, loc) =>
+                      loc ? loc.format(date, "HH:mm", culture) : "",
+                    agendaTimeFormat: (date, culture, loc) =>
+                      loc ? loc.format(date, "HH:mm", culture) : "",
+                    eventTimeRangeFormat: ({ start, end }, culture, loc) =>
+                      loc
+                        ? `${loc.format(start, "HH:mm", culture)} – ${loc.format(
+                            end,
+                            "HH:mm",
+                            culture
+                          )}`
+                        : "",
+                  }}
+                />
+              </div>
             </div>
           ) : (
             <Paragraph style={{ color: "#888", marginBottom: 20 }}>
