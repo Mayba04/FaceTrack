@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Input, Select, Button, Table, Typography,  Space, Modal,  Form, message, Card} from "antd";
+import { Input, Select, Button, Table, Typography,  Space, Modal,  Form, message, Card, Pagination} from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { addNewUserAction, changeUserRoleAction, deleteUserAction, fetchFilteredUsersAction, toggleBlockUserAction, updateUserAction} from "../../store/action-creators/userActions";
@@ -326,83 +326,94 @@ const ManageUsers: React.FC = () => {
 
   return (
     <div
-      style={{
-        minHeight: "100vh",
-        padding: "48px 16px",
-        background: "linear-gradient(120deg,#e3f0ff 0%,#c6e6fb 100%)",
-      }}
-    >
-      <Card
-        style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          borderRadius: 24,
-          padding: "32px 28px",
-          boxShadow: "0 8px 24px rgba(30,64,175,0.12)",
-        }}
+  style={{
+    minHeight: "100vh",
+    padding: "48px 16px",
+    background: "linear-gradient(120deg,#e3f0ff 0%,#c6e6fb 100%)",
+  }}
+>
+  <Card
+    style={{
+      maxWidth: 1100,
+      margin: "0 auto",
+      borderRadius: 24,
+      padding: "32px 28px",
+      boxShadow: "0 8px 24px rgba(30,64,175,0.12)",
+    }}
+  >
+    <Title level={2} style={{ textAlign: "center", fontWeight: 800, marginBottom: 32 }}>
+      👥 Керування користувачами
+    </Title>
+
+    {/* ─ Фільтри ─ */}
+    <Space style={{ marginBottom: 24, display: "flex", flexWrap: "wrap" }}>
+      <Input
+        placeholder="Full Name"
+        value={fullName}
+        onChange={(e) => setFullName(e.target.value)}
+        style={{ width: 200 }}
+      />
+      <Select
+        allowClear
+        placeholder="Role"
+        value={role ?? undefined}
+        style={{ width: 160 }}
+        onChange={(value) => setRole(value)}
       >
-        <Title level={2} style={{ textAlign: "center", fontWeight: 800, marginBottom: 32 }}>
-          👥 Керування користувачами
-        </Title>
-  
-        <Space style={{ marginBottom: 24, display: "flex", flexWrap: "wrap" }}>
-          <Input
-            placeholder="Full Name"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            style={{ width: 200 }}
-          />
-          <Select
-            allowClear
-            placeholder="Role"
-            value={role ?? undefined}
-            style={{ width: 160 }}
-            onChange={(value) => setRole(value)}
-          >
-            <Option value="Admin">Admin</Option>
-            <Option value="Student">Student</Option>
-            <Option value="Lecturer">Lecturer</Option>
-            <Option value="Moderator">Moderator</Option>
-          </Select>
-          <Select
-            showSearch
-            placeholder="Search group"
-            onSearch={handleGroupSearch}
-            onChange={(value) => setGroupId(value)}
-            style={{ width: 200 }}
-            allowClear
-            value={groupId ?? undefined}
-            filterOption={false}
-          >
-            {groupOptions.map((group) => (
-              <Option key={group.id} value={group.id}>
-                {group.name}
-              </Option>
-            ))}
-          </Select>
-          <Button type="primary" onClick={handleSearch} loading={loading}>
-            🔍 Пошук
-          </Button>
-          <Button type="dashed" onClick={() => setIsAddModalVisible(true)}>
-            ➕ Додати користувача
-          </Button>
-        </Space>
-  
-        <Table
-          columns={columns}
-          dataSource={users}
-          rowKey={(record: User) => record.id}
-          loading={loading}
-          pagination={{
-            current: currentPage,
-            pageSize: pageSize,
-            total: totalCount,
-            onChange: (page) => setPage(page),
-          }}
-          bordered
-          style={{ borderRadius: 16, overflow: "hidden" }}
-        />
-      </Card>
+        <Option value="Admin">Admin</Option>
+        <Option value="Student">Student</Option>
+        <Option value="Lecturer">Lecturer</Option>
+        <Option value="Moderator">Moderator</Option>
+      </Select>
+      <Select
+        showSearch
+        placeholder="Search group"
+        onSearch={handleGroupSearch}
+        onChange={(value) => setGroupId(value)}
+        style={{ width: 200 }}
+        allowClear
+        value={groupId ?? undefined}
+        filterOption={false}
+      >
+        {groupOptions.map((group) => (
+          <Option key={group.id} value={group.id}>
+            {group.name}
+          </Option>
+        ))}
+      </Select>
+      <Button type="primary" onClick={handleSearch} loading={loading}>
+        🔍 Пошук
+      </Button>
+      <Button type="dashed" onClick={() => setIsAddModalVisible(true)}>
+        ➕ Додати користувача
+      </Button>
+    </Space>
+
+    {/* ─ Таблиця ─ */}
+    <div style={{ width: "100%", overflowX: "auto", marginBottom: 24 }}>
+      <Table
+        columns={columns}
+        dataSource={users}
+        rowKey={(record: User) => record.id}
+        loading={loading}
+        pagination={false}
+        bordered
+        scroll={{ x: 900 }} // щоб таблиця була скрольована на моб
+        style={{ minWidth: 800 }}
+      />
+    </div>
+
+    {/* ─ Пагінація ─ */}
+    <div style={{ display: "flex", justifyContent: "center" }}>
+      <Pagination
+        current={currentPage}
+        pageSize={pageSize}
+        total={totalCount}
+        onChange={(page) => setPage(page)}
+        showSizeChanger={false}
+      />
+    </div>
+  </Card>
   
       {/* Модальне вікно редагування */}
       <Modal
