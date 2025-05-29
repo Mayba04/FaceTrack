@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, Button, Typography, Spin, List, Modal, message, Input, DatePicker } from "antd";
+import { Card, Button, Typography, Spin, List, Modal, message, Input, DatePicker, Row, Col } from "antd";
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
@@ -113,164 +113,143 @@ const GroupDetailsAdmin: React.FC = () => {
     );
 
     return (
-      <div
+  <div
+      style={{
+        minHeight: "100vh",
+        padding: "48px 16px",
+        background: "linear-gradient(120deg,#e3f0ff 0%,#c6e6fb 100%)",
+      }}
+    >
+      <Card
         style={{
-          minHeight: "100vh",
-          padding: "48px 16px",
-          background: "linear-gradient(120deg,#e3f0ff 0%,#c6e6fb 100%)",
+          maxWidth: 880,
+          width: "100%", // додаємо для мобільної адаптації
+          margin: "0 auto",
+          borderRadius: 24,
+          padding: "32px 28px",
+          boxShadow: "0 8px 24px rgba(30,64,175,0.12)",
         }}
       >
-        <Card
-          style={{
-            maxWidth: 880,
-            margin: "0 auto",
-            borderRadius: 24,
-            padding: "32px 28px",
-            boxShadow: "0 8px 24px rgba(30,64,175,0.12)",
-          }}
-        >
-          {/* ── Заголовок групи ───────────────────────────────────── */}
-          <Title level={2} style={{ textAlign: "center", fontWeight: 800, marginBottom: 0 }}>
-            {groupDetails.name} — Деталі
-          </Title>
-          <p style={{ textAlign: "center", marginBottom: 32 }}>
-            Кількість студентів:&nbsp;
-            <b>{groupDetails.studentsCount}</b>
-          </p>
-    
-          {/* ── 2-колонковий layout ─────────────────────────────── */}
-          <div
-            style={{
-              display: "grid",
-              gap: 32,
-              gridTemplateColumns: "repeat(auto-fit,minmax(350px,1fr))",
-            }}
-          >
-            {/* █ Студенти █ */}
-            <div>
-              <Typography.Title level={4} style={{ marginBottom: 16, fontWeight: 700 }}>
-                🎓 Студенти
-              </Typography.Title>
-    
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setIsEmailModalOpen(true)}
-                block
-                style={{ marginBottom: 16 }}
-              >
-                Додати
-              </Button>
-    
-              {studentsLoading ? (
-                <Spin />
-              ) : students.length ? (
-                <div
-                  style={{
-                    maxHeight: 400, // або будь-яка інша висота
-                    overflowY: "auto",
-                    paddingRight: 4,
-                  }}
-                >
-                  <List
-                    split={false}
-                    dataSource={students}
-                    renderItem={(s) => (
-                      <List.Item
-                        style={{
-                          background: "#f6fafd",
-                          borderRadius: 12,
-                          marginBottom: 12,
-                          padding: "14px 18px",
-                        }}
-                      >
-                        <div>
-                          <b>{s.fullName}</b>
-                          <div style={{ fontSize: 13, color: "#64748b" }}>{s.email}</div>
-                        </div>
-                        <Button
-                            danger
-                            type="text"
-                            shape="circle"
-                            icon={<CloseOutlined />}
-                            onClick={() => handleRemoveStudent(s.id)}
-                            style={{ marginLeft: "auto" }}
-                          />
-                      </List.Item>
-                    )}
-                  />
-                </div>
-              ) : (
-                <p style={{ color: "#888" }}>У групі ще немає студентів</p>
-              )}
+        <Title level={2} style={{ textAlign: "center", fontWeight: 800, marginBottom: 0 }}>
+          {groupDetails.name} — Деталі
+        </Title>
+        <p style={{ textAlign: "center", marginBottom: 32 }}>
+          Кількість студентів:&nbsp;
+          <b>{groupDetails.studentsCount}</b>
+        </p>
 
-            </div>
-    
-            {/* █ Сесії █ */}
-            <div>
-              <Typography.Title level={4} style={{ marginBottom: 16, fontWeight: 700 }}>
-                🗓️ Сесії
-              </Typography.Title>
-    
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setIsModalOpen(true)}
-                block
-                style={{ marginBottom: 16 }}
-              >
-                Створити
-              </Button>
-    
-              {sessionsLoading ? (
-                <Spin />
-              ) : sessions.length ? (
-                <div
-                  style={{
-                    maxHeight: 400, // можна змінити під потребу
-                    overflowY: "auto",
-                    paddingRight: 4,
-                  }}
-                >
-                  <List
-                    split={false}
-                    dataSource={sessions}
-                    renderItem={(session) => (
-                      <List.Item
-                        style={{
-                          background: "#f6fafd",
-                          borderRadius: 12,
-                          marginBottom: 12,
-                          padding: "14px 18px",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <div>
-                          <b>{session.name}</b>
-                          <div style={{ fontSize: 13, color: "#64748b" }}>
-                            {dayjs(session.startTime).format("DD.MM.YYYY HH:mm")} —{" "}
-                            {dayjs(session.endTime).format("HH:mm")}
-                          </div>
-                        </div>
-                        <Button
-                          type="default"
-                          onClick={() => navigate(`/admin/session/${session.id}`)}
-                        >
-                          Відкрити
-                        </Button>
-                      </List.Item>
-                    )}
-                  />
-                </div>
-              ) : (
-                <p style={{ color: "#888" }}>Сесій ще не створено</p>
-              )}
+        <Row gutter={[24, 32]}>
+          {/* Студенти */}
+          <Col xs={24} md={12}>
+            <Typography.Title level={4} style={{ marginBottom: 16, fontWeight: 700 }}>
+              🎓 Студенти
+            </Typography.Title>
 
-            </div>
-          </div>
-        </Card>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setIsEmailModalOpen(true)}
+              block
+              style={{ marginBottom: 16 }}
+            >
+              Додати
+            </Button>
+
+            {studentsLoading ? (
+              <Spin />
+            ) : students.length ? (
+              <div style={{ maxHeight: 400, overflowY: "auto", paddingRight: 4 }}>
+                <List
+                  split={false}
+                  dataSource={students}
+                  renderItem={(s) => (
+                    <List.Item
+                      style={{
+                        background: "#f6fafd",
+                        borderRadius: 12,
+                        marginBottom: 12,
+                        padding: "14px 18px",
+                      }}
+                    >
+                      <div>
+                        <b>{s.fullName}</b>
+                        <div style={{ fontSize: 13, color: "#64748b" }}>{s.email}</div>
+                      </div>
+                      <Button
+                        danger
+                        type="text"
+                        shape="circle"
+                        icon={<CloseOutlined />}
+                        onClick={() => handleRemoveStudent(s.id)}
+                        style={{ marginLeft: "auto" }}
+                      />
+                    </List.Item>
+                  )}
+                />
+              </div>
+            ) : (
+              <p style={{ color: "#888" }}>У групі ще немає студентів</p>
+            )}
+          </Col>
+
+          {/* Сесії */}
+          <Col xs={24} md={12}>
+            <Typography.Title level={4} style={{ marginBottom: 16, fontWeight: 700 }}>
+              🗓️ Сесії
+            </Typography.Title>
+
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setIsModalOpen(true)}
+              block
+              style={{ marginBottom: 16 }}
+            >
+              Створити
+            </Button>
+
+            {sessionsLoading ? (
+              <Spin />
+            ) : sessions.length ? (
+              <div style={{ maxHeight: 400, overflowY: "auto", paddingRight: 4 }}>
+                <List
+                  split={false}
+                  dataSource={sessions}
+                  renderItem={(session) => (
+                    <List.Item
+                      style={{
+                        background: "#f6fafd",
+                        borderRadius: 12,
+                        marginBottom: 12,
+                        padding: "14px 18px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div>
+                        <b>{session.name}</b>
+                        <div style={{ fontSize: 13, color: "#64748b" }}>
+                          {dayjs.utc(session.startTime).format('DD.MM.YYYY HH:mm')} – {' '}
+                          {dayjs.utc(session.endTime).format('HH:mm')}
+                        </div>
+                      </div>
+                      <Button
+                        type="default"
+                        onClick={() => navigate(`/admin/session/${session.id}`)}
+                      >
+                        Відкрити
+                      </Button>
+                    </List.Item>
+                  )}
+                />
+              </div>
+            ) : (
+              <p style={{ color: "#888" }}>Сесій ще не створено</p>
+            )}
+          </Col>
+        </Row>
+      </Card>
     
         {/* ── Модал «додати студента» ─────────────────────────── */}
         <Modal
