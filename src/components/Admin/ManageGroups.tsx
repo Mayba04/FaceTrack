@@ -164,38 +164,48 @@ const ManageGroups: React.FC = () => {
     },
   ];
 
-  return (
-    <div
+ return (
+  <div
+    style={{
+      minHeight: "100vh",
+      padding: "48px 16px",
+      background: "linear-gradient(120deg,#e3f0ff 0%,#c6e6fb 100%)",
+    }}
+  >
+    <Card
       style={{
-        minHeight: "100vh",
-        padding: "48px 16px",
-        background: "linear-gradient(120deg,#e3f0ff 0%,#c6e6fb 100%)",
+        maxWidth: 1000,
+        width: "100%", // ← додаємо ширину для адаптивності
+        margin: "0 auto",
+        borderRadius: 24,
+        padding: "32px 28px",
+        boxShadow: "0 8px 24px rgba(30,64,175,0.12)",
       }}
     >
-      <Card
-        style={{
-          maxWidth: 1000,
-          margin: "0 auto",
-          borderRadius: 24,
-          padding: "32px 28px",
-          boxShadow: "0 8px 24px rgba(30,64,175,0.12)",
-        }}
-      >
-        <Title level={2} style={{ textAlign: "center", fontWeight: 800, marginBottom: 32 }}>
-          Керування групами
-        </Title>
+      <Title level={2} style={{ textAlign: "center", fontWeight: 800, marginBottom: 32 }}>
+        Керування групами
+      </Title>
 
-        <Space style={{ marginBottom: 24 }} wrap>
-          <Input placeholder="Назва групи" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
-          <Input placeholder="ПІБ викладача" value={groupTeacher} onChange={(e) => setGroupTeacher(e.target.value)} />
-          <Button type="primary" onClick={handleSearch} loading={groupLoading}>
-            Пошук
-          </Button>
-          <Button type="dashed" onClick={() => setIsAddVisible(true)}>
-            Створити групу
-          </Button>
-        </Space>
+      <Space style={{ marginBottom: 24 }} wrap>
+        <Input
+          placeholder="Назва групи"
+          value={groupName}
+          onChange={(e) => setGroupName(e.target.value)}
+        />
+        <Input
+          placeholder="ПІБ викладача"
+          value={groupTeacher}
+          onChange={(e) => setGroupTeacher(e.target.value)}
+        />
+        <Button type="primary" onClick={handleSearch} loading={groupLoading}>
+          Пошук
+        </Button>
+        <Button type="dashed" onClick={() => setIsAddVisible(true)}>
+          Створити групу
+        </Button>
+      </Space>
 
+      <div style={{ overflowX: "auto" }}>
         <Table
           columns={columns}
           dataSource={groups}
@@ -208,7 +218,8 @@ const ManageGroups: React.FC = () => {
             onChange: (p) => setPage(p),
           }}
         />
-      </Card>
+      </div>
+    </Card>
 
       <Modal title="Створити групу" open={isAddVisible} onCancel={() => setIsAddVisible(false)} onOk={handleCreate} okText="Створити">
         <Form form={addForm} layout="vertical">
