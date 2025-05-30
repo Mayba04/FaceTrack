@@ -211,7 +211,7 @@ const TeacherDashboard: React.FC = () => {
               }}
             >
               <Title level={4} style={{ marginBottom: 12 }}>
-                Календар найближчих сесій
+                Заплановані сесії
               </Title>
 
             

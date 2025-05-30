@@ -6,6 +6,8 @@ import { addNewUserAction, changeUserRoleAction, deleteUserAction, fetchFiltered
 import type { User } from "../../store/reducers/UserReducer/types";
 import { hasGroups } from "../../services/api-group-service";
 import { searchGroupsByNameAction } from "../../store/action-creators/groupActions";
+import { fetchUserDetails } from "../../services/api-user-service";
+import { APP_ENV } from "../../env";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -28,6 +30,9 @@ const ManageUsers: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [form] = Form.useForm();
+  const [userDetails, setUserDetails] = useState<User | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
 
   useEffect(() => {
     handleSearch();
@@ -85,6 +90,23 @@ const ManageUsers: React.FC = () => {
         return ["Admin", "Student", "Lecturer", "Moderator"];
     }
   };
+
+const handleShowDetails = async (userId: string) => {
+  try {
+    const response = await fetchUserDetails(userId);
+    const { success, message: msg, payload } = response as any;
+
+    if (!success) {
+      message.error(msg || "Не вдалося завантажити дані користувача");
+      return;
+    }
+
+    setUserDetails(payload);
+    setIsDetailsModalOpen(true);
+  } catch  {
+    message.error("Помилка при завантаженні користувача");
+  }
+};
 
   const handleEdit = (user: User) => {
     if (user.role === "Admin" && loggedInUser?.role !== "Admin") {
@@ -400,6 +422,10 @@ const ManageUsers: React.FC = () => {
         bordered
         scroll={{ x: 900 }} // щоб таблиця була скрольована на моб
         style={{ minWidth: 800 }}
+        onRow={(record) => ({
+          onClick: () => handleShowDetails(record.id),
+          style: { cursor: "pointer" }
+        })}
       />
     </div>
 
@@ -496,6 +522,48 @@ const ManageUsers: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+     <Modal
+      title="Деталі користувача"
+      open={isDetailsModalOpen}
+      onCancel={() => setIsDetailsModalOpen(false)}
+      footer={null}
+      centered
+    >
+      {userDetails ? (
+        <div style={{ lineHeight: 1.8 }}>
+          {/* Фото */}
+          {userDetails.mainPhotoFileName ? (
+            <img
+              src={`${APP_ENV.BASE_URL}/images/600_${userDetails.mainPhotoFileName}`}
+              //src={`https://facetrack.website/api/images/600_${userDetails.mainPhotoFileName}`}
+              alt="Головне фото"
+              style={{
+                width: "100%",
+                maxHeight: 300,
+                objectFit: "cover",
+                borderRadius: 12,
+                marginBottom: 16,
+              }}
+            />
+          ) : (
+            <p style={{ color: "#888" }}>Фото відсутнє</p>
+          )}
+
+          {/* Текстова інформація */}
+          <p><strong>Full Name:</strong> {userDetails.fullName}</p>
+          <p><strong>Email:</strong> {userDetails.email}</p>
+          <p><strong>Role:</strong> {userDetails.role}</p>
+          <p><strong>Status:</strong> {userDetails.lockoutEnabled ? "Blocked" : "Active"}</p>
+        </div>
+      ) : (
+        <p>Завантаження...</p>
+      )}
+    </Modal>
+
+
+
+
     </div>
   );
   

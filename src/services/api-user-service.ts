@@ -47,9 +47,23 @@ const User = {
       newPassword: string;
       confirmPassword: string;
     }) => requests.post("/user/reset-password", data),
-    validateResetToken: (email: string, token: string) => requests.get(`/user/validate-reset-token?email=${email}&token=${encodeURIComponent(token)}`)
-
+    validateResetToken: (email: string, token: string) => requests.get(`/user/validate-reset-token?email=${email}&token=${encodeURIComponent(token)}`),
+    getUserDetails: (id: string) => requests.get(`/user/${id}/details`),
 };
+
+export const fetchUserDetails = async (id: string) => {
+  try {
+    const response = await User.getUserDetails(id);
+    return response;
+  } catch (error: any) {
+    console.error("Помилка при отриманні деталей користувача:", error);
+    return {
+      success: false,
+      message: "Не вдалося завантажити інформацію про користувача",
+    };
+  }
+};
+
 
 export const validateResetToken = async (email: string, token: string) => {
   try {
