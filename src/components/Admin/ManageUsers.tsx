@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Input, Select, Button, Table, Typography,  Space, Modal,  Form, message, Card, Pagination} from "antd";
+import { Input, Select, Button, Table, Typography,  Space, Modal,  Form, message, Card, Pagination, Carousel} from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { addNewUserAction, changeUserRoleAction, deleteUserAction, fetchFilteredUsersAction, toggleBlockUserAction, updateUserAction} from "../../store/action-creators/userActions";
@@ -30,7 +30,7 @@ const ManageUsers: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [form] = Form.useForm();
-  const [userDetails, setUserDetails] = useState<User | null>(null);
+  const [userDetails, setUserDetails] = useState<any | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
 
@@ -524,42 +524,70 @@ const handleShowDetails = async (userId: string) => {
       </Modal>
 
      <Modal
-      title="Деталі користувача"
-      open={isDetailsModalOpen}
-      onCancel={() => setIsDetailsModalOpen(false)}
-      footer={null}
-      centered
-    >
-      {userDetails ? (
-        <div style={{ lineHeight: 1.8 }}>
-          {/* Фото */}
-          {userDetails.mainPhotoFileName ? (
-            <img
-              src={`${APP_ENV.BASE_URL}/images/600_${userDetails.mainPhotoFileName}`}
-              //src={`https://facetrack.website/api/images/600_${userDetails.mainPhotoFileName}`}
-              alt="Головне фото"
-              style={{
-                width: "100%",
-                maxHeight: 300,
-                objectFit: "cover",
-                borderRadius: 12,
-                marginBottom: 16,
-              }}
-            />
-          ) : (
-            <p style={{ color: "#888" }}>Фото відсутнє</p>
+        title="Деталі користувача"
+        open={isDetailsModalOpen}
+        onCancel={() => setIsDetailsModalOpen(false)}
+        footer={null}
+        centered
+      >
+        {userDetails ? (
+          <div style={{ lineHeight: 1.8 }}>
+            {/* Головне фото */}
+            {userDetails.mainPhotoFileName ? (
+              <img
+                src={`${APP_ENV.BASE_URL}/images/600_${userDetails.mainPhotoFileName}`}
+                alt="Головне фото"
+                style={{
+                  width: "100%",
+                  maxHeight: 300,
+                  objectFit: "cover",
+                  borderRadius: 12,
+                  marginBottom: 16,
+                }}
+              />
+            ) : (
+              <p style={{ color: "#888" }}>Фото відсутнє</p>
+            )}
+
+            {/* Основна текстова інформація */}
+            <p><strong>Full Name:</strong> {userDetails.fullName}</p>
+            <p><strong>Email:</strong> {userDetails.email}</p>
+            <p><strong>Role:</strong> {userDetails.role}</p>
+            <p><strong>Status:</strong> {userDetails.lockoutEnabled ? "Blocked" : "Active"}</p>
+
+            {/* Список всіх фото */}
+           {userDetails.photos?.length > 0 && (
+            <>
+              <h4 style={{ marginTop: 24 }}>Фотографії:</h4>
+                <Carousel arrows>
+                {userDetails.photos.map((photo: any) => (
+                  <div key={photo.id}>
+                    <img
+                      src={`${APP_ENV.BASE_URL}/images/600_${photo.fileName}`}
+                      alt={photo.description || "Фото"}
+                      style={{
+                        width: "100%",
+                        maxHeight: 300,
+                        objectFit: "cover",
+                        borderRadius: 12,
+                      }}
+                    />
+                    {photo.description && (
+                      <p style={{ textAlign: "center", marginTop: 8 }}>{photo.description}</p>
+                    )}
+                  </div>
+                ))}
+              </Carousel>
+
+            </>
           )}
 
-          {/* Текстова інформація */}
-          <p><strong>Full Name:</strong> {userDetails.fullName}</p>
-          <p><strong>Email:</strong> {userDetails.email}</p>
-          <p><strong>Role:</strong> {userDetails.role}</p>
-          <p><strong>Status:</strong> {userDetails.lockoutEnabled ? "Blocked" : "Active"}</p>
-        </div>
-      ) : (
-        <p>Завантаження...</p>
-      )}
-    </Modal>
+          </div>
+        ) : (
+          <p>Завантаження...</p>
+        )}
+      </Modal>
+
 
 
 

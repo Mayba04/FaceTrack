@@ -98,14 +98,24 @@ const TodaySessions: React.FC = () => {
           </div>
         ) : sessions.length ? (
           sessions.map((session) => {
-            const now = moment();
-            const startTime = moment(session.startTime);
+              const startTime = moment.utc(session.startTime); // UTC
+              const endTime = moment.utc(session.endTime);     // UTC
+              const now = moment.utc().add(3, 'hours');        // UTC + 3 години
+
+              const isUpcoming = now.isBefore(startTime);
+              const isActive = now.isBetween(startTime, endTime);
 
 
-            const isUpcoming = now.isBefore(startTime);
-            const isActive = moment().isBetween(session.startTime, session.endTime);
-            const alreadyMarked = marked[session.sessionId] || false;
-            const manualCheckPending = pendingManualChecks[session.sessionId] || false;
+              const alreadyMarked = marked[session.sessionId] || false;
+              const manualCheckPending = pendingManualChecks[session.sessionId] || false;
+
+              console.log({
+                now: now.format(),
+                startTime: startTime.format(),
+                endTime: endTime.format(),
+                isUpcoming,
+                isActive
+              });
 
             return (
               <div
