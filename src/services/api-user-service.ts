@@ -50,7 +50,42 @@ const User = {
     validateResetToken: (email: string, token: string) => requests.get(`/user/validate-reset-token?email=${email}&token=${encodeURIComponent(token)}`),
     getUserDetails: (id: string) => requests.get(`/user/${id}/details`),
     getUserDetail: (id: string) => requests.get(`/user/${id}/userdetail`),
+    setMainPhoto: (data: FormData) =>requests.post(`/user/main-photo`, data),
+    changePassword: (data: any) => requests.post("/user/changepassword", data),
+
 };
+
+
+export const changeUserPassword = async (data: any) => {
+  try {
+    const response = await User.changePassword(data);
+    return response;
+  } catch (error: any) {
+    console.error("Помилка при зміні пароля:", error);
+    return {
+      success: false,
+      message: "Не вдалося змінити пароль",
+    };
+  }
+};
+
+export const setMainPhoto = async (userId: string, file: File) => {
+  const formData = new FormData();
+  formData.append("UserId", userId);
+  formData.append("Photo", file);
+
+  try {
+    const response = await User.setMainPhoto(formData);
+    return response;
+  } catch (error: any) {
+    console.error("Помилка при зміні фото:", error);
+    return {
+      success: false,
+      message: "Не вдалося змінити фото",
+    };
+  }
+};
+
 
 export const fetchUserDetail = async (id: string) => {
   try {

@@ -3,10 +3,13 @@ import { DashboardOutlined, UserOutlined, LogoutOutlined, TeamOutlined } from "@
 import { NavLink } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../store/action-creators/userActions";
+import UserProfileModal from "../modals/UserProfileModal";
+import { useState } from "react";
 
 const AdminNavbar: React.FC = () => {
     const dispatch = useDispatch();
-
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    
     const items = [
         {
           key: "1",
@@ -35,6 +38,11 @@ const AdminNavbar: React.FC = () => {
             </NavLink>
           ),
         },
+         {
+            key: "profile",
+            icon: <UserOutlined style={{ fontSize: "18px" }} />,
+            label: <span style={{ fontSize: "18px", cursor: "pointer" }} onClick={() => setIsProfileOpen(true)}>Профіль</span>,
+        },
         {
           key: "4",
           icon: <LogoutOutlined style={{ fontSize: "18px" }} />,
@@ -51,6 +59,7 @@ const AdminNavbar: React.FC = () => {
       ];
 
     return (
+      <>
         <Menu
             theme="dark"
             mode="horizontal"
@@ -63,6 +72,8 @@ const AdminNavbar: React.FC = () => {
                 alignItems: "center",
             }}
         />
+        <UserProfileModal open={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      </>
     );
 };
 

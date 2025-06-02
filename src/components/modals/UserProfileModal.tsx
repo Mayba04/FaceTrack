@@ -1,9 +1,10 @@
-import { Modal, Button, Input, message } from "antd";
+import { Modal, Button, Input, message, Form } from "antd";
 import { useEffect, useState } from "react";
-import { fetchUserDetail } from "../../services/api-user-service";
+import { changeUserPassword, fetchUserDetail, setMainPhoto } from "../../services/api-user-service";
 import { APP_ENV } from "../../env";
 import { RootState } from "../../store";
 import { useSelector } from "react-redux";
+import { LockOutlined } from "@ant-design/icons";
 
 interface Props {
   open: boolean;
@@ -13,9 +14,8 @@ interface Props {
 const UserProfileModal: React.FC<Props> = ({ open, onClose }) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const userId = useSelector((state: RootState) => state.UserReducer.loggedInUser?.id);
+  const [form] = Form.useForm();
 
   useEffect(() => {
     const loadUser = async () => {
@@ -38,29 +38,59 @@ const UserProfileModal: React.FC<Props> = ({ open, onClose }) => {
       } else {
         setUser(null);
         setLoading(true);
-        setNewPassword("");
-        setConfirmPassword("");
+        form.resetFields();
       }
     };
 
     loadUser();
   }, [open, userId]);
 
-  const handlePasswordChange = async () => {
+  const handlePasswordChange = async (values: any) => {
+    const { currentPassword, newPassword, confirmPassword } = values;
+
     if (newPassword !== confirmPassword) {
       message.error("Паролі не співпадають");
       return;
     }
 
-    // TODO: реалізуй запит на бекенд
-    message.success("Пароль успішно змінено");
-    setNewPassword("");
-    setConfirmPassword("");
+    const data = {
+      userId,
+      currentPassword,
+      newPassword,
+      confirmNewPassword: confirmPassword,
+    };
+
+    const response = await changeUserPassword(data);
+    const { success, message: msg } = response as any;
+
+    if (success) {
+      message.success(msg);
+      form.resetFields();
+    } else {
+      message.error(msg || "Не вдалося змінити пароль");
+    }
   };
 
-  const handleChangePhoto = () => {
-    // TODO: відкриття модалки/вибір фото/виклик API
-    message.info("Функціонал зміни фото ще не реалізовано");
+  const handleChangePhoto = async () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file || !userId) return;
+
+      const response = await setMainPhoto(userId, file);
+      const { success, message: msg, payload } = response as any;
+      if (success) {
+        message.success(msg);
+        setUser(payload);
+      } else {
+        message.error(msg || "Не вдалося оновити фото");
+      }
+    };
+
+    input.click();
   };
 
   return (
@@ -71,6 +101,11 @@ const UserProfileModal: React.FC<Props> = ({ open, onClose }) => {
       footer={null}
       centered
       width={700}
+      bodyStyle={{
+        maxHeight: "70vh",
+        overflowY: "auto",
+        padding: "24px 32px",
+      }}
     >
       {loading ? (
         <p>Завантаження...</p>
@@ -82,18 +117,19 @@ const UserProfileModal: React.FC<Props> = ({ open, onClose }) => {
               src={`${APP_ENV.BASE_URL}/images/600_${user.mainPhotoFileName}`}
               alt="Головне фото"
               style={{
-                width: 120,
-                height: 120,
+                width: 100,
+                height: 100,
                 objectFit: "cover",
                 borderRadius: "50%",
                 marginBottom: 8,
+                boxShadow: "0 0 8px rgba(0,0,0,0.1)",
               }}
             />
           ) : (
             <div
               style={{
-                width: 120,
-                height: 120,
+                width: 100,
+                height: 100,
                 borderRadius: "50%",
                 backgroundColor: "#eee",
                 marginBottom: 8,
@@ -101,61 +137,157 @@ const UserProfileModal: React.FC<Props> = ({ open, onClose }) => {
                 alignItems: "center",
                 justifyContent: "center",
                 color: "#888",
+                fontSize: 14,
               }}
             >
-              Фото відсутнє
+              Фото
             </div>
           )}
-          <Button size="small" onClick={handleChangePhoto} style={{ marginBottom: 16 }}>
+          <Button size="small" onClick={handleChangePhoto} style={{ marginBottom: 12 }}>
             {user.mainPhotoFileName ? "Змінити фото" : "Додати фото"}
           </Button>
 
-          {/* ПІБ */}
-          <h2 style={{ marginBottom: 24 }}>{user.fullName}</h2>
+          <h2 style={{ marginBottom: 16, fontSize: 20 }}>{user.fullName}</h2>
 
           {/* Інформація */}
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
-              gap: "16px 40px",
+              gap: "12px 32px",
               width: "100%",
               maxWidth: 600,
-              marginBottom: 32,
+              marginBottom: 24,
+              fontSize: 14,
             }}
           >
             <div>
-              <strong>Email Address:</strong>
+              <strong>Email:</strong>
               <p style={{ margin: 0 }}>{user.email}</p>
             </div>
             <div>
-              <strong>Role:</strong>
+              <strong>Роль:</strong>
               <p style={{ margin: 0 }}>{user.role}</p>
             </div>
             <div>
-              <strong>Status:</strong>
+              <strong>Статус:</strong>
               <p style={{ margin: 0 }}>{user.lockoutEnabled ? "Blocked" : "Active"}</p>
             </div>
           </div>
 
           {/* Зміна пароля */}
-          <div style={{ width: "100%", maxWidth: 400 }}>
-            <h3>Змінити пароль</h3>
-            <Input.Password
-              placeholder="Новий пароль"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              style={{ marginBottom: 12 }}
-            />
-            <Input.Password
-              placeholder="Підтвердження пароля"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              style={{ marginBottom: 12 }}
-            />
-            <Button type="primary" block onClick={handlePasswordChange}>
-              Змінити пароль
-            </Button>
+          <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+            <div
+              style={{
+                width: "100%",
+                maxWidth: 420,
+                padding: 20,
+                borderRadius: 12,
+                background: "#fff",
+              }}
+            >
+              <h3
+                style={{
+                  marginBottom: 20,
+                  textAlign: "center",
+                  fontWeight: 600,
+                  fontSize: 16,
+                  color: "#222",
+                }}
+              >
+                Змінити пароль
+              </h3>
+
+              <Form layout="vertical" onFinish={handlePasswordChange} form={form}>
+                <Form.Item
+                  name="currentPassword"
+                  label="Поточний пароль"
+                  rules={[{ required: true, message: "Введіть поточний пароль" }]}
+                  hasFeedback
+                >
+                  <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder="Поточний пароль"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="newPassword"
+                  label="Новий пароль"
+                  rules={[
+                    { required: true, message: "Введіть новий пароль" },
+                    { min: 6, message: "Мінімум 6 символів" },
+                    {
+                      validator: (_, value) =>
+                        /[A-Z]/.test(value)
+                          ? Promise.resolve()
+                          : Promise.reject("Має бути велика літера"),
+                    },
+                    {
+                      validator: (_, value) =>
+                        /[a-z]/.test(value)
+                          ? Promise.resolve()
+                          : Promise.reject("Має бути мала літера"),
+                    },
+                    {
+                      validator: (_, value) =>
+                        /\d/.test(value)
+                          ? Promise.resolve()
+                          : Promise.reject("Має бути цифра"),
+                    },
+                    {
+                      validator: (_, value) =>
+                        /[!@#$%^&*()_\-+=.,:;?]/.test(value)
+                          ? Promise.resolve()
+                          : Promise.reject("Має бути спецсимвол"),
+                    },
+                  ]}
+                  hasFeedback
+                >
+                  <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder="Новий пароль"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="confirmPassword"
+                  label="Підтвердження пароля"
+                  dependencies={["newPassword"]}
+                  hasFeedback
+                  rules={[
+                    { required: true, message: "Підтвердіть пароль" },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        if (!value || getFieldValue("newPassword") === value)
+                          return Promise.resolve();
+                        return Promise.reject("Паролі не співпадають");
+                      },
+                    }),
+                  ]}
+                >
+                  <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder="Підтвердження пароля"
+                  />
+                </Form.Item>
+
+                <Form.Item style={{ marginTop: 16 }}>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    block
+                    size="middle"
+                    style={{
+                      borderRadius: 6,
+                      fontWeight: 500,
+                    }}
+                  >
+                    Змінити пароль
+                  </Button>
+                </Form.Item>
+              </Form>
+            </div>
           </div>
         </div>
       ) : (

@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../store/action-creators/userActions";
 import { useState } from "react";
-import UserProfileModal from "../modals/UserProfileModal.tsx"; // Створи окремий компонент
+import UserProfileModal from "../modals/UserProfileModal.tsx"; 
 
 const StudentNavbar: React.FC = () => {
   const dispatch = useDispatch();
