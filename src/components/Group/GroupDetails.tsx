@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 const { Title } = Typography;
 import "./GroupDetails.css";
 import { deleteStudentFromGroup } from "../../services/api-group-service";
+import { fetchFilteredStudents } from "../../services/api-user-service";
 
 const GroupDetails: React.FC = () => {
     const { groupId } = useParams<{ groupId: string }>();
@@ -27,11 +28,15 @@ const GroupDetails: React.FC = () => {
     const user = useSelector((state: RootState) => state.UserReducer.user);
     
     const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-    const [email, setEmail] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
     const [endTime, setEndTime] = useState<dayjs.Dayjs | null>(null);
     const [name, setName] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+
 
     useEffect(() => {
       if (!groupId) return;
@@ -40,6 +45,40 @@ const GroupDetails: React.FC = () => {
       dispatch(fetchStudentByGroupIdAction(groupId as any));
     }, [groupId, dispatch]);
   
+  useEffect(() => {
+    if (isEmailModalOpen) {
+      setPage(1);
+      setSearchResults([]);
+      setHasMore(true);
+      loadStudents(1, "");
+    }
+  }, [isEmailModalOpen]);
+
+
+   const loadStudents = async (pageNumber = 1, query = searchQuery) => {
+    const res: any = await fetchFilteredStudents({
+      fullName: query,
+      groupId: +groupId!,
+      pageNumber,
+      pageSize: 10,
+    });
+
+    if (res.success) {
+      setSearchResults(prev => {
+        const ids = new Set(prev.map(s => s.id));        
+        const fresh = res.payload.filter((s: any) => !ids.has(s.id)); 
+        return [...prev, ...fresh];
+      });
+
+      setHasMore(res.payload.length === 10 && res.payload.some((s: any) => !searchResults.find(p => p.id === s.id)));
+    } else {
+      message.error(res.message || "Помилка завантаження студентів");
+      setHasMore(false);
+    }
+  };
+
+
+
     const showModal = (session?: any) => {
       setIsModalOpen(true);
       if (session) {
@@ -92,20 +131,20 @@ const GroupDetails: React.FC = () => {
       }
     };
 
-    const handleAddStudent = async () => {
-      if (!groupId || !email) return;
-      const res: any = await dispatch(
-        addStudentToGroupAction(email, +groupId),
-      );
-      if (res?.success) {
-        dispatch(fetchStudentByGroupIdAction(+groupId));
-        message.success("Студента додано!");
-        setEmail("");
-        setIsEmailModalOpen(false);
-      } else {
-        message.error(res?.message || "Помилка додавання студента");
-      }
-    };
+    const handleAddStudent = async (emailToAdd: string) => {
+    if (!groupId || !emailToAdd) return;
+    const res: any = await dispatch(addStudentToGroupAction(emailToAdd, +groupId));
+
+    if (res?.success) {
+      dispatch(fetchStudentByGroupIdAction(+groupId));
+      message.success("Студента додано!");
+      setSearchQuery("");
+      setSearchResults([]);
+      setIsEmailModalOpen(false);
+    } else {
+      message.error(res?.message || "Помилка додавання студента");
+    }
+  };
 
     if (loading) {
         return (
@@ -232,21 +271,81 @@ const GroupDetails: React.FC = () => {
           </Card>
     
           {/* ───── Модальні вікна ───── */}
-          <Modal
-            title="Додати студента"
-            open={isEmailModalOpen}
-            onCancel={() => setIsEmailModalOpen(false)}
-            onOk={handleAddStudent}
-            okText="Додати"
-            cancelText="Скасувати"
-            centered
-          >
-            <Input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email студента"
-            />
-          </Modal>
+        {/* ───── Модалка «Додати студента» ───── */}
+      <Modal
+        title="Додати студента"
+        open={isEmailModalOpen}
+        onCancel={() => {
+          setIsEmailModalOpen(false);
+          setSearchQuery("");
+          setSearchResults([]);
+        }}
+        footer={null}
+        centered
+      >
+        {/* ─── Пошук ─── */}
+        <Input
+          value={searchQuery}
+          placeholder="Email або повне ім’я студента"
+          allowClear
+          onChange={e => {
+            const value = e.target.value;
+            setSearchQuery(value);
+            setPage(1);
+            setSearchResults([]);
+            setHasMore(true);          // ← скинули прапорець
+            loadStudents(1, value.trim());
+          }}
+
+          style={{ marginBottom: 8 }}
+        />
+
+        {/* ─── Список + скрол ─── */}
+        <div style={{ maxHeight: 400, overflowY: "auto" }}>
+          <List
+            dataSource={searchResults}
+            renderItem={(student) => (
+              <List.Item
+                key={student.id}
+                actions={[
+                  <Button
+                    key="add"
+                    type="primary"
+                    disabled={student.isInGroup}
+                    onClick={() => handleAddStudent(student.email)}
+                  >
+                    {student.isInGroup ? "У групі" : "Додати"}
+                  </Button>,
+                ]}
+              >
+                <List.Item.Meta
+                  title={student.fullName}
+                  description={student.email}
+                />
+              </List.Item>
+            )}
+          />
+
+          {/* ─── Пагінація ─── */}
+          {hasMore || page > 1 ? (               /* показуємо тільки якщо є що гортати */
+            <>
+              <Divider style={{ margin: "8px 0" }} />
+              <Button
+                block
+                onClick={() => {
+                  const next = page + 1;
+                  setPage(next);
+                  loadStudents(next, searchQuery.trim());
+                }}
+                disabled={!hasMore}
+              >
+                {hasMore ? "Завантажити ще" : "Усі завантажено"}
+              </Button>
+            </>
+          ) : null}
+        </div>
+      </Modal>
+
     
           <Modal
             title="Створити сесію"

@@ -52,7 +52,21 @@ const User = {
     getUserDetail: (id: string) => requests.get(`/user/${id}/userdetail`),
     setMainPhoto: (data: FormData) =>requests.post(`/user/main-photo`, data),
     changePassword: (data: any) => requests.post("/user/changepassword", data),
+    getFilteredStudents: (data: any) => requests.post("/user/filter-students", data),
 
+};
+
+export const fetchFilteredStudents = async (filter: any) => {
+  try {
+    const response = await User.getFilteredStudents(filter);
+    return response;
+  } catch (error: any) {
+    console.error("Помилка при фільтрації студентів:", error);
+    return {
+      success: false,
+      message: "Не вдалося завантажити студентів",
+    };
+  }
 };
 
 
