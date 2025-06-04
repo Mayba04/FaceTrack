@@ -1,8 +1,8 @@
 export interface Session {
     id: string;
     groupId: string;
-    startTime?: Date | null;
-    endTime?: Date | null;
+    startTime?: string | null;
+    endTime?: string | null;
     createdBy: string;
     userId: string;
     name?: string;

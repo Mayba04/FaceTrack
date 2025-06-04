@@ -54,8 +54,8 @@ const SessionReducer = (state = initialState, action: SessionActions): SessionSt
                         session.id === action.payload.id
                             ? { 
                                 ...session, 
-                                startTime: action.payload.startTime ? new Date(action.payload.startTime) : null,
-                                endTime: action.payload.endTime ? new Date(action.payload.endTime) : null
+                                startTime: action.payload.startTime ?? null,
+                                endTime: action.payload.endTime ?? null
                               }
                             : session
                     ),

@@ -44,7 +44,9 @@ import { format, parse, startOfWeek, getDay } from "date-fns";
 import { uk } from "date-fns/locale";
 import { deleteSessionHistory, updateSessionHistoryDate } from "../../services/api-attendance-service";
 import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const locales = {
     uk: uk,
@@ -160,7 +162,7 @@ const handleEdit = () => {
   };
 
   // часи
- setStartTime(asLocal(mainSession.startTime));
+  setStartTime(asLocal(mainSession.startTime));
   setEndTime  (asLocal(mainSession.endTime));
   // setStartTime(dayjs.utc(mainSession.startTime).format('DD.MM.YYYY HH:mm'));
   // setEndTime  ((mainSession.endTime));
@@ -171,15 +173,23 @@ const handleEdit = () => {
 
   const handleSave = async () => {
     if (!startTime || !endTime || !mainSession) return;
+      //const userTZ = dayjs.tz.guess();
     const payload = {
       id: String(mainSession.id),
       groupId: Number(mainSession.groupId),
-      startTime: startTime.toDate().toISOString(),
-      endTime: endTime.toDate().toISOString(),
+      // startTime: startTime.toDate().toISOString(),
+      // endTime: endTime.toDate().toISOString(),
+      // startTime: startTime.tz(userTZ).format(), // ISO зі зсувом
+      // endTime: endTime.tz(userTZ).format(),
+      //  startTime: startTime.utc().toISOString(), // ← змінено
+      // endTime: endTime.utc().toISOString(),     // ← змінено
+      startTime: startTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z', // ← без Z і без +03:00
+      endTime: endTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       createdBy: mainSession.createdBy,
       userId: mainSession.userId,
       name,
     };
+    console.log(payload)
     await dispatch(updateSessionAction(payload) as any);
     await dispatch(GetSessionByIdAction(Number(sessionId)) as any);
     message.success("Сесію оновлено");
