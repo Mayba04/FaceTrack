@@ -132,7 +132,7 @@ const events = plannedSessions.map((ps: any) => {
 
   return {
     id: ps.id,
-    title: `${ps.sessionName}  🕓 ${ps.startTime}–${ps.endTime}`,
+    title: <span className="notranslate">{ps.sessionName}  🕓 {ps.startTime} — {ps.endTime}</span>,
     start,
     end,
   };
@@ -157,7 +157,6 @@ const handleEdit = () => {
     // рядок → забираємо Z → парсимо як локальний
     if (typeof iso === 'string') return dayjs(iso.replace(/Z$/, ''));
 
-    // Date → просто dayjs(date)
     return dayjs(iso);
   };
 
@@ -173,17 +172,10 @@ const handleEdit = () => {
 
   const handleSave = async () => {
     if (!startTime || !endTime || !mainSession) return;
-      //const userTZ = dayjs.tz.guess();
     const payload = {
       id: String(mainSession.id),
       groupId: Number(mainSession.groupId),
-      // startTime: startTime.toDate().toISOString(),
-      // endTime: endTime.toDate().toISOString(),
-      // startTime: startTime.tz(userTZ).format(), // ISO зі зсувом
-      // endTime: endTime.tz(userTZ).format(),
-      //  startTime: startTime.utc().toISOString(), // ← змінено
-      // endTime: endTime.utc().toISOString(),     // ← змінено
-      startTime: startTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z', // ← без Z і без +03:00
+      startTime: startTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z', 
       endTime: endTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       createdBy: mainSession.createdBy,
       userId: mainSession.userId,
@@ -259,7 +251,6 @@ const handleEdit = () => {
 
   const res = await dispatch(updatePlannedSessionAction(payload) as any);
   if (!res.success) return message.error(res.message);
-  message.success("Сесію оновлено");
   setSelectedEvent(null);
 
   if (mainSession?.id) {
@@ -324,11 +315,11 @@ const handleDeletePlannedSession = async () => {
       }}
     >
       <Title level={3} style={{ color: "#1976d2", fontWeight: 800 }}>
-        Сесія: {mainSession.name}
+        Сесія: <span className="notranslate">{mainSession.name}</span>
       </Title>
       <p>
         <UserOutlined style={{ marginRight: 8, color: "#1976d2" }} />
-        Група: <b>{groupName}</b>
+        Група: <b className="notranslate">{groupName}</b>
       </p>
       <p>
         <ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
@@ -336,7 +327,7 @@ const handleDeletePlannedSession = async () => {
         {dayjs.utc(mainSession.endTime).format('HH:mm')}
       </p>
       <p>
-        Створив: <b>{mainSession.createdBy}</b>
+        Створив: <b className="notranslate">{mainSession.createdBy}</b>
       </p>
 
       <div
@@ -411,7 +402,7 @@ const handleDeletePlannedSession = async () => {
       
 
 
-      <Modal title="Редагування сесії" open={editOpen} onCancel={() => setEditOpen(false)} onOk={handleSave}>
+      <Modal title="Редагування сесії" open={editOpen} onCancel={() => setEditOpen(false)} onOk={handleSave}  okText="Зберегти" cancelText="Скасувати" >
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -472,7 +463,7 @@ const handleDeletePlannedSession = async () => {
                       }}
                       onClick={() => handleImageClick(`${APP_ENV.BASE_URL}/images/600_${item.photoFileName}`)}
                     />
-                    <span style={{ wordBreak: "break-all" }}>
+                    <span style={{ wordBreak: "break-all" } }  className="notranslate" > 
                       {item.name || item.studentId}
                     </span>
                   </div>
@@ -534,13 +525,16 @@ const handleDeletePlannedSession = async () => {
               dataIndex: "fullName",
               key: "fullName",
               fixed: "left",
+              render: (text: string) => (
+              <span className="notranslate">{text}</span>
+              ),
             },
             ...matrix.sessions.map(session => ({
                title: (
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex",  justifyContent: "center", alignItems: "center", gap: 8 }}>
                   <Tooltip title="Редагувати дату">
                     <span
-                      style={{ cursor: "pointer", textDecoration: "underline" }}
+                      style={{ cursor: "pointer", textDecoration: "underline"  }}
                       onClick={() => {
                         setEditSessionHistoryId(session.id);
                         setEditDate(dayjs(session.startTime));

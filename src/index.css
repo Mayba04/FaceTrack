@@ -1,0 +1,21 @@
+iframe.skiptranslate,
+.VIpgJd-ZVi9od-ORHb-OEVmcd.skiptranslate,
+.VIpgJd-ZVi9od-aZ2wEe-OiiCO.VIpgJd-ZVi9od-aZ2wEe-OiiCO-ti6hGc,
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+body {
+  top: 0 !important;
+}
+
+/* вимикаємо тултІпи / балуни */
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+}
+
+/* ховаємо логотип Google внизу сторінки (про всяк випадок) */
+.goog-logo-link,
+.goog-te-gadget span {
+  display: none !important;
+}

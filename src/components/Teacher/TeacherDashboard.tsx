@@ -114,7 +114,7 @@ const TeacherDashboard: React.FC = () => {
 
     return {
       id: ps.id,
-      title: `${ps.sessionName} 🕓 ${ps.startTime}–${ps.endTime}`,
+      title: <span className="notranslate">{ps.sessionName} 🕓 {ps.startTime} — {ps.endTime}</span>,
       start,
       end,
       sessionId: ps.sessionId
@@ -195,7 +195,7 @@ const TeacherDashboard: React.FC = () => {
               </Col>
             </Row>
     
-            {/* --- Найближчі сесії (заглушка) --- */}
+            {/* --- Найближчі сесії  --- */}
             <Divider orientation="left">
               <ClockCircleOutlined style={{ marginRight: 8, color: "#1976d2" }} />
               Найближчі сесії
@@ -280,7 +280,7 @@ const TeacherDashboard: React.FC = () => {
                   size="small"
                   style={{ marginBottom: 16, borderRadius: 12 }}
                   title={
-                    <span>
+                    <span className="notranslate">
                       <BookOutlined style={{ marginRight: 6, color: "#1976d2" }} />
                       {session.name}
                     </span>
@@ -288,7 +288,7 @@ const TeacherDashboard: React.FC = () => {
                 >
                   <p>
                     <TeamOutlined style={{ marginRight: 6 }} />
-                    Група: <b>{session.groupName}</b>
+                    Група: <b className="notranslate">{session.groupName}</b>
                   </p>
                   <p>
                     <ClockCircleOutlined style={{ marginRight: 6 }} />

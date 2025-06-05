@@ -147,7 +147,7 @@ const UserProfileModal: React.FC<Props> = ({ open, onClose }) => {
             {user.mainPhotoFileName ? "Змінити фото" : "Додати фото"}
           </Button>
 
-          <h2 style={{ marginBottom: 16, fontSize: 20 }}>{user.fullName}</h2>
+          <h2 style={{ marginBottom: 16, fontSize: 20 }} className="notranslate">{user.fullName}</h2>
 
           {/* Інформація */}
           <div
@@ -163,7 +163,7 @@ const UserProfileModal: React.FC<Props> = ({ open, onClose }) => {
           >
             <div>
               <strong>Email:</strong>
-              <p style={{ margin: 0 }}>{user.email}</p>
+              <p style={{ margin: 0 }} className="notranslate">{user.email}</p>
             </div>
             <div>
               <strong>Роль:</strong>

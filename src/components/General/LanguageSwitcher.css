@@ -1,0 +1,10 @@
+.lang-current {
+  color: #fff;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+}
+
+.ant-dropdown-menu-item-selected {
+  font-weight: 600;
+}

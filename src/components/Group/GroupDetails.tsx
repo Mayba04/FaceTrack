@@ -95,7 +95,7 @@ const GroupDetails: React.FC = () => {
 
     const handleCreateSession = async () => {
       if (!groupId || !user?.fullName || !startTime || !endTime) {
-        message.warning("Please fill all fields.");
+        message.warning("Будь ласка, заповніть усі поля");
         return;}
 
       if (!groupId || !startTime || !endTime || !name) {
@@ -106,8 +106,8 @@ const GroupDetails: React.FC = () => {
       const newSession = {
         id: 0,
         groupId: Number(groupId),
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
+        startTime: startTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z', 
+        endTime: endTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z',
         createdBy: `${user?.fullName} ${groupDetails?.name}`,
         userId: user.id,
         name: name
@@ -165,7 +165,7 @@ const GroupDetails: React.FC = () => {
         <div className="group-page">
           <Card className="group-card">
             <Title level={2} style={{ textAlign: "center", fontWeight: 800 }}>
-              Деталі групи: {groupDetails.name}
+              Деталі групи: <span className="notranslate">{groupDetails.name}</span>
             </Title>
             <p style={{ textAlign: "center", marginBottom: 32 }}>
               Кількість студентів:&nbsp;
@@ -200,8 +200,8 @@ const GroupDetails: React.FC = () => {
                         renderItem={(s) => (
                           <List.Item className="group-list-item">
                             <div style={{ marginInline: 12 }}>
-                              <b>{s.fullName}</b>
-                              <div className="item-sub">{s.email}</div>
+                              <b className="notranslate">{s.fullName}</b>
+                              <div className="item-sub notranslate">{s.email}</div>
                             </div>
                            <Button
                             danger
@@ -247,7 +247,7 @@ const GroupDetails: React.FC = () => {
                       renderItem={(session) => (
                         <List.Item className="group-list-item space-between">
                           <div style={{ marginInline: 12 }}>
-                            <b>{session.name}</b>
+                            <b className="notranslate">{session.name}</b>
                             <div className="item-sub">
                               {dayjs.utc(session.startTime).format('DD.MM.YYYY HH:mm')} – {' '}
                               {dayjs.utc(session.endTime).format('HH:mm')}

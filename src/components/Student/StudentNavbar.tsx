@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { logout } from "../../store/action-creators/userActions";
 import { useState } from "react";
 import UserProfileModal from "../modals/UserProfileModal.tsx"; 
+import GoogleTranslate from "../General/GoogleTranslate.tsx";
 
 const StudentNavbar: React.FC = () => {
   const dispatch = useDispatch();
@@ -27,6 +28,7 @@ const StudentNavbar: React.FC = () => {
       label: <span style={{ fontSize: "18px", cursor: "pointer" }} onClick={() => dispatch(logout() as any)}>Logout</span>,
       style: { marginLeft: "auto" },
     },
+    
   ];
 
   return (
@@ -44,6 +46,9 @@ const StudentNavbar: React.FC = () => {
         }}
       />
       <UserProfileModal open={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}>
+        <GoogleTranslate />
+      </div>
     </>
   );
 };

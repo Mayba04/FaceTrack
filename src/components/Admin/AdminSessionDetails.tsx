@@ -98,8 +98,8 @@ const AdminSessionDetails: React.FC = () => {
     const payload = {
       id: String(session.id),
       groupId: Number(session.groupId),
-      startTime: startTime.toDate().toISOString(),
-      endTime: endTime.toDate().toISOString(),
+      startTime: startTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z', 
+      endTime: endTime.format('YYYY-MM-DDTHH:mm:ss') + 'Z',
       createdBy: session.createdBy,
       userId: session.userId,
       name,

@@ -33,24 +33,24 @@ const TeacherGroups: React.FC = () => {
 
   const handleCreateOrUpdateGroup = async () => {
     if (!newGroupName.trim()) {
-      message.warning("Please enter a group name.");
+      message.warning("Будь ласка, введіть назву групи");
       return;
     }
 
     try {
       if (editingGroup) {
         await dispatch(updateGroupAction(editingGroup.id, newGroupName, teacherId!));
-        message.success("Group updated successfully!");
+        message.success("Групу успішно оновлено!");
       } else {
         await dispatch(createGroupAction(newGroupName, teacherId!));
-        message.success("Group created successfully!");
+        message.success("Групу успішно створено!");
       }
       setIsModalOpen(false);
       setNewGroupName("");
       setEditingGroup(null);
       dispatch(fetchGroupsAction(teacherId as any));
     } catch {
-      message.error("An error occurred.");
+      message.error("Сталася помилка.");
     }
   };
 
@@ -63,10 +63,10 @@ const TeacherGroups: React.FC = () => {
   const handleDelete = async (groupId: number) => {
     try {
         await dispatch(deleteGroupAction(groupId));
-        message.success("Group deleted successfully!");
+        message.success("Групу успішно видалено!");
     } catch (error) {
         console.error("Failed to delete group: ", error);
-        message.error("Failed to delete group.");
+        message.error("Не вдалося видалити групу.");
     }
 };
 
@@ -105,7 +105,7 @@ const TeacherGroups: React.FC = () => {
             letterSpacing: 1.1,
           }}
         >
-          My Groups
+          Мої групи
         </Title>
 
         <Button
@@ -124,7 +124,7 @@ const TeacherGroups: React.FC = () => {
             fontSize: 16,
           }}
         >
-          Create New Group
+          Створити нову групу
         </Button>
 
         {paginatedGroups.map((group) => (
@@ -150,21 +150,21 @@ const TeacherGroups: React.FC = () => {
               }}
               onClick={() => navigate(`/group/${group.id}`)}
             >
-              {group.name}
+              <span className="notranslate">{group.name}</span>
             </div>
 
             <div style={{ display: "flex", gap: 10 }}>
               <Button icon={<EditOutlined />} onClick={() => handleEdit(group)}>
-                Edit
+                Редагувати
               </Button>
               <Popconfirm
-                title="Are you sure to delete this group?"
+                title="Ви впевнені, що хочете видалити цю групу?"
                 onConfirm={() => handleDelete(group.id)}
-                okText="Yes"
-                cancelText="No"
+                okText="Так"
+                cancelText="Ні"
               >
                 <Button icon={<DeleteOutlined />} danger>
-                  Delete
+                  Видалити
                 </Button>
               </Popconfirm>
             </div>
@@ -190,16 +190,16 @@ const TeacherGroups: React.FC = () => {
       </div>
 
       <Modal
-        title={editingGroup ? "Edit Group" : "Create Group"}
+        title={editingGroup ? "Редагувати групу" : "Створити групу"}
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         onOk={handleCreateOrUpdateGroup}
-        okText={editingGroup ? "Update" : "Create"}
-        cancelText="Cancel"
+        okText={editingGroup ? "Оновити" : "Створити"}
+        cancelText="Скасувати"
         centered
       >
         <Input
-          placeholder="Enter group name"
+          placeholder="Введіть назву групи"
           value={newGroupName}
           onChange={(e) => setNewGroupName(e.target.value)}
         />
