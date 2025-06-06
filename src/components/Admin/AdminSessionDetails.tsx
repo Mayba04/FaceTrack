@@ -4,6 +4,7 @@ import {
   Typography,
   Spin,
   Table,
+  message,
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
@@ -46,6 +47,7 @@ const AdminSessionDetails: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const dispatch = useDispatch();
   const session = useSelector((state: RootState) => state.SessionReducer.session);
+  const mainSession = useSelector((state: RootState) => state.SessionReducer.session);
   const { matrix, loading } = useSelector((state: RootState) => state.AttendanceReducer);
   const groups = useSelector((state: RootState) => state.GroupReducer.groups);
   const plannedSessions = useSelector((state: RootState) => state.PlannedSessionReducer.sessions);
@@ -55,13 +57,20 @@ const AdminSessionDetails: React.FC = () => {
   const [name, setName] = useState("");
   const [startTime, setStartTime] = useState<Dayjs | null>(null);
   const [endTime, setEndTime] = useState<Dayjs | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
   if (session?.id) {
     dispatch(fetchPlannedSessionsBySessionIdAction(Number(session.id)) as any);
   }
-}, [session?.id]);
+}, [session?.id])
 
+  useEffect(() => {
+    if (mainSession?.id) {
+      dispatch(fetchPlannedSessionsBySessionIdAction(Number(mainSession.id)) as any);
+    }
+   }, [mainSession?.id]);
+  
 
   useEffect(() => {
     if (sessionId) {
@@ -73,7 +82,7 @@ const AdminSessionDetails: React.FC = () => {
     if (session?.id) {
       dispatch(fetchAttendanceMatrixBySessionAction(Number(session.id)) as any);
     }
-  }, [session?.id, dispatch]);
+  }, [session, dispatch]);
 
   const handleEdit = () => {
     if (!session) return;
@@ -107,6 +116,8 @@ const AdminSessionDetails: React.FC = () => {
   
     await dispatch(updateSessionAction(payload) as any);
     await dispatch(GetSessionByIdAction(Number(session.id)) as any);
+    setRefreshKey((k) => k + 1); // 🚀 змінюємо ключ — буде ререндер
+    message.success("Сесію оновлено");
     setEditOpen(false);
   };
 
@@ -123,7 +134,7 @@ const AdminSessionDetails: React.FC = () => {
 
     return {
       id: ps.id,
-      title: `${ps.sessionName} 🕓 ${ps.startTime}–${ps.endTime}`,
+      title: `${ps.sessionName} 🕓 ${ps.startTime} — ${ps.endTime}`,
       start,
       end,
     };
@@ -169,7 +180,7 @@ const AdminSessionDetails: React.FC = () => {
   if (!session) return <Spin style={{ marginTop: 64 }} size="large" />;
 
   return (
-    <div
+    <div  key={refreshKey}
     style={{
         minHeight: "100vh",
         background: "linear-gradient(to right, #f0f4ff, #e2ecf9)",
@@ -192,7 +203,7 @@ const AdminSessionDetails: React.FC = () => {
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
           <Title level={3} style={{ margin: 0, color: "#1976d2", fontWeight: 700 }}>
-            Сесія: {session.name}
+            Сесія: <span className="notranslate">{session.name}</span>
           </Title>
           <div style={{ display: "flex", gap: 8 }}>
             <Tooltip title="Редагувати сесію">
@@ -204,13 +215,13 @@ const AdminSessionDetails: React.FC = () => {
           </div>
         </div>
   
-        <p><b>Група:</b> {groupName}</p>
+        <p><b>Група:</b> <span className="notranslate">{groupName}</span></p>
         <p>
           <b>Дата:</b>{" "}
           {dayjs.utc(session.startTime).format('DD.MM.YYYY HH:mm')} –{' '}
           {dayjs.utc(session.endTime).format('HH:mm')}
         </p>
-        <p><b>Створив:</b> {session.createdBy}</p>
+        <p><b>Створив:</b><span className="notranslate">{session.createdBy}</span></p>
   
       <div style={{ marginTop: 32 }}>
         {loading ? (
@@ -231,7 +242,7 @@ const AdminSessionDetails: React.FC = () => {
                   key: "fullName",
                   fixed: "left",
                   render: (text: string) => (
-                    <span style={{ fontWeight: 500 }}>{text}</span>
+                    <span style={{ fontWeight: 500 }} className="notranslate">{text}</span>
                   ),
                 },
                 ...matrix.sessions.map((s) => ({

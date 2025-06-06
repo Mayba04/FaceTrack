@@ -157,7 +157,7 @@ const GroupDetails: React.FC = () => {
     if (!groupDetails)
       return (
         <Title level={3} style={{ textAlign: "center", marginTop: 32 }}>
-          Group not found
+          Групу не знайдено
         </Title>
       );
   

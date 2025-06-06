@@ -282,28 +282,46 @@ const handleShowDetails = async (userId: string) => {
 
   const columns = [
     {
-      title: "Full Name",
+      title: "ПІБ",
       dataIndex: "fullName",
       key: "fullName",
+       render: (_: string, record: User) => (
+        <span
+          className="notranslate"
+          style={{ cursor: "pointer", textDecoration: "underline" }}
+          onClick={() => handleShowDetails(record.id)}
+        >
+          {record.fullName}
+        </span>
+      ),
     },
     {
       title: "Email",
       dataIndex: "email",
       key: "email",
+       render: (_: string, record: User) => (
+        <span
+          className="notranslate"
+          style={{ cursor: "pointer", textDecoration: "underline" }}
+          onClick={() => handleShowDetails(record.id)}
+        >
+          {record.email}
+        </span>
+      ),
     },
     {
-      title: "Role",
+      title: "Роль",
       dataIndex: "role",
       key: "role",
-      render: (role: string) => role || "—",
+      render: (role: string) => <span className="notranslate">{role}</span>,
     },
     {
-      title: "Status",
+      title: "Статус",
       dataIndex: "lockoutEnabled",
       key: "lockoutEnabled",
       render: (_: any, record: User) => (
         <Space>
-          {record.lockoutEnabled ? "Blocked" : "Active"}
+          {record.lockoutEnabled ? "Заблоковано" : "Активний"}
           {record.id !== loggedInUser?.id &&
             (
               (loggedInUser?.role === "Admin" && record.role !== "Admin") ||
@@ -314,21 +332,21 @@ const handleShowDetails = async (userId: string) => {
                 danger={record.lockoutEnabled}
                 onClick={() => handleToggleBlock(record)}
               >
-                {record.lockoutEnabled ? "Unblock" : "Block"}
+                {record.lockoutEnabled ? "Розблокувати" : "Блокувати"}
               </Button>
           )}
         </Space>
       ),
     },
     {
-      title: "Actions",
+      title: "Дії",
       key: "actions",
       render: (_: any, record: User) => (
         <Space>
         {(loggedInUser?.role === "Admin" && record.role !== "Admin") ||
             (loggedInUser?.role === "Moderator" && !["Admin", "Moderator"].includes(record.role)) ? (
               <Button type="link" onClick={() => handleEdit(record)}>
-                Edit
+                Редагувати
               </Button>
           ) : null
         }
@@ -338,7 +356,7 @@ const handleShowDetails = async (userId: string) => {
             (loggedInUser?.role === "Moderator" && !["Admin", "Moderator"].includes(record.role))
           ) && (
             <Button type="link" danger onClick={() => handleDelete(record.id)}>
-              Delete
+              Видалити
             </Button>
         )}
         </Space>
@@ -382,10 +400,10 @@ const handleShowDetails = async (userId: string) => {
         style={{ width: 160 }}
         onChange={(value) => setRole(value)}
       >
-        <Option value="Admin">Admin</Option>
-        <Option value="Student">Student</Option>
-        <Option value="Lecturer">Lecturer</Option>
-        <Option value="Moderator">Moderator</Option>
+        <Option className="notranslate" value="Admin">Admin</Option>
+        <Option className="notranslate" value="Student">Student</Option>
+        <Option className="notranslate" value="Lecturer">Lecturer</Option>
+        <Option className="notranslate" value="Moderator">Moderator</Option>
       </Select>
       <Select
         showSearch
@@ -399,7 +417,7 @@ const handleShowDetails = async (userId: string) => {
       >
         {groupOptions.map((group) => (
           <Option key={group.id} value={group.id}>
-            {group.name}
+            <span className="notranslate">{group.name}</span>
           </Option>
         ))}
       </Select>
@@ -420,12 +438,8 @@ const handleShowDetails = async (userId: string) => {
         loading={loading}
         pagination={false}
         bordered
-        scroll={{ x: 900 }} // щоб таблиця була скрольована на моб
+        scroll={{ x: 900 }} 
         style={{ minWidth: 800 }}
-        onRow={(record) => ({
-          onClick: () => handleShowDetails(record.id),
-          style: { cursor: "pointer" }
-        })}
       />
     </div>
 
@@ -452,7 +466,7 @@ const handleShowDetails = async (userId: string) => {
         centered
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="fullName" label="Full Name" rules={[{ required: true }]}>
+          <Form.Item name="fullName" label="ПІБ" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
   
@@ -460,12 +474,12 @@ const handleShowDetails = async (userId: string) => {
             <Input disabled />
           </Form.Item>
   
-          <Form.Item name="role" label="Role" rules={[{ required: true }]}>
+          <Form.Item name="role" label="Роль" rules={[{ required: true }]}>
             <Select>
               {selectedUser &&
                 getAllowedRoles(selectedUser.role).map((r) => (
                   <Option key={r} value={r}>
-                    {r}
+                    <span className="notranslate">{r}</span>
                   </Option>
                 ))}
             </Select>
@@ -514,10 +528,10 @@ const handleShowDetails = async (userId: string) => {
             rules={[{ required: true, message: "Оберіть роль" }]}
           >
             <Select placeholder="Оберіть роль">
-              <Option value="Student">Student</Option>
-              <Option value="Lecturer">Lecturer</Option>
-              <Option value="Moderator">Moderator</Option>
-              {loggedInUser?.role === "Admin" && <Option value="Admin">Admin</Option>}
+              <Option  className="notranslate" value="Student">Student</Option>
+              <Option  className="notranslate" value="Lecturer">Lecturer</Option>
+              <Option  className="notranslate" value="Moderator">Moderator</Option>
+              {loggedInUser?.role === "Admin" && <Option className="notranslate" value="Admin">Admin</Option>}
             </Select>
           </Form.Item>
         </Form>
@@ -550,10 +564,10 @@ const handleShowDetails = async (userId: string) => {
             )}
 
             {/* Основна текстова інформація */}
-            <p><strong>Full Name:</strong> {userDetails.fullName}</p>
-            <p><strong>Email:</strong> {userDetails.email}</p>
-            <p><strong>Role:</strong> {userDetails.role}</p>
-            <p><strong>Status:</strong> {userDetails.lockoutEnabled ? "Blocked" : "Active"}</p>
+            <p><strong>ПІБ:</strong> <span className="notranslate">{userDetails.fullName}</span></p>
+            <p><strong>Email:</strong> <span className="notranslate">{userDetails.email}</span></p>
+            <p><strong>Роль:</strong> <span className="notranslate">{userDetails.role}</span></p>
+            <p><strong>Статус:</strong> <span className="notranslate">{userDetails.lockoutEnabled ? "Blocked" : "Active"}</span></p>
 
             {/* Список всіх фото */}
            {userDetails.photos?.length > 0 && (

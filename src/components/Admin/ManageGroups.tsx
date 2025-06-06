@@ -13,7 +13,7 @@ import { GroupActionTypes, type Group } from "../../store/reducers/GroupReducer/
 import { User } from "../../store/reducers/UserReducer/types";
 import { fetchLecturersAction } from "../../store/action-creators/userActions";
 import { useNavigate } from "react-router-dom";
-
+import type { ColumnsType } from 'antd/es/table';
 const { Title } = Typography;
 
 const ManageGroups: React.FC = () => {
@@ -64,7 +64,7 @@ const ManageGroups: React.FC = () => {
       const result: any = await dispatch(fetchLecturersAction(name));
       setTeacherOptions(result?.success ? result.payload : []);
     } catch (err) {
-      console.error("Search error:", err);
+      console.error("Помилка пошуку:", err);
       setTeacherOptions([]);
     }
   };
@@ -116,7 +116,7 @@ const ManageGroups: React.FC = () => {
       const { name, teacherId } = values;
       const res = await dispatch(createGroupAction(name, teacherId));
       if (res?.success !== false) {
-        message.success("Group created");
+        message.success("Групу створено");
         setIsAddVisible(false);
         addForm.resetFields();
         handleSearch();
@@ -126,9 +126,9 @@ const ManageGroups: React.FC = () => {
 
   const handleDelete = (id: number) => {
     Modal.confirm({
-      title: "Delete group?",
-      okText: "Yes",
-      cancelText: "Cancel",
+      title: "Видалити групу?",
+      okText: "Так",
+      cancelText: "Скасувати",
       onOk: async () => {
         await dispatch(deleteGroupAction(id));
         handleSearch();
@@ -141,24 +141,39 @@ const ManageGroups: React.FC = () => {
     dispatch({ type: GroupActionTypes.END_REQUEST });
   };
 
-  const columns = [
+  const columns: ColumnsType<Group> = [
     {
-      title: "Group",
+      title: "Група",
       dataIndex: "name",
       key: "name",
+      align: 'center' ,
       render: (_: string, record: Group) => (
-        <a onClick={() => navigate(`/admin/groups/${record.id}`)}>{record.name}</a>
+        <a onClick={() => navigate(`/admin/groups/${record.id}`)}  className="notranslate">{record.name}</a>
       ),
     },
-    { title: "Teacher", dataIndex: "teacherName", key: "teacherName" },
-    { title: "Students", dataIndex: "studentsCount", key: "studentsCount" },
+    { 
+      title: "Викладач", 
+      dataIndex: "teacherName", 
+      key: "teacherName",
+      align: 'center' ,
+      render: (text: string) => (
+        <span className="notranslate">{text}</span>
+      ),
+    },
+    { 
+      title: "Студенти",
+      dataIndex: "studentsCount",
+      key: "studentsCount",
+      align: 'center' ,
+    },
     {
-      title: "Actions",
+      title: "Дії",
       key: "actions",
+      align: 'center' ,
       render: (_: any, record: Group) => (
         <Space>
-          <Button type="link" onClick={() => handleEdit(record)}>Edit</Button>
-          <Button type="link" danger onClick={() => handleDelete(record.id)}>Delete</Button>
+          <Button type="link" onClick={() => handleEdit(record)}>Редагувати</Button>
+          <Button type="link" danger onClick={() => handleDelete(record.id)}>Видалити</Button>
         </Space>
       ),
     },
@@ -215,6 +230,7 @@ const ManageGroups: React.FC = () => {
             current: currentPage,
             pageSize: pageSize,
             total: totalCount,
+            position: ['bottomCenter'],
             onChange: (p) => setPage(p),
           }}
         />
@@ -238,7 +254,7 @@ const ManageGroups: React.FC = () => {
             >
               {teacherOptions.map((t) => (
                 <Select.Option key={t.id} value={t.id} label={t.fullName}>
-                  {t.fullName}
+                  <span className="notranslate">{t.fullName}</span>
                 </Select.Option>
               ))}
             </Select>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, Button, Typography, Spin, List, Modal, message, Input, DatePicker, Row, Col } from "antd";
+import { Card, Button, Typography, Spin, List, Modal, message, Input, DatePicker, Row, Col, Divider } from "antd";
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
@@ -9,6 +9,7 @@ import { fetchStudentByGroupIdAction, addStudentToGroupAction } from "../../stor
 import { createSessionAction, fetchSessionsAction } from "../../store/action-creators/sessionAction";
 import dayjs from "dayjs";
 import { deleteStudentFromGroup } from "../../services/api-group-service";
+import { fetchFilteredStudents } from "../../services/api-user-service";
 
 const { Title } = Typography;
 
@@ -27,11 +28,14 @@ const GroupDetailsAdmin: React.FC = () => {
   const user = useSelector((state: RootState) => state.UserReducer.user);
 
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [email, setEmail] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
   const [endTime, setEndTime] = useState<dayjs.Dayjs | null>(null);
   const [name, setName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
   useEffect(() => {
     if (!groupId) return;
@@ -40,6 +44,37 @@ const GroupDetailsAdmin: React.FC = () => {
     dispatch(fetchStudentByGroupIdAction(groupId));
   }, [groupId, dispatch]);
 
+  useEffect(() => {
+  if (isEmailModalOpen) {
+    setPage(1);
+    setSearchResults([]);
+    setHasMore(true);
+    loadStudents(1, "");
+  }
+}, [isEmailModalOpen]);
+
+
+  const loadStudents = async (pageNumber = 1, query = searchQuery) => {
+  const res: any = await fetchFilteredStudents({
+    fullName: query,
+    groupId: +groupId!,
+    pageNumber,
+    pageSize: 10,
+  });
+
+  if (res.success) {
+    setSearchResults(prev => {
+      const ids = new Set(prev.map(s => s.id));
+      const fresh = res.payload.filter((s: any) => !ids.has(s.id));
+      return [...prev, ...fresh];
+    });
+
+    setHasMore(res.payload.length === 10 && res.payload.some((s: any) => !searchResults.find(p => p.id === s.id)));
+  } else {
+    message.error(res.message || "Помилка завантаження студентів");
+    setHasMore(false);
+  }
+};
   const handleCreateSession = async () => {
     if (!groupId || !user?.fullName || !startTime || !endTime || !name) {
       message.warning("Заповніть усі поля");
@@ -65,13 +100,14 @@ const GroupDetailsAdmin: React.FC = () => {
     setName("");
   };
 
-  const handleAddStudent = async () => {
-    if (!groupId || !email) return;
-    const res: any = await dispatch(addStudentToGroupAction(email, groupId));
+  const handleAddStudent = async (emailToAdd: string) => {
+    if (!groupId || !emailToAdd) return;
+    const res: any = await dispatch(addStudentToGroupAction(emailToAdd, groupId));
     if (res?.success) {
       dispatch(fetchStudentByGroupIdAction(groupId));
       message.success("Студента додано!");
-      setEmail("");
+      setSearchQuery("");
+      setSearchResults([]);
       setIsEmailModalOpen(false);
     } else {
       message.error(res?.message || "Помилка додавання студента");
@@ -131,7 +167,7 @@ const GroupDetailsAdmin: React.FC = () => {
         }}
       >
         <Title level={2} style={{ textAlign: "center", fontWeight: 800, marginBottom: 0 }}>
-          {groupDetails.name} — Деталі
+          Деталі групи: <span className="notranslate">{groupDetails.name}</span>
         </Title>
         <p style={{ textAlign: "center", marginBottom: 32 }}>
           Кількість студентів:&nbsp;
@@ -172,8 +208,8 @@ const GroupDetailsAdmin: React.FC = () => {
                       }}
                     >
                       <div>
-                        <b>{s.fullName}</b>
-                        <div style={{ fontSize: 13, color: "#64748b" }}>{s.email}</div>
+                        <b className="notranslate">{s.fullName}</b>
+                        <div style={{ fontSize: 13, color: "#64748b" }} className="notranslate">{s.email}</div>
                       </div>
                       <Button
                         danger
@@ -228,7 +264,7 @@ const GroupDetailsAdmin: React.FC = () => {
                       }}
                     >
                       <div>
-                        <b>{session.name}</b>
+                        <b className="notranslate" >{session.name}</b>
                         <div style={{ fontSize: 13, color: "#64748b" }}>
                           {dayjs.utc(session.startTime).format('DD.MM.YYYY HH:mm')} – {' '}
                           {dayjs.utc(session.endTime).format('HH:mm')}
@@ -255,17 +291,72 @@ const GroupDetailsAdmin: React.FC = () => {
         <Modal
           title="Додати студента"
           open={isEmailModalOpen}
-          onCancel={() => setIsEmailModalOpen(false)}
-          onOk={handleAddStudent}
-          okText="Додати"
-          cancelText="Скасувати"
+          onCancel={() => {
+            setIsEmailModalOpen(false);
+            setSearchQuery("");
+            setSearchResults([]);
+          }}
+          footer={null}
           centered
         >
           <Input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email студента"
+            value={searchQuery}
+            placeholder="Email або повне ім’я студента"
+            allowClear
+            onChange={e => {
+              const value = e.target.value;
+              setSearchQuery(value);
+              setPage(1);
+              setSearchResults([]);
+              setHasMore(true);
+              loadStudents(1, value.trim());
+            }}
+            style={{ marginBottom: 8 }}
           />
+
+          <div style={{ maxHeight: 400, overflowY: "auto" }}>
+            <List
+              dataSource={searchResults}
+              renderItem={(student) => (
+                <List.Item
+                  key={student.id}
+                  actions={[
+                    <Button
+                      key="add"
+                      type="primary"
+                      disabled={student.isInGroup}
+                      onClick={() => handleAddStudent(student.email)}
+                    >
+                      {student.isInGroup ? "У групі" : "Додати"}
+                    </Button>,
+                  ]}
+                >
+                  <List.Item.Meta
+                    className="notranslate"
+                    title={student.fullName}
+                    description={student.email}
+                  />
+                </List.Item>
+              )}
+            />
+
+            {hasMore || page > 1 ? (
+              <>
+                <Divider style={{ margin: "8px 0" }} />
+                <Button
+                  block
+                  onClick={() => {
+                    const next = page + 1;
+                    setPage(next);
+                    loadStudents(next, searchQuery.trim());
+                  }}
+                  disabled={!hasMore}
+                >
+                  {hasMore ? "Завантажити ще" : "Усі завантажено"}
+                </Button>
+              </>
+            ) : null}
+          </div>
         </Modal>
     
         {/* ── Модал «створити сесію» ──────────────────────────── */}

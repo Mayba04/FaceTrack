@@ -290,8 +290,8 @@ const handleCreateSession = async () => {
               <Paragraph strong>
                 <SmileOutlined style={{ color: "green" }} /> Найкраща сесія
               </Paragraph>
-              <Paragraph>📚 <b>{attendanceAnalytics.bestSession.subject}</b></Paragraph>
-              <Paragraph>👥 Група: {attendanceAnalytics.bestSession.group}</Paragraph>
+              <Paragraph>📚 <b className="notranslate" >{attendanceAnalytics.bestSession.subject}</b></Paragraph>
+              <Paragraph>👥 Група: <span className="notranslate">{attendanceAnalytics.bestSession.group}</span></Paragraph>
               <Paragraph>📊 Відвідуваність: {attendanceAnalytics.bestSession.rate}%</Paragraph>
             </Card>
           </Col>
@@ -300,8 +300,8 @@ const handleCreateSession = async () => {
               <Paragraph strong>
                 <FrownOutlined style={{ color: "red" }} /> Найгірша сесія
               </Paragraph>
-              <Paragraph>📚 <b>{attendanceAnalytics.worstSession.subject}</b></Paragraph>
-              <Paragraph>👥 Група: {attendanceAnalytics.worstSession.group}</Paragraph>
+              <Paragraph>📚 <b className="notranslate" >{attendanceAnalytics.worstSession.subject}</b></Paragraph>
+              <Paragraph>👥 Група: <span className="notranslate">{attendanceAnalytics.worstSession.group}</span></Paragraph>
               <Paragraph>📉 Відвідуваність: {attendanceAnalytics.worstSession.rate}%</Paragraph>
             </Card>
           </Col>
@@ -326,7 +326,7 @@ const handleCreateSession = async () => {
             <Input />
           </Form.Item>
           <Form.Item name="teacherId" label="Викладач" rules={[{ required: true }]}>
-            <Select
+            <Select           
               showSearch
               placeholder="Пошук за ПІБ"
               filterOption={false}
@@ -336,8 +336,8 @@ const handleCreateSession = async () => {
               onKeyDown={(e) => e.stopPropagation()}
             >
               {teacherOptions.map((t) => (
-                <Select.Option key={t.id} value={t.id} label={t.fullName}>
-                  {t.fullName}
+                <Select.Option  key={t.id} value={t.id} label={t.fullName}>
+                  <span className="notranslate">{t.fullName}</span>
                 </Select.Option>
               ))}
             </Select>
@@ -358,10 +358,10 @@ const handleCreateSession = async () => {
               showSearch
               placeholder="Пошук групи"
               filterOption={(input, option) =>
-                (option?.label as string).toLowerCase().includes(input.toLowerCase())
+                (option?.label as any).toLowerCase().includes(input.toLowerCase())
               }
               options={groups.map((g) => ({
-                label: g.name,
+                label: <span className="notranslate">{g.name}</span>,
                 value: g.id,
               }))}
             />
@@ -423,11 +423,11 @@ const handleCreateSession = async () => {
           rules={[{ required: true, message: "Оберіть роль" }]}
         >
           <Select placeholder="Оберіть роль">
-            <Select.Option value="Student">Student</Select.Option>
-            <Select.Option value="Lecturer">Lecturer</Select.Option>
-            <Select.Option value="Moderator">Moderator</Select.Option>
+            <Select.Option className="notranslate" value="Student">Student</Select.Option>
+            <Select.Option className="notranslate" value="Lecturer">Lecturer</Select.Option>
+            <Select.Option className="notranslate" value="Moderator">Moderator</Select.Option>
             {useSelector((state: RootState) => state.UserReducer.loggedInUser?.role) === "Admin" && (
-              <Select.Option value="Admin">Admin</Select.Option>
+              <Select.Option className="notranslate" value="Admin">Admin</Select.Option>
             )}
           </Select>
         </Form.Item>

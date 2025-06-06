@@ -47,7 +47,7 @@ const LanguageSwitcher = () => {
           onClick={onClick}
           selectable
           defaultSelectedKeys={[active]}
-          className="notranslate"       /* ↤ і тут */
+          className="notranslate"       
         />
       }
       trigger={["click"]}

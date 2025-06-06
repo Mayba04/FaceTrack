@@ -125,7 +125,7 @@ export const GetSessionByIdAction = (sessionId: number) => {
       try {
         const response = await getSessionById(sessionId);
         const { success, payload, message: errorMsg } = response as any;
-  
+        console.log(payload)
         if (success) {
           dispatch({
             type: SessionActionTypes.FETCH_SESSION_SUCCESS,
