@@ -548,20 +548,36 @@ const handleShowDetails = async (userId: string) => {
           <div style={{ lineHeight: 1.8 }}>
             {/* Головне фото */}
             {userDetails.mainPhotoFileName ? (
-              <img
-                src={`${APP_ENV.BASE_URL}/images/600_${userDetails.mainPhotoFileName}`}
-                alt="Головне фото"
-                style={{
-                  width: "100%",
-                  maxHeight: 300,
-                  objectFit: "cover",
-                  borderRadius: 12,
-                  marginBottom: 16,
-                }}
-              />
-            ) : (
-              <p style={{ color: "#888" }}>Фото відсутнє</p>
-            )}
+            <img
+              src={`${APP_ENV.BASE_URL}/images/600_${userDetails.mainPhotoFileName}`}
+              alt="Головне фото"
+              style={{
+                width: 100,
+                height: 100,
+                objectFit: "cover",
+                borderRadius: "50%",
+                marginBottom: 8,
+                boxShadow: "0 0 8px rgba(0,0,0,0.1)",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 100,
+                height: 100,
+                borderRadius: "50%",
+                backgroundColor: "#eee",
+                marginBottom: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#888",
+                fontSize: 14,
+              }}
+            >
+              Фото
+            </div>
+          )}
 
             {/* Основна текстова інформація */}
             <p><strong>ПІБ:</strong> <span className="notranslate">{userDetails.fullName}</span></p>

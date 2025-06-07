@@ -60,7 +60,14 @@ const AdminNavbar: React.FC = () => {
         theme="dark"
         mode="horizontal"
         items={items}
-        style={{ height: 60, padding: "0 24px" }}
+        style={{
+          fontSize: "18px",
+          padding: "12px 24px",
+          height: "60px",
+          display: "flex",
+          alignItems: "center",
+        }}
+
       />
 
       <GoogleTranslate />

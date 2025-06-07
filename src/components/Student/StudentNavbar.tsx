@@ -6,29 +6,42 @@ import { logout } from "../../store/action-creators/userActions";
 import { useState } from "react";
 import UserProfileModal from "../modals/UserProfileModal.tsx"; 
 import GoogleTranslate from "../General/GoogleTranslate.tsx";
+import LanguageSwitcher from "../General/LanguageSwitcher.tsx";
 
 const StudentNavbar: React.FC = () => {
   const dispatch = useDispatch();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const items = [
     {
-      key: "1",
-      icon: <ReadOutlined style={{ fontSize: "18px" }} />,
-      label: <NavLink to="/student" style={{ fontSize: "18px" }}>Student Dashboard</NavLink>,
+      key: "dash",
+      icon: <ReadOutlined style={{ fontSize: 18 }} />,
+      label: <NavLink to="/student">Панель студента</NavLink>,
     },
     {
       key: "profile",
-      icon: <UserOutlined style={{ fontSize: "18px" }} />,
-      label: <span style={{ fontSize: "18px", cursor: "pointer" }} onClick={() => setIsProfileOpen(true)}>Профіль</span>,
+      icon: <UserOutlined style={{ fontSize: 18 }} />,
+      label: (
+        <span style={{ cursor: "pointer" }} onClick={() => setProfileOpen(true)}>
+          Профіль
+        </span>
+      ),
     },
     {
-      key: "2",
-      icon: <LogoutOutlined style={{ fontSize: "18px" }} />,
-      label: <span style={{ fontSize: "18px", cursor: "pointer" }} onClick={() => dispatch(logout() as any)}>Logout</span>,
+      key: "logout",
+      icon: <LogoutOutlined style={{ fontSize: 18 }} />,
       style: { marginLeft: "auto" },
+      label: (
+        <span style={{ cursor: "pointer" }} onClick={() => dispatch(logout() as any)}>
+          Вийти
+        </span>
+      ),
     },
-    
+    {
+      key: "lang",
+      label: <LanguageSwitcher />,
+      style: { marginLeft: 24 },
+    },
   ];
 
   return (
@@ -45,7 +58,7 @@ const StudentNavbar: React.FC = () => {
           alignItems: "center",
         }}
       />
-      <UserProfileModal open={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      <UserProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
       <div style={{ position: "absolute", top: 10, right: 10, zIndex: 1000 }}>
         <GoogleTranslate />
       </div>

@@ -137,7 +137,7 @@ const StudentAttendanceHistory: React.FC = () => {
                     <div style={{ display: "flex", alignItems: "center" }}>
                     <BookOutlined style={{ marginRight: 6, color: "#1976d2" }} />
                     Сесія:{" "}
-                    <span style={{ color: "#3b2fc0", fontWeight: 700, marginLeft: 4 }}>
+                    <span style={{ color: "#3b2fc0", fontWeight: 700, marginLeft: 4 }} className="notranslate">
                         {session.name}
                     </span>
                     </div>
@@ -145,7 +145,7 @@ const StudentAttendanceHistory: React.FC = () => {
                     <div style={{ display: "flex", alignItems: "center" }}>
                     <UserOutlined style={{ marginRight: 6, color: "#1976d2" }} />
                     Група:{" "}
-                    <span style={{ color: "#3b2fc0", fontWeight: 700, marginLeft: 4 }}>
+                    <span style={{ color: "#3b2fc0", fontWeight: 700, marginLeft: 4 }} className="notranslate">
                         {group?.name || "—"}
                     </span>
                     </div>
@@ -155,7 +155,7 @@ const StudentAttendanceHistory: React.FC = () => {
                     <CloseCircleOutlined style={{ marginRight: 6, color: "#ff4d4f" }} />
                     Пропущено:{" "}
                     <span style={{ fontWeight: 600, marginLeft: 4 }}>
-                        {stat?.missed ?? "—"} н-ок
+                        {stat?.missed ?? "—"}
                     </span>
                     </div>
 

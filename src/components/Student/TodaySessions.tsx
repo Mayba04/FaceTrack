@@ -146,7 +146,7 @@ const TodaySessions: React.FC = () => {
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <UserOutlined style={{ marginRight: 7, color: "#1976d2" }} />
                     Група:{" "}
-                    <span style={{ color: "#3b2fc0", fontWeight: 700, marginLeft: 4 }}>
+                    <span style={{ color: "#3b2fc0", fontWeight: 700, marginLeft: 4 }} className="notranslate">
                       {session.groupName}
                     </span>
                   </div>
@@ -154,7 +154,7 @@ const TodaySessions: React.FC = () => {
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <BookOutlined style={{ marginRight: 7, color: "#1976d2" }} />
                     Сесія:{" "}
-                    <span style={{ color: "#3b2fc0", fontWeight: 700, marginLeft: 4 }}>
+                    <span style={{ color: "#3b2fc0", fontWeight: 700, marginLeft: 4 }} className="notranslate">
                       {session.name}
                     </span>
                   </div>
