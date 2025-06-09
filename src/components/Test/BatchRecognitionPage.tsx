@@ -17,6 +17,7 @@ const { Title } = Typography;
 
 const BatchRecognitionPage: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [count, setCount] = useState<number>(5);
   const [userId, setUserId] = useState<string>("");
@@ -52,6 +53,14 @@ const BatchRecognitionPage: React.FC = () => {
     } catch {
       message.error("Не вдалося зробити знімок");
     }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    const limitedFiles = files.slice(0, count - shots.length);
+    setShots((prev) => [...prev, ...limitedFiles]);
+    e.target.value = "";
   };
 
   const handleSendBatch = async () => {
@@ -108,6 +117,17 @@ const BatchRecognitionPage: React.FC = () => {
               <Button onClick={handleTakePhoto} disabled={shots.length >= count || loading}>
                 📸 Зробити фото {shots.length}/{count}
               </Button>
+              <Button onClick={() => fileInputRef.current?.click()} disabled={shots.length >= count || loading}>
+                📁 Завантажити фото
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={handleFileUpload}
+              />
               <Button
                 type="primary"
                 onClick={handleSendBatch}
@@ -121,46 +141,46 @@ const BatchRecognitionPage: React.FC = () => {
         </Col>
 
         <Col xs={24} lg={12}>
-        <Card title="Результати" bodyStyle={{ padding: 0 }}>
+          <Card title="Результати" bodyStyle={{ padding: 0 }}>
             <div style={{ maxHeight: "70vh", overflowY: "auto", padding: 16 }}>
-                {stats && (
+              {stats && (
                 <div style={{ marginBottom: 16 }}>
-                    <Row gutter={16}>
+                  <Row gutter={16}>
                     <Col span={12}><Statistic title="Всього фото" value={stats.total} /></Col>
                     <Col span={12}><Statistic title="Співпадінь (Matched)" value={stats.matched} /></Col>
                     <Col span={12}><Statistic title="Нові вектори" value={stats.newVectors} /></Col>
                     <Col span={12}><Statistic title="Без обличчя" value={stats.noFaceDetected} /></Col>
                     <Col span={12}><Statistic title="Без ембеддингу" value={stats.noEmbedding} /></Col>
                     <Col span={12}><Statistic title="Точність (%)" value={`${stats.accuracy}%`} /></Col>
-                    </Row>
+                  </Row>
                 </div>
-                )}
-                <List
+              )}
+              <List
+                grid={{ gutter: 12, column: 3 }}
                 dataSource={results}
                 locale={{ emptyText: "Немає результатів" }}
                 renderItem={(item: any) => {
-                    const b64 = item.imageBase64 ?? item.ImageBase64;
-                    const src = b64?.startsWith("data:image") ? b64 : `data:image/jpeg;base64,${b64}`;
-                    return (
+                  const b64 = item.imageBase64 ?? item.ImageBase64;
+                  const src = b64?.startsWith("data:image") ? b64 : `data:image/jpeg;base64,${b64}`;
+                  return (
                     <List.Item>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <Card bodyStyle={{ padding: 8, textAlign: "center" }}>
                         {b64 ? (
-                            <img src={src} alt="face" width={80} style={{ borderRadius: 4 }} />
+                          <img src={src} alt="face" width={80} style={{ borderRadius: 4 }} />
                         ) : (
-                            <div style={{ width: 80, textAlign: "center" }}>—</div>
+                          <div style={{ width: 80, textAlign: "center" }}>—</div>
                         )}
-                        <div>
-                            <b>{item.status ?? item.Status}</b>
-                            {item.fullName && ` — ${item.fullName}`}
+                        <div style={{ marginTop: 8 }}>
+                          <b>{item.status ?? item.Status}</b>
+                          {item.fullName && ` — ${item.fullName}`}
                         </div>
-                        </div>
+                      </Card>
                     </List.Item>
-                    );
+                  );
                 }}
-                />
+              />
             </div>
-            </Card>
-
+          </Card>
         </Col>
       </Row>
     </div>

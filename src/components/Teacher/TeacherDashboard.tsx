@@ -18,7 +18,7 @@ import {
   UsergroupAddOutlined,
   BarChartOutlined,
 } from "@ant-design/icons";
-import moment from "moment";
+import dayjs from "dayjs";  
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../store";
@@ -292,8 +292,9 @@ const TeacherDashboard: React.FC = () => {
                   </p>
                   <p>
                     <ClockCircleOutlined style={{ marginRight: 6 }} />
-                    Час: {moment(session.startTime).format("HH:mm")} –{" "}
-                    {moment(session.endTime).format("HH:mm")}
+                    Час: 
+                      {dayjs.utc(session.startTime).format('DD.MM.YYYY HH:mm')} – {' '}
+                      {dayjs.utc(session.endTime).format('HH:mm')}
                   </p>
                   <Button
                     type="primary"

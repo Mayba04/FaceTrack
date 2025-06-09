@@ -94,23 +94,23 @@ const AdminDashboard: React.FC = () => {
       }
 
       // 2. Статистика системи
-      const { success1, payload1 } = systemRes as any;
-      if (success1) {
+      const { success: sysSuccess, payload: sysPayload } = systemRes as any;
+      if (sysSuccess) {
         setStats((p) => ({
           ...p,
-          groups: payload1.groups,
-          sessions: payload1.sessions,
-          avgAttendance: payload1.avgAttendance,
+          groups: sysPayload.groups,
+          sessions: sysPayload.sessions,
+          avgAttendance: sysPayload.avgAttendance,
         }));
       }
 
       // 3. Краща/гірша сесія
-      const { success2, payload2 } = topBottomRes as any;
-        if (success2) {
-          setAttendanceAnalytics({
-            bestSession: payload2.best,
-            worstSession: payload2.worst,
-          });
+       const { success: topSuccess, payload: topPayload } = topBottomRes as any;
+      if (topSuccess) {
+        setAttendanceAnalytics({
+          bestSession: topPayload.best,
+          worstSession: topPayload.worst,
+        });
       }
     } catch (err) {
       console.error(err);
